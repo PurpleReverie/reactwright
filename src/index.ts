@@ -9,6 +9,7 @@ export { buildPdfFromResolved } from "./backends/latex/build.js";
 export { runExternalFile } from "./cli/run-file.js";
 export { registerTemplateIntrinsic, getTemplateIntrinsic } from "./template/registry.js";
 export { ArticleTemplate } from "./templates/article.js";
+export { IEEETemplate } from "./templates/ieee.js";
 
 export type ContentComponent = ComponentType;
 export type TemplateComponent = ComponentType;

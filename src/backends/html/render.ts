@@ -81,6 +81,7 @@ export function styleToCss(
     fontSize: "font-size",
     lineHeight: "line-height",
     textAlign: "text-align",
+    columnGap: "column-gap",
     color: "color",
     backgroundColor: "background-color",
     border: "border",
@@ -96,6 +97,10 @@ export function styleToCss(
 
   if (kind === "stack" && style?.gap != null) {
     declarations.push(`gap:${String(style.gap)};`);
+  }
+
+  if (style?.columns != null) {
+    declarations.push(`column-count:${String(style.columns)};`);
   }
 
   return declarations.join("");

@@ -9,10 +9,11 @@ import { renderResolvedToLatex } from "../backends/latex/render.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
 import { ArticleTemplate } from "../templates/article.js";
+import { IEEETemplate } from "../templates/ieee.js";
 import { renderTemplateToIR } from "../template/render.js";
 
 type OutputFormat = "html" | "latex" | "pdf";
-type TemplateName = "article";
+type TemplateName = "article" | "ieee";
 
 type RunExternalFileOptions = {
   inputPath: string;
@@ -45,10 +46,10 @@ type ExternalDocumentModule =
 function usage(): string {
   return [
     "Usage:",
-    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,latex,pdf] [--out ./build/reactdoc-run] [--template article]",
+    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,latex,pdf] [--out ./build/reactdoc-run] [--template article|ieee]",
     "",
     "Examples:",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html",
+    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --template ieee",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html,latex,pdf --out ./build/reactdoc-run"
   ].join("\n");
 }
@@ -74,6 +75,10 @@ function parseTemplate(value: string | undefined): TemplateName {
     return "article";
   }
 
+  if (value === "ieee") {
+    return "ieee";
+  }
+
   throw new Error(`Unknown template: ${value}`);
 }
 
@@ -81,6 +86,8 @@ function getBuiltInTemplate(template: TemplateName) {
   switch (template) {
     case "article":
       return ArticleTemplate;
+    case "ieee":
+      return IEEETemplate;
   }
 }
 

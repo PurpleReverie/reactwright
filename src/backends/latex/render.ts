@@ -44,6 +44,33 @@ function normalizeLength(value: unknown): string | null {
   return value;
 }
 
+function findFirstStyleValue(
+  node: ResolvedPageNode | ResolvedChild,
+  key: string
+): unknown {
+  if ("style" in node && node.style != null && key in node.style) {
+    return node.style[key];
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      if (
+        child.kind === "page" ||
+        child.kind === "box" ||
+        child.kind === "stack" ||
+        child.kind === "custom"
+      ) {
+        const found = findFirstStyleValue(child, key);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 function collectPageOptions(style: TemplateStyle | undefined): string[] {
   const options: string[] = [];
 
@@ -70,7 +97,11 @@ function collectPageOptions(style: TemplateStyle | undefined): string[] {
 }
 
 function collectPreamble(page: ResolvedPageNode): string[] {
-  const lines = ["\\documentclass[11pt]{article}"];
+  const fontSize =
+    typeof page.style?.fontSize === "string" && /pt$/.test(page.style.fontSize)
+      ? page.style.fontSize
+      : "11pt";
+  const lines = [`\\documentclass[${fontSize}]{article}`];
   const geometryOptions = collectPageOptions(page.style);
 
   if (geometryOptions.length > 0) {
@@ -85,6 +116,10 @@ function collectPreamble(page: ResolvedPageNode): string[] {
   if (typeof lineHeight === "number") {
     lines.push("\\usepackage{setspace}");
     lines.push(`\\setstretch{${lineHeight}}`);
+  }
+
+  if (findFirstStyleValue(page, "columns") != null) {
+    lines.push("\\usepackage{multicol}");
   }
 
   return lines;
@@ -205,7 +240,26 @@ function renderContentNode(node: ResolvedContentNode): string {
 
 function renderBoxNode(node: ResolvedBoxNode): string {
   const body = node.children.map(renderResolvedChild).join("\n\n");
-  const aligned = wrapWithAlignment(body, node.style?.textAlign);
+  let aligned = wrapWithAlignment(body, node.style?.textAlign);
+
+  const columns =
+    typeof node.style?.columns === "number"
+      ? node.style.columns
+      : typeof node.style?.columns === "string"
+        ? Number(node.style.columns)
+        : null;
+
+  if (columns != null && Number.isFinite(columns) && columns > 1) {
+    const columnGap = typeof node.style?.columnGap === "string" ? node.style.columnGap : null;
+    aligned = [
+      columnGap != null ? `\\setlength{\\columnsep}{${columnGap}}` : "",
+      `\\begin{multicols}{${columns}}`,
+      aligned,
+      "\\end{multicols}"
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
 
   const parts = [aligned];
 
