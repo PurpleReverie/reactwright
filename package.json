@@ -1,0 +1,21 @@
+{
+  "name": "react_doc",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React-authored document engine prototype",
+  "type": "module",
+  "scripts": {
+    "dev": "node --import tsx ./src/index.ts",
+    "check": "tsc --noEmit",
+    "example:minimal": "node --import tsx ./src/examples/minimal.tsx"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-reconciler": "^0.31.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}
