@@ -13,6 +13,12 @@ type ContentIntrinsicMap = {
   paragraph: {
     children?: ReactNode;
   };
+  figure: {
+    src: string;
+    alt?: string;
+    caption?: string;
+    width?: string;
+  };
   abstract: {
     children?: ReactNode;
   };

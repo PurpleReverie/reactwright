@@ -1,3 +1,5 @@
+const figureSource = new URL("./assets/reactdoc-swatch.png", import.meta.url).pathname;
+
 export default function FullArticle() {
   return (
     <document
@@ -45,6 +47,13 @@ export default function FullArticle() {
           conventions. Writers then end up negotiating edge cases that were never
           part of the original format’s design goal.
         </paragraph>
+
+        <figure
+          src={figureSource}
+          alt="A small color swatch used as a placeholder figure."
+          caption="A placeholder figure that exercises the end-to-end image pipeline."
+          width="48mm"
+        />
 
         <paragraph>
           LaTeX, by contrast, provides a rigorous destination for final

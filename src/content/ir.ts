@@ -23,6 +23,14 @@ export type ParagraphNode = {
   children: InlineNode[];
 };
 
+export type FigureNode = {
+  kind: "figure";
+  src: string;
+  alt?: string;
+  caption?: string;
+  width?: string;
+};
+
 export type BlockQuoteNode = {
   kind: "blockquote";
   children: SemanticBlockChild[];
@@ -59,7 +67,7 @@ export type DocumentNode = {
 
 export type InlineNode = TextNode | EmNode | StrongNode | CodeNode;
 
-export type SemanticBlockChild = SectionNode | ParagraphNode | BlockQuoteNode | ListNode;
+export type SemanticBlockChild = SectionNode | ParagraphNode | FigureNode | BlockQuoteNode | ListNode;
 
 export type DocumentChild = AbstractNode | SemanticBlockChild;
 
@@ -68,6 +76,7 @@ export type SemanticNode =
   | AbstractNode
   | SectionNode
   | ParagraphNode
+  | FigureNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode
@@ -81,6 +90,7 @@ export type SemanticContainerNode =
   | AbstractNode
   | SectionNode
   | ParagraphNode
+  | FigureNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode

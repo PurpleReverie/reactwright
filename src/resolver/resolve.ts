@@ -5,6 +5,7 @@ import type {
   DocumentNode,
   DocumentChild,
   EmNode,
+  FigureNode,
   ListItemNode,
   ListNode,
   ParagraphNode,
@@ -24,6 +25,7 @@ import type {
   ResolvedContentChild,
   ResolvedContentNode,
   ResolvedEmNode,
+  ResolvedFigureNode,
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -87,6 +89,16 @@ function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode {
   };
 }
 
+function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
+  return {
+    kind: "figure",
+    src: node.src,
+    alt: node.alt,
+    caption: node.caption,
+    width: node.width
+  };
+}
+
 function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
   return {
     kind: "blockquote",
@@ -130,6 +142,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveSectionNode(node);
     case "paragraph":
       return resolveParagraphNode(node);
+    case "figure":
+      return resolveFigureNode(node);
     case "blockquote":
       return resolveBlockQuoteNode(node);
     case "list":

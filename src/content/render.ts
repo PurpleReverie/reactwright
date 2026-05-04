@@ -9,6 +9,7 @@ import type {
   DocumentNode,
   DocumentChild,
   EmNode,
+  FigureNode,
   ListItemNode,
   ListNode,
   ParagraphNode,
@@ -28,6 +29,10 @@ type ContentProps = Record<string, unknown> & {
   title?: string;
   author?: string;
   ordered?: boolean;
+  src?: string;
+  alt?: string;
+  caption?: string;
+  width?: string;
 };
 
 type ContentContainer = {
@@ -60,6 +65,14 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
         kind: "paragraph",
         children: []
       };
+    case "figure":
+      return {
+        kind: "figure",
+        src: String(props.src ?? ""),
+        alt: typeof props.alt === "string" ? props.alt : undefined,
+        caption: typeof props.caption === "string" ? props.caption : undefined,
+        width: typeof props.width === "string" ? props.width : undefined
+      } as FigureNode;
     case "blockquote":
       return {
         kind: "blockquote",
@@ -117,6 +130,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       }
       parent.children.push(child);
       return;
+    case "figure":
+      throw new Error("`figure` may not contain child nodes.");
     case "em":
     case "strong":
       if (
@@ -144,6 +159,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
     case "item":
       if (
         child.kind !== "paragraph" &&
+        child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list"
       ) {
@@ -156,6 +172,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "abstract" &&
         child.kind !== "section" &&
         child.kind !== "paragraph" &&
+        child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list"
       ) {
@@ -169,6 +186,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       if (
         child.kind !== "section" &&
         child.kind !== "paragraph" &&
+        child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list"
       ) {

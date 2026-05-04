@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import React from "react";
 
 import { renderResolvedToHTML } from "../src/backends/html/render.js";
@@ -22,6 +23,12 @@ function createPaper() {
         <paragraph>
           Hello <strong>world</strong>.
         </paragraph>
+        <figure
+          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          alt="Tiny test swatch"
+          caption="A tiny figure used to validate image support."
+          width="35mm"
+        />
         <blockquote>
           <paragraph>A quoted observation for the HTML and LaTeX backends.</paragraph>
         </blockquote>
@@ -76,6 +83,8 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<h1>Pipeline Test<\/h1>/);
   assert.match(html, /<em>end-to-end<\/em>/);
   assert.match(html, /<h2>Intro<\/h2>/);
+  assert.match(html, /<figure>/);
+  assert.match(html, /reactdoc-swatch\.png/);
   assert.match(html, /<blockquote>/);
   assert.match(html, /<ul>/);
 });
@@ -87,6 +96,8 @@ test("LaTeX backend emits expected content", () => {
   assert.match(latex, /\\documentclass\[11pt\]\{article\}/);
   assert.match(latex, /\\begin\{abstract\}/);
   assert.match(latex, /\\section\{Intro\}/);
+  assert.match(latex, /\\usepackage\{graphicx\}/);
+  assert.match(latex, /\\includegraphics\[width=35mm\]/);
   assert.match(latex, /\\emph\{end-to-end\}/);
   assert.match(latex, /\\begin\{quote\}/);
   assert.match(latex, /\\begin\{itemize\}/);

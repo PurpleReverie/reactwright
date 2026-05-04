@@ -10,6 +10,7 @@ import type {
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
+  ResolvedFigureNode,
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -79,6 +80,8 @@ export function styleToCss(
     paddingLeft: "padding-left",
     fontFamily: "font-family",
     fontSize: "font-size",
+    fontWeight: "font-weight",
+    fontStyle: "font-style",
     lineHeight: "line-height",
     textAlign: "text-align",
     columnGap: "column-gap",
@@ -127,6 +130,14 @@ function renderInlineNode(node: ResolvedInlineNode): string {
 
 function renderParagraphNode(node: ResolvedParagraphNode): string {
   return `<p>${node.children.map(renderInlineNode).join("")}</p>`;
+}
+
+function renderFigureNode(node: ResolvedFigureNode): string {
+  const widthStyle = node.width != null ? ` style="width:${escapeHtml(node.width)};"` : "";
+  const alt = escapeHtml(node.alt ?? node.caption ?? "");
+  const caption =
+    node.caption != null ? `<figcaption>${escapeHtml(node.caption)}</figcaption>` : "";
+  return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
 function renderSectionNode(node: ResolvedSectionNode): string {
@@ -178,6 +189,8 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderAbstractNode(node);
     case "section":
       return renderSectionNode(node);
+    case "figure":
+      return renderFigureNode(node);
     case "blockquote":
       return renderBlockQuoteNode(node);
     case "list":
@@ -258,6 +271,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "author":
     case "abstract":
     case "section":
+    case "figure":
     case "paragraph":
     case "text":
       return renderContentNode(node);

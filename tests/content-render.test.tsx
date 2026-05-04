@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import React from "react";
 
 import { renderContentToIR } from "../src/content/render.js";
@@ -11,6 +12,12 @@ test("content renderer creates semantic IR for a minimal document", () => {
         <paragraph>
           Hello <em>world</em> with <strong>emphasis</strong> and <code>inline-code</code>.
         </paragraph>
+        <figure
+          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          alt="Tiny test swatch"
+          caption="A tiny figure used to validate the figure primitive."
+          width="40mm"
+        />
       </section>
     </document>
   );
@@ -35,6 +42,13 @@ test("content renderer creates semantic IR for a minimal document", () => {
               { kind: "code", children: [{ kind: "text", value: "inline-code" }] },
               { kind: "text", value: "." }
             ]
+          },
+          {
+            kind: "figure",
+            src: resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png"),
+            alt: "Tiny test swatch",
+            caption: "A tiny figure used to validate the figure primitive.",
+            width: "40mm"
           }
         ]
       }

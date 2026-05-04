@@ -25,6 +25,14 @@ export type ResolvedParagraphNode = {
   children: ResolvedInlineNode[];
 };
 
+export type ResolvedFigureNode = {
+  kind: "figure";
+  src: string;
+  alt?: string;
+  caption?: string;
+  width?: string;
+};
+
 export type ResolvedBlockQuoteNode = {
   kind: "blockquote";
   children: ResolvedContentChild[];
@@ -94,6 +102,7 @@ export type ResolvedContentNode =
   | ResolvedAuthorNode
   | ResolvedAbstractNode
   | ResolvedSectionNode
+  | ResolvedFigureNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedListItemNode
@@ -105,6 +114,7 @@ export type ResolvedContentNode =
 
 export type ResolvedContentChild =
   | ResolvedSectionNode
+  | ResolvedFigureNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedParagraphNode
