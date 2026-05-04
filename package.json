@@ -1,12 +1,27 @@
 {
-  "name": "react_doc",
+  "name": "reactdoc",
   "version": "0.0.0",
   "private": true,
   "description": "React-authored document engine prototype",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./jsx": {
+      "types": "./src/public/jsx.d.ts",
+      "default": "./src/public/jsx.js"
+    },
+    "./templates": {
+      "types": "./src/public/templates.ts",
+      "default": "./src/public/templates.ts"
+    }
+  },
   "scripts": {
-    "dev": "node --import tsx ./src/index.ts",
+    "dev": "node --import tsx -e \"import('reactdoc').then(() => console.log('reactdoc package entry loaded'))\"",
     "check": "tsc --noEmit",
+    "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
     "test": "node --import tsx --test tests/**/*.test.tsx",
     "run:file": "node --import tsx ./src/cli/run-file.ts",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",

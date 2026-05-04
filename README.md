@@ -501,3 +501,47 @@ For the external runner specifically, [playground/custom-doc.tsx](/Users/taurajg
 - a relative import from [playground/fragments/observation.tsx](/Users/taurajgreig/Projects/Personal/react_doc/playground/fragments/observation.tsx)
 - external template ownership without falling back to the built-in article template
 - the primary authoring path using `page`, `stack`, `box`, and `slot` without custom intrinsic registration
+
+## TypeScript IntelliSense
+
+ReactDoc now exposes a public JSX typing entrypoint for consumer projects:
+
+- `reactdoc`
+- `reactdoc/jsx`
+- `reactdoc/templates`
+
+The intended consumer setup is:
+
+```ts
+import "reactdoc/jsx";
+```
+
+Then author content normally in `.tsx`:
+
+```tsx
+import "reactdoc/jsx";
+import { ArticleTemplate } from "reactdoc/templates";
+import type { ContentComponent, TemplateComponent } from "reactdoc";
+
+export const Template: TemplateComponent = () => <ArticleTemplate />;
+
+const Paper: ContentComponent = () => (
+  <document title="My Paper">
+    <section title="Intro">
+      <paragraph>Hello world.</paragraph>
+    </section>
+  </document>
+);
+
+export default Paper;
+```
+
+A consumer-style proof fixture lives in:
+
+- [fixtures/intellisense-consumer/paper.tsx](/Users/taurajgreig/Projects/Personal/react_doc/fixtures/intellisense-consumer/paper.tsx)
+
+and can be verified with:
+
+```bash
+npm run check:intellisense
+```
