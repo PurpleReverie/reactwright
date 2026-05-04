@@ -459,7 +459,45 @@ npm run run:file -- ./playground/paper.tsx --format html,latex,pdf --out ./build
 
 Current `M10` contract:
 
-- input file must export a default React component
-- ReactDoc chooses the built-in `article` template
+- input file must export content as `default`, `Content`, or `content`
+- input file may also export a template as `Template` or `template`
+- if no external template is exported, ReactDoc falls back to the built-in `article` template
 - supported formats are `html`, `latex`, and `pdf`
 - default output dir is `build/reactdoc-run`
+
+This means an external file may own both React scopes:
+
+- one scope for content
+- one scope for template
+
+and they may live in the same file or import sub-files normally.
+
+## Project-Scope Template Example
+
+ReactDoc also supports project-scoped content and project-scoped templates without changing the engine.
+
+Relevant files:
+
+- [playground/custom-content.tsx](/Users/taurajgreig/Projects/Personal/react_doc/playground/custom-content.tsx)
+- [playground/custom-template.tsx](/Users/taurajgreig/Projects/Personal/react_doc/playground/custom-template.tsx)
+- [src/examples/project-scope.tsx](/Users/taurajgreig/Projects/Personal/react_doc/src/examples/project-scope.tsx)
+
+Run it with:
+
+```bash
+npm run example:project-scope
+```
+
+That example shows:
+
+- content authored in project scope
+- template authored in project scope
+- a custom template built from the normal built-in template primitives
+- the normal ReactDoc pipeline reused without engine changes
+
+For the external runner specifically, [playground/custom-doc.tsx](/Users/taurajgreig/Projects/Personal/react_doc/playground/custom-doc.tsx) now demonstrates:
+
+- content export and template export from the same external file
+- a relative import from [playground/fragments/observation.tsx](/Users/taurajgreig/Projects/Personal/react_doc/playground/fragments/observation.tsx)
+- external template ownership without falling back to the built-in article template
+- the primary authoring path using `page`, `stack`, `box`, and `slot` without custom intrinsic registration

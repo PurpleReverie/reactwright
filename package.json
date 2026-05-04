@@ -15,7 +15,8 @@
     "example:html": "node --import tsx ./src/examples/html.tsx",
     "example:latex": "node --import tsx ./src/examples/latex.tsx",
     "example:pdf": "node --import tsx ./src/examples/pdf.tsx",
-    "example:custom-intrinsic": "node --import tsx ./src/examples/custom-intrinsic.tsx"
+    "example:custom-intrinsic": "node --import tsx ./src/examples/custom-intrinsic.tsx",
+    "example:project-scope": "node --import tsx ./src/examples/project-scope.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",

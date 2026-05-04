@@ -26,11 +26,21 @@ type RunExternalFileResult = {
   outDir: string;
   baseName: string;
   formats: OutputFormat[];
-  template: TemplateName;
+  template: TemplateName | "external";
   htmlPath?: string;
   texPath?: string;
   pdfPath?: string;
 };
+
+type ExternalDocumentModule =
+  | {
+      default?: unknown;
+      Template?: unknown;
+      template?: unknown;
+      Content?: unknown;
+      content?: unknown;
+    }
+  | unknown;
 
 function usage(): string {
   return [
@@ -79,17 +89,42 @@ async function loadExternalDocumentModule(inputPath: string): Promise<unknown> {
   return import(pathToFileURL(absolutePath).href);
 }
 
-function getDocumentComponent(moduleValue: unknown): React.ComponentType {
-  if (
-    typeof moduleValue === "object" &&
-    moduleValue != null &&
-    "default" in moduleValue &&
-    typeof (moduleValue as { default?: unknown }).default === "function"
-  ) {
-    return (moduleValue as { default: React.ComponentType }).default;
+function isComponent(value: unknown): value is React.ComponentType {
+  return typeof value === "function";
+}
+
+function getDocumentComponent(moduleValue: ExternalDocumentModule): React.ComponentType {
+  if (typeof moduleValue === "object" && moduleValue != null) {
+    if (isComponent((moduleValue as { default?: unknown }).default)) {
+      return (moduleValue as { default: React.ComponentType }).default;
+    }
+
+    if (isComponent((moduleValue as { Content?: unknown }).Content)) {
+      return (moduleValue as { Content: React.ComponentType }).Content;
+    }
+
+    if (isComponent((moduleValue as { content?: unknown }).content)) {
+      return (moduleValue as { content: React.ComponentType }).content;
+    }
   }
 
-  throw new Error("Input file must export a default React component.");
+  throw new Error(
+    "Input file must export content as `default`, `Content`, or `content`."
+  );
+}
+
+function getExternalTemplateComponent(moduleValue: ExternalDocumentModule): React.ComponentType | null {
+  if (typeof moduleValue === "object" && moduleValue != null) {
+    if (isComponent((moduleValue as { Template?: unknown }).Template)) {
+      return (moduleValue as { Template: React.ComponentType }).Template;
+    }
+
+    if (isComponent((moduleValue as { template?: unknown }).template)) {
+      return (moduleValue as { template: React.ComponentType }).template;
+    }
+  }
+
+  return null;
 }
 
 async function writeHtmlOutput(outDir: string, baseName: string, html: string): Promise<string> {
@@ -112,10 +147,14 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
 
   await mkdir(outDir, { recursive: true });
 
-  const loadedModule = await loadExternalDocumentModule(absoluteInputPath);
+  const loadedModule = (await loadExternalDocumentModule(absoluteInputPath)) as ExternalDocumentModule;
   const DocumentComponent = getDocumentComponent(loadedModule);
+  const ExternalTemplateComponent = getExternalTemplateComponent(loadedModule);
   const contentElement = React.createElement(DocumentComponent);
-  const templateElement = React.createElement(getBuiltInTemplate(template), null);
+  const templateElement = React.createElement(
+    ExternalTemplateComponent ?? getBuiltInTemplate(template),
+    null
+  );
 
   const documentTree = renderContentToIR(contentElement);
   const templateTree = renderTemplateToIR(templateElement);
@@ -126,7 +165,7 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
     outDir,
     baseName,
     formats: options.formats,
-    template
+    template: ExternalTemplateComponent == null ? template : "external"
   };
 
   if (options.formats.includes("html")) {
