@@ -108,6 +108,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap): ResolvedChi
     case "page":
     case "box":
     case "stack":
+    case "custom":
       return [resolveTemplateNode(child, slots)];
     case "text":
       return [{ kind: "text", value: child.value }];
@@ -132,6 +133,14 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap): ResolvedTempla
       return {
         kind: "stack",
         gap: node.gap,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots))
+      };
+    case "custom":
+      return {
+        kind: "custom",
+        name: node.name,
+        props: node.props,
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots))
       };

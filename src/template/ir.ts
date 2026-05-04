@@ -26,13 +26,27 @@ export type SlotNode = {
   name: SlotName;
 };
 
+export type CustomTemplateNode = {
+  kind: "custom";
+  name: string;
+  props: Record<string, unknown>;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
 export type TemplateTextNode = {
   kind: "text";
   value: string;
 };
 
-export type TemplateNode = PageNode | BoxNode | StackNode | SlotNode | TemplateTextNode;
+export type TemplateNode =
+  | PageNode
+  | BoxNode
+  | StackNode
+  | SlotNode
+  | CustomTemplateNode
+  | TemplateTextNode;
 
-export type TemplateContainerNode = PageNode | BoxNode | StackNode;
+export type TemplateContainerNode = PageNode | BoxNode | StackNode | CustomTemplateNode;
 
 export type TemplateChild = TemplateContainerNode | SlotNode | TemplateTextNode;

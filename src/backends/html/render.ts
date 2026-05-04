@@ -1,10 +1,12 @@
 import type { TemplateStyle } from "../../template/ir.js";
+import { getTemplateIntrinsic } from "../../template/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBoxNode,
   ResolvedChild,
   ResolvedContentNode,
+  ResolvedCustomTemplateNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
@@ -13,7 +15,7 @@ import type {
   ResolvedTitleNode
 } from "../../resolver/ir.js";
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -33,7 +35,10 @@ function pageSizeToCss(size: unknown): string | null {
   }
 }
 
-function styleToCss(style: TemplateStyle | undefined, kind?: "page" | "box" | "stack"): string {
+export function styleToCss(
+  style: TemplateStyle | undefined,
+  kind?: "page" | "box" | "stack"
+): string {
   if (style == null && kind !== "stack") {
     return "";
   }
@@ -146,6 +151,24 @@ function renderBoxNode(node: ResolvedBoxNode): string {
   return `<div data-node="box"${styleAttr}>${node.children.map(renderResolvedChild).join("")}</div>`;
 }
 
+function renderCustomNode(node: ResolvedCustomTemplateNode): string {
+  const definition = getTemplateIntrinsic(node.name);
+  if (definition?.html == null) {
+    throw new Error(`No HTML renderer registered for custom template intrinsic: ${node.name}`);
+  }
+
+  return definition.html({
+    props: {
+      ...node.props,
+      ...(node.style != null ? { style: node.style } : {})
+    },
+    children: node.children,
+    renderChildren: (children) => children.map(renderResolvedChild).join(""),
+    styleToCss,
+    escapeHtml
+  });
+}
+
 function renderStackNode(node: ResolvedStackNode): string {
   const mergedStyle: TemplateStyle = {
     ...(node.style ?? {}),
@@ -177,6 +200,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderBoxNode(node);
     case "stack":
       return renderStackNode(node);
+    case "custom":
+      return renderCustomNode(node);
     case "title":
     case "author":
     case "abstract":

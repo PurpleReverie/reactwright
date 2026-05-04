@@ -1,9 +1,11 @@
 import Reconciler from "react-reconciler";
 import { DefaultEventPriority } from "react-reconciler/constants";
 import type { ReactNode } from "react";
+import { getTemplateIntrinsic } from "./registry.js";
 
 import type {
   BoxNode,
+  CustomTemplateNode,
   PageNode,
   SlotName,
   SlotNode,
@@ -57,6 +59,16 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         name: validateSlotName(props.name)
       };
     default:
+      if (getTemplateIntrinsic(type) != null) {
+        const { children: _children, ...restProps } = props;
+        return {
+          kind: "custom",
+          name: type,
+          props: restProps,
+          style: props.style,
+          children: []
+        };
+      }
       throw new Error(`Unsupported template intrinsic: ${type}`);
   }
 }
@@ -195,7 +207,7 @@ const templateHostConfig = {
   commitTextUpdate(textInstance: TemplateTextNode, _oldText: string, newText: string): void {
     textInstance.value = newText;
   },
-  resetTextContent(instance: BoxNode | PageNode | StackNode): void {
+  resetTextContent(instance: BoxNode | PageNode | StackNode | CustomTemplateNode): void {
     instance.children = [];
   },
   prepareUpdate(): null {

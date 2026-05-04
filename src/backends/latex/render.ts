@@ -1,10 +1,12 @@
 import type { TemplateStyle } from "../../template/ir.js";
+import { getTemplateIntrinsic } from "../../template/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBoxNode,
   ResolvedChild,
   ResolvedContentNode,
+  ResolvedCustomTemplateNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
@@ -13,7 +15,7 @@ import type {
   ResolvedTitleNode
 } from "../../resolver/ir.js";
 
-function escapeLatex(value: string): string {
+export function escapeLatex(value: string): string {
   return value
     .replaceAll("\\", "\\textbackslash{}")
     .replaceAll("&", "\\&")
@@ -81,7 +83,7 @@ function collectPreamble(page: ResolvedPageNode): string[] {
   return lines;
 }
 
-function wrapWithAlignment(content: string, textAlign: unknown): string {
+export function wrapWithAlignment(content: string, textAlign: unknown): string {
   if (textAlign === "center") {
     return ["\\begin{center}", content, "\\end{center}"].join("\n");
   }
@@ -162,6 +164,24 @@ function renderBoxNode(node: ResolvedBoxNode): string {
   return parts.join("\n\n");
 }
 
+function renderCustomNode(node: ResolvedCustomTemplateNode): string {
+  const definition = getTemplateIntrinsic(node.name);
+  if (definition?.latex == null) {
+    throw new Error(`No LaTeX renderer registered for custom template intrinsic: ${node.name}`);
+  }
+
+  return definition.latex({
+    props: {
+      ...node.props,
+      ...(node.style != null ? { style: node.style } : {})
+    },
+    children: node.children,
+    renderChildren: (children) => children.map(renderResolvedChild).join("\n\n"),
+    escapeLatex,
+    wrapWithAlignment
+  });
+}
+
 function renderStackNode(node: ResolvedStackNode): string {
   const pieces = node.children.map(renderResolvedChild);
   const gap = node.gap != null ? `\n\\vspace*{${node.gap}}\n` : "\n\n";
@@ -180,6 +200,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderBoxNode(node);
     case "stack":
       return renderStackNode(node);
+    case "custom":
+      return renderCustomNode(node);
     case "title":
     case "author":
     case "abstract":

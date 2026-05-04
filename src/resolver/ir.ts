@@ -31,6 +31,14 @@ export type ResolvedAuthorNode = {
   value: string;
 };
 
+export type ResolvedCustomTemplateNode = {
+  kind: "custom";
+  name: string;
+  props: Record<string, unknown>;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedPageNode = {
   kind: "page";
   style?: TemplateStyle;
@@ -63,6 +71,10 @@ export type ResolvedContentChild =
   | ResolvedParagraphNode
   | ResolvedTextNode;
 
-export type ResolvedTemplateNode = ResolvedPageNode | ResolvedBoxNode | ResolvedStackNode;
+export type ResolvedTemplateNode =
+  | ResolvedPageNode
+  | ResolvedBoxNode
+  | ResolvedStackNode
+  | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;
