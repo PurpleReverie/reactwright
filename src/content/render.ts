@@ -4,11 +4,18 @@ import type { ReactNode } from "react";
 
 import type {
   AbstractNode,
+  BlockQuoteNode,
+  CodeNode,
   DocumentNode,
+  DocumentChild,
+  EmNode,
+  ListItemNode,
+  ListNode,
   ParagraphNode,
   SectionNode,
-  SemanticChild,
+  SemanticBlockChild,
   SemanticContainerNode,
+  StrongNode,
   SemanticNode,
   TextNode
 } from "./ir.js";
@@ -20,6 +27,7 @@ type HostContext = {
 type ContentProps = Record<string, unknown> & {
   title?: string;
   author?: string;
+  ordered?: boolean;
 };
 
 type ContentContainer = {
@@ -52,6 +60,37 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
         kind: "paragraph",
         children: []
       };
+    case "blockquote":
+      return {
+        kind: "blockquote",
+        children: []
+      };
+    case "list":
+      return {
+        kind: "list",
+        ordered: Boolean(props.ordered),
+        children: []
+      };
+    case "item":
+      return {
+        kind: "item",
+        children: []
+      };
+    case "em":
+      return {
+        kind: "em",
+        children: []
+      };
+    case "strong":
+      return {
+        kind: "strong",
+        children: []
+      };
+    case "code":
+      return {
+        kind: "code",
+        children: []
+      };
     default:
       throw new Error(`Unsupported content intrinsic: ${type}`);
   }
@@ -68,15 +107,74 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
 
   switch (parent.kind) {
     case "paragraph":
+      if (
+        child.kind !== "text" &&
+        child.kind !== "em" &&
+        child.kind !== "strong" &&
+        child.kind !== "code"
+      ) {
+        throw new Error("`paragraph` may only contain inline primitives.");
+      }
+      parent.children.push(child);
+      return;
+    case "em":
+    case "strong":
+      if (
+        child.kind !== "text" &&
+        child.kind !== "em" &&
+        child.kind !== "strong" &&
+        child.kind !== "code"
+      ) {
+        throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
+      }
+      parent.children.push(child);
+      return;
+    case "code":
       if (child.kind !== "text") {
-        throw new Error("`paragraph` may only contain text in v0.");
+        throw new Error("`code` may only contain text.");
+      }
+      parent.children.push(child);
+      return;
+    case "list":
+      if (child.kind !== "item") {
+        throw new Error("`list` may only contain `item` children.");
+      }
+      parent.children.push(child);
+      return;
+    case "item":
+      if (
+        child.kind !== "paragraph" &&
+        child.kind !== "blockquote" &&
+        child.kind !== "list"
+      ) {
+        throw new Error("`item` may only contain block primitives.");
       }
       parent.children.push(child);
       return;
     case "document":
+      if (
+        child.kind !== "abstract" &&
+        child.kind !== "section" &&
+        child.kind !== "paragraph" &&
+        child.kind !== "blockquote" &&
+        child.kind !== "list"
+      ) {
+        throw new Error("`document` may only contain document-level block primitives.");
+      }
+      parent.children.push(child as DocumentChild);
+      return;
     case "abstract":
     case "section":
-      parent.children.push(child as SemanticChild);
+    case "blockquote":
+      if (
+        child.kind !== "section" &&
+        child.kind !== "paragraph" &&
+        child.kind !== "blockquote" &&
+        child.kind !== "list"
+      ) {
+        throw new Error(`\`${parent.kind}\` may only contain block primitives.`);
+      }
+      parent.children.push(child as SemanticBlockChild);
       return;
   }
 }
@@ -199,7 +297,7 @@ const contentHostConfig = {
   commitTextUpdate(textInstance: TextNode, _oldText: string, newText: string): void {
     textInstance.value = newText;
   },
-  resetTextContent(instance: ParagraphNode): void {
+  resetTextContent(instance: ParagraphNode | EmNode | StrongNode | CodeNode): void {
     instance.children = [];
   },
   prepareUpdate(): null {

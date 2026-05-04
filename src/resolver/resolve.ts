@@ -1,9 +1,16 @@
 import type {
   AbstractNode,
+  BlockQuoteNode,
+  CodeNode,
   DocumentNode,
+  DocumentChild,
+  EmNode,
+  ListItemNode,
+  ListNode,
   ParagraphNode,
   SectionNode,
-  SemanticChild,
+  SemanticBlockChild,
+  StrongNode,
   TextNode
 } from "../content/ir.js";
 import type { SlotName, TemplateChild, TemplateNode } from "../template/ir.js";
@@ -11,13 +18,20 @@ import type { SlotName, TemplateChild, TemplateNode } from "../template/ir.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
+  ResolvedBlockQuoteNode,
   ResolvedChild,
+  ResolvedCodeNode,
   ResolvedContentChild,
   ResolvedContentNode,
+  ResolvedEmNode,
+  ResolvedInlineNode,
+  ResolvedListItemNode,
+  ResolvedListNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
   ResolvedStackNode,
+  ResolvedStrongNode,
   ResolvedTemplateNode,
   ResolvedTextNode,
   ResolvedTitleNode
@@ -32,10 +46,66 @@ function resolveTextNode(node: TextNode): ResolvedTextNode {
   };
 }
 
+function resolveEmNode(node: EmNode): ResolvedEmNode {
+  return {
+    kind: "em",
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveStrongNode(node: StrongNode): ResolvedStrongNode {
+  return {
+    kind: "strong",
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveCodeNode(node: CodeNode): ResolvedCodeNode {
+  return {
+    kind: "code",
+    children: node.children.map(resolveTextNode)
+  };
+}
+
+function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode): ResolvedInlineNode {
+  switch (node.kind) {
+    case "text":
+      return resolveTextNode(node);
+    case "em":
+      return resolveEmNode(node);
+    case "strong":
+      return resolveStrongNode(node);
+    case "code":
+      return resolveCodeNode(node);
+  }
+}
+
 function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode {
   return {
     kind: "paragraph",
-    children: node.children.map(resolveTextNode)
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
+  return {
+    kind: "blockquote",
+    children: node.children.map(resolveContentChild)
+  };
+}
+
+function resolveListItemNode(node: ListItemNode): ResolvedListItemNode {
+  return {
+    kind: "item",
+    children: node.children.map(resolveContentChild)
+  };
+}
+
+function resolveListNode(node: ListNode): ResolvedListNode {
+  return {
+    kind: "list",
+    ordered: node.ordered,
+    children: node.children.map(resolveListItemNode)
   };
 }
 
@@ -54,16 +124,16 @@ function resolveAbstractNode(node: AbstractNode): ResolvedAbstractNode {
   };
 }
 
-function resolveContentChild(node: SemanticChild): ResolvedContentChild {
+function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
   switch (node.kind) {
     case "section":
       return resolveSectionNode(node);
     case "paragraph":
       return resolveParagraphNode(node);
-    case "text":
-      return resolveTextNode(node);
-    case "abstract":
-      throw new Error("`abstract` is not allowed as a nested body child in v0.");
+    case "blockquote":
+      return resolveBlockQuoteNode(node);
+    case "list":
+      return resolveListNode(node);
   }
 }
 
@@ -90,7 +160,7 @@ function buildSlotMap(document: DocumentNode): SlotMap {
     .map(resolveAbstractNode);
 
   const body = document.children
-    .filter((child): child is Exclude<SemanticChild, AbstractNode> => child.kind !== "abstract")
+    .filter((child): child is Exclude<DocumentChild, AbstractNode> => child.kind !== "abstract")
     .map(resolveContentChild);
 
   return {

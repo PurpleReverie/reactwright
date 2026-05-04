@@ -13,11 +13,26 @@ function createPaper() {
   return (
     <document title="Pipeline Test" author="Tauraj Greig">
       <abstract>
-        <paragraph>Testing end-to-end resolution.</paragraph>
+        <paragraph>
+          Testing <em>end-to-end</em> resolution.
+        </paragraph>
       </abstract>
 
       <section title="Intro">
-        <paragraph>Hello world.</paragraph>
+        <paragraph>
+          Hello <strong>world</strong>.
+        </paragraph>
+        <blockquote>
+          <paragraph>A quoted observation for the HTML and LaTeX backends.</paragraph>
+        </blockquote>
+        <list>
+          <item>
+            <paragraph>First bullet.</paragraph>
+          </item>
+          <item>
+            <paragraph>Second bullet.</paragraph>
+          </item>
+        </list>
       </section>
     </document>
   );
@@ -59,8 +74,10 @@ test("HTML backend emits expected content", () => {
   const html = renderResolvedToHTML(resolved);
 
   assert.match(html, /<h1>Pipeline Test<\/h1>/);
-  assert.match(html, /Testing end-to-end resolution\./);
+  assert.match(html, /<em>end-to-end<\/em>/);
   assert.match(html, /<h2>Intro<\/h2>/);
+  assert.match(html, /<blockquote>/);
+  assert.match(html, /<ul>/);
 });
 
 test("LaTeX backend emits expected content", () => {
@@ -70,6 +87,9 @@ test("LaTeX backend emits expected content", () => {
   assert.match(latex, /\\documentclass\[11pt\]\{article\}/);
   assert.match(latex, /\\begin\{abstract\}/);
   assert.match(latex, /\\section\{Intro\}/);
+  assert.match(latex, /\\emph\{end-to-end\}/);
+  assert.match(latex, /\\begin\{quote\}/);
+  assert.match(latex, /\\begin\{itemize\}/);
 });
 
 test("custom template intrinsic renders through HTML and LaTeX backends", () => {

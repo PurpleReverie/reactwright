@@ -8,7 +8,9 @@ test("content renderer creates semantic IR for a minimal document", () => {
   const result = renderContentToIR(
     <document title="Minimal Test" author="Tauraj Greig">
       <section title="Introduction">
-        <paragraph>Hello world.</paragraph>
+        <paragraph>
+          Hello <em>world</em> with <strong>emphasis</strong> and <code>inline-code</code>.
+        </paragraph>
       </section>
     </document>
   );
@@ -24,7 +26,15 @@ test("content renderer creates semantic IR for a minimal document", () => {
         children: [
           {
             kind: "paragraph",
-            children: [{ kind: "text", value: "Hello world." }]
+            children: [
+              { kind: "text", value: "Hello " },
+              { kind: "em", children: [{ kind: "text", value: "world" }] },
+              { kind: "text", value: " with " },
+              { kind: "strong", children: [{ kind: "text", value: "emphasis" }] },
+              { kind: "text", value: " and " },
+              { kind: "code", children: [{ kind: "text", value: "inline-code" }] },
+              { kind: "text", value: "." }
+            ]
           }
         ]
       }
@@ -55,6 +65,6 @@ test("content renderer rejects block children inside paragraph", () => {
           </paragraph>
         </document>
       ),
-    /paragraph may only contain text|produced no root node/i
+    /paragraph may only contain inline primitives|produced no root node/i
   );
 });

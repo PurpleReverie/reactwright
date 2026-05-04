@@ -5,9 +5,40 @@ export type ResolvedTextNode = {
   value: string;
 };
 
+export type ResolvedEmNode = {
+  kind: "em";
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedStrongNode = {
+  kind: "strong";
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedCodeNode = {
+  kind: "code";
+  children: ResolvedTextNode[];
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
-  children: ResolvedTextNode[];
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedBlockQuoteNode = {
+  kind: "blockquote";
+  children: ResolvedContentChild[];
+};
+
+export type ResolvedListItemNode = {
+  kind: "item";
+  children: ResolvedContentChild[];
+};
+
+export type ResolvedListNode = {
+  kind: "list";
+  ordered: boolean;
+  children: ResolvedListItemNode[];
 };
 
 export type ResolvedSectionNode = {
@@ -63,13 +94,27 @@ export type ResolvedContentNode =
   | ResolvedAuthorNode
   | ResolvedAbstractNode
   | ResolvedSectionNode
+  | ResolvedBlockQuoteNode
+  | ResolvedListNode
+  | ResolvedListItemNode
   | ResolvedParagraphNode
+  | ResolvedEmNode
+  | ResolvedStrongNode
+  | ResolvedCodeNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
   | ResolvedSectionNode
+  | ResolvedBlockQuoteNode
+  | ResolvedListNode
   | ResolvedParagraphNode
   | ResolvedTextNode;
+
+export type ResolvedInlineNode =
+  | ResolvedTextNode
+  | ResolvedEmNode
+  | ResolvedStrongNode
+  | ResolvedCodeNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

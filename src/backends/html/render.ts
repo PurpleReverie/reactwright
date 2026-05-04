@@ -3,14 +3,21 @@ import { getTemplateIntrinsic } from "../../template/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
+  ResolvedBlockQuoteNode,
   ResolvedBoxNode,
   ResolvedChild,
+  ResolvedCodeNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
+  ResolvedEmNode,
+  ResolvedInlineNode,
+  ResolvedListItemNode,
+  ResolvedListNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
   ResolvedStackNode,
+  ResolvedStrongNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
@@ -98,8 +105,23 @@ function renderTextNode(node: ResolvedTextNode): string {
   return escapeHtml(node.value);
 }
 
+function renderInlineNode(node: ResolvedInlineNode): string {
+  switch (node.kind) {
+    case "text":
+      return renderTextNode(node);
+    case "em":
+      return `<em>${node.children.map(renderInlineNode).join("")}</em>`;
+    case "strong":
+      return `<strong>${node.children.map(renderInlineNode).join("")}</strong>`;
+    case "code":
+      return `<code>${node.children.map(renderTextNode).join("")}</code>`;
+  }
+
+  throw new Error("Unsupported resolved inline node.");
+}
+
 function renderParagraphNode(node: ResolvedParagraphNode): string {
-  return `<p>${node.children.map(renderTextNode).join("")}</p>`;
+  return `<p>${node.children.map(renderInlineNode).join("")}</p>`;
 }
 
 function renderSectionNode(node: ResolvedSectionNode): string {
@@ -109,6 +131,19 @@ function renderSectionNode(node: ResolvedSectionNode): string {
     ...node.children.map(renderContentNode),
     "</section>"
   ].join("");
+}
+
+function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
+  return `<blockquote>${node.children.map(renderContentNode).join("")}</blockquote>`;
+}
+
+function renderListItemNode(node: ResolvedListItemNode): string {
+  return `<li>${node.children.map(renderContentNode).join("")}</li>`;
+}
+
+function renderListNode(node: ResolvedListNode): string {
+  const tag = node.ordered ? "ol" : "ul";
+  return `<${tag}>${node.children.map(renderListItemNode).join("")}</${tag}>`;
 }
 
 function renderAbstractNode(node: ResolvedAbstractNode): string {
@@ -138,11 +173,23 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderAbstractNode(node);
     case "section":
       return renderSectionNode(node);
+    case "blockquote":
+      return renderBlockQuoteNode(node);
+    case "list":
+      return renderListNode(node);
+    case "item":
+      return renderListItemNode(node);
     case "paragraph":
       return renderParagraphNode(node);
+    case "em":
+    case "strong":
+    case "code":
+      return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
   }
+
+  throw new Error("Unsupported resolved content node.");
 }
 
 function renderBoxNode(node: ResolvedBoxNode): string {
@@ -210,6 +257,8 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "text":
       return renderContentNode(node);
   }
+
+  throw new Error("Unsupported resolved child node.");
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
@@ -229,6 +278,10 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "h2{font-size:1.2rem;line-height:1.3;margin-bottom:0.75rem;}",
     "p + p{margin-top:0.9rem;}",
     "section + section{margin-top:1.25rem;}",
+    "blockquote{margin:0;padding-left:1rem;border-left:3px solid #cbd5e1;color:#334155;}",
+    "ul,ol{margin:0;padding-left:1.5rem;}",
+    "li + li{margin-top:0.5rem;}",
+    "code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:#f1f5f9;padding:0.1rem 0.25rem;border-radius:0.2rem;}",
     "</style>",
     "</head>",
     "<body>",

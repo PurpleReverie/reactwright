@@ -3,14 +3,21 @@ import { getTemplateIntrinsic } from "../../template/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
+  ResolvedBlockQuoteNode,
   ResolvedBoxNode,
   ResolvedChild,
+  ResolvedCodeNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
+  ResolvedEmNode,
+  ResolvedInlineNode,
+  ResolvedListItemNode,
+  ResolvedListNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
   ResolvedStackNode,
+  ResolvedStrongNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
@@ -103,8 +110,23 @@ function renderTextNode(node: ResolvedTextNode): string {
   return escapeLatex(node.value);
 }
 
+function renderInlineNode(node: ResolvedInlineNode): string {
+  switch (node.kind) {
+    case "text":
+      return renderTextNode(node);
+    case "em":
+      return `\\emph{${node.children.map(renderInlineNode).join("")}}`;
+    case "strong":
+      return `\\textbf{${node.children.map(renderInlineNode).join("")}}`;
+    case "code":
+      return `\\texttt{${node.children.map(renderTextNode).join("")}}`;
+  }
+
+  throw new Error("Unsupported resolved inline node.");
+}
+
 function renderParagraphNode(node: ResolvedParagraphNode): string {
-  return `${node.children.map(renderTextNode).join("")}\n`;
+  return `${node.children.map(renderInlineNode).join("")}\n`;
 }
 
 function renderSectionNode(node: ResolvedSectionNode): string {
@@ -112,6 +134,28 @@ function renderSectionNode(node: ResolvedSectionNode): string {
     `\\section{${escapeLatex(node.title)}}`,
     ...node.children.map(renderContentNode)
   ].join("\n\n");
+}
+
+function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
+  return [
+    "\\begin{quote}",
+    ...node.children.map(renderContentNode),
+    "\\end{quote}"
+  ].join("\n\n");
+}
+
+function renderListItemNode(node: ResolvedListItemNode): string {
+  const body = node.children.map(renderContentNode).join("\n\n");
+  return `\\item ${body}`;
+}
+
+function renderListNode(node: ResolvedListNode): string {
+  const environment = node.ordered ? "enumerate" : "itemize";
+  return [
+    `\\begin{${environment}}`,
+    ...node.children.map(renderListItemNode),
+    `\\end{${environment}}`
+  ].join("\n");
 }
 
 function renderAbstractNode(node: ResolvedAbstractNode): string {
@@ -140,11 +184,23 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderAbstractNode(node);
     case "section":
       return renderSectionNode(node);
+    case "blockquote":
+      return renderBlockQuoteNode(node);
+    case "list":
+      return renderListNode(node);
+    case "item":
+      return renderListItemNode(node);
     case "paragraph":
       return renderParagraphNode(node);
+    case "em":
+    case "strong":
+    case "code":
+      return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
   }
+
+  throw new Error("Unsupported resolved content node.");
 }
 
 function renderBoxNode(node: ResolvedBoxNode): string {
@@ -210,6 +266,8 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "text":
       return renderContentNode(node);
   }
+
+  throw new Error("Unsupported resolved child node.");
 }
 
 export function renderResolvedToLatex(page: ResolvedPageNode): string {

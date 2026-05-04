@@ -16,6 +16,25 @@ type ContentIntrinsicMap = {
   abstract: {
     children?: ReactNode;
   };
+  em: {
+    children?: ReactNode;
+  };
+  strong: {
+    children?: ReactNode;
+  };
+  code: {
+    children?: ReactNode;
+  };
+  blockquote: {
+    children?: ReactNode;
+  };
+  list: {
+    ordered?: boolean;
+    children?: ReactNode;
+  };
+  item: {
+    children?: ReactNode;
+  };
 };
 
 type TemplateIntrinsicMap = {

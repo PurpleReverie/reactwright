@@ -3,31 +3,87 @@ export type TextNode = {
   value: string;
 };
 
+export type EmNode = {
+  kind: "em";
+  children: InlineNode[];
+};
+
+export type StrongNode = {
+  kind: "strong";
+  children: InlineNode[];
+};
+
+export type CodeNode = {
+  kind: "code";
+  children: TextNode[];
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
-  children: TextNode[];
+  children: InlineNode[];
+};
+
+export type BlockQuoteNode = {
+  kind: "blockquote";
+  children: SemanticBlockChild[];
+};
+
+export type ListItemNode = {
+  kind: "item";
+  children: SemanticBlockChild[];
+};
+
+export type ListNode = {
+  kind: "list";
+  ordered: boolean;
+  children: ListItemNode[];
 };
 
 export type SectionNode = {
   kind: "section";
   title: string;
-  children: SemanticChild[];
+  children: SemanticBlockChild[];
 };
 
 export type AbstractNode = {
   kind: "abstract";
-  children: SemanticChild[];
+  children: SemanticBlockChild[];
 };
 
 export type DocumentNode = {
   kind: "document";
   title: string;
   author?: string;
-  children: SemanticChild[];
+  children: DocumentChild[];
 };
 
-export type SemanticNode = DocumentNode | AbstractNode | SectionNode | ParagraphNode | TextNode;
+export type InlineNode = TextNode | EmNode | StrongNode | CodeNode;
 
-export type SemanticContainerNode = DocumentNode | AbstractNode | SectionNode | ParagraphNode;
+export type SemanticBlockChild = SectionNode | ParagraphNode | BlockQuoteNode | ListNode;
 
-export type SemanticChild = AbstractNode | SectionNode | ParagraphNode | TextNode;
+export type DocumentChild = AbstractNode | SemanticBlockChild;
+
+export type SemanticNode =
+  | DocumentNode
+  | AbstractNode
+  | SectionNode
+  | ParagraphNode
+  | BlockQuoteNode
+  | ListNode
+  | ListItemNode
+  | EmNode
+  | StrongNode
+  | CodeNode
+  | TextNode;
+
+export type SemanticContainerNode =
+  | DocumentNode
+  | AbstractNode
+  | SectionNode
+  | ParagraphNode
+  | BlockQuoteNode
+  | ListNode
+  | ListItemNode
+  | EmNode
+  | StrongNode
+  | CodeNode;
