@@ -8,7 +8,8 @@
     "dev": "node --import tsx ./src/index.ts",
     "check": "tsc --noEmit",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
-    "example:template": "node --import tsx ./src/examples/template.tsx"
+    "example:template": "node --import tsx ./src/examples/template.tsx",
+    "example:resolve": "node --import tsx ./src/examples/resolve.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",
