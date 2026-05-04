@@ -1,408 +1,448 @@
-# ReactDoc — Spec v0.1
+# ReactDoc v0 Specification
 
----
+This README is the official `v0` implementation spec for the project in `/Users/taurajgreig/Projects/Personal/react_doc`.
 
-**Core Idea**
+It replaces the earlier brainstorm spec. Anything not described here should be treated as out of scope for `v0`.
 
-A document authoring system where content is written as a React component tree and rendered to any output format via swappable class providers. The content tree is semantic — it describes *what* the document contains. The class layer describes *how* it renders. Swapping the class layer changes the output format without touching the content.
+## Goal
 
----
+`v0` exists to prove that we can author documents in React, render them through a custom React renderer, and produce backend output for:
 
-**1. Content Primitives**
+- fast HTML/CSS iteration
+- LaTeX generation
+- PDF generation via `pdflatex`
 
-The atomic building blocks. Every document is composed of these.
+The first successful pipeline is:
 
-```tsx
-// Text primitives
-<Text>plain prose</Text>
-<Em>emphasis</Em>
-<Strong>bold</Strong>
-<Code>inline code</Code>
-<Math>x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</Math>
+`React -> semantic IR + template IR -> resolved render tree -> HTML or LaTeX -> PDF`
 
-// Block primitives  
-<Paragraph>...</Paragraph>
-<BlockQuote>...</BlockQuote>
-<CodeBlock language="python">...</CodeBlock>
-<MathBlock>...</MathBlock>
+This version is primarily aimed at academic-style documents, but the architecture should remain general-purpose enough to support other document types later.
 
-// Reference primitives
-<Cite keys={["smith2020", "jones2021"]} />
-<Ref label="fig:pipeline" />
-<Footnote>additional context here</Footnote>
+## Non-Goals
 
-// Asset primitives
-<Figure
-  src="figs/pipeline.pdf"
-  caption="Our pipeline."
-  label="fig:pipeline"
-/>
-<Table
-  data={rows}
-  caption="Results."
-  label="tab:results"
-/>
-<Listing
-  src="code/model.py"
-  caption="Model definition."
-  language="python"
-  label="lst:model"
-/>
-```
+The following are explicitly not part of `v0`:
 
-Rules:
-- All primitives are output-agnostic — no styling, no format assumptions
-- Labels are always explicit — never auto-generated from content
-- Math content is always raw LaTeX string — renders via KaTeX in browser, passes through on LaTeX export
-- Asset paths are relative to a declared asset root
+- a full academic writing feature set
+- citations or bibliography support
+- cross-references or numbering
+- Markdown import/export fidelity
+- live updates or incremental reconciliation
+- browser DOM rendering as the primary engine
+- support for every possible LaTeX or CSS styling feature
+- domain-specific systems like D&D, legal, or thesis-only primitives
 
----
+## Core Model
 
-**2. Structure Primitives**
+The system has two separate React scopes:
 
-Organise content into hierarchy.
+1. content scope
+2. template scope
 
-```tsx
-// Document shell
-<Document
-  title="Attention Is All You Need"
-  authors={["Vaswani", "Shazeer"]}
-  abstract="We propose a new architecture..."
-  keywords={["transformers", "attention", "NLP"]}
-  date="2024-01"
-/>
+The content scope expresses document meaning.  
+The template scope expresses layout, styling, and placement.
 
-// Sections — nest arbitrarily
-<Section title="Introduction" label="sec:intro">
-  <Paragraph>...</Paragraph>
-  <Section title="Contributions" label="sec:contributions">
-    ...
-  </Section>
-</Section>
+Both scopes are authored in React.
 
-// Front matter
-<Abstract>...</Abstract>
-<Keywords>transformers, attention, NLP</Keywords>
-<Acknowledgements>...</Acknowledgements>
+## Renderer Model
 
-// Back matter
-<Bibliography src="refs.bib" />
-<Appendix title="Proofs" label="app:proofs">...</Appendix>
-```
+ReactDoc `v0` is a custom React renderer built with `react-reconciler`.
 
----
+We use React as the authoring/runtime model, but we do not render to the browser DOM. Instead, the renderer turns React trees into internal tree structures that we compile into backend output.
 
-**3. Semantic Primitives**
+For planning purposes:
 
-Domain-specific blocks that carry meaning beyond formatting.
+- reconciler = the implementation mechanism
+- renderer = the document engine we expose
+
+## Two Intrinsic Families
+
+The renderer recognizes two families of intrinsic elements.
+
+### Content intrinsics
+
+These describe document semantics.
+
+Example `v0` candidates:
+
+- `document`
+- `section`
+- `paragraph`
+- `abstract`
+
+### Template intrinsics
+
+These describe layout and styling.
+
+Example `v0` candidates:
+
+- `page`
+- `box`
+- `stack`
+- `slot`
+
+### Naming rule
+
+- lowercase JSX tags are engine intrinsics
+- PascalCase components are user-defined abstractions
+
+This means a project can define custom components without changing the engine:
 
 ```tsx
-// Academic
-<Theorem label="thm:main" name="Universal Approximation">
-  For any continuous function f...
-</Theorem>
-
-<Proof>
-  By induction on the depth...
-</Proof>
-
-<Definition label="def:attention" name="Scaled Dot-Product Attention">
-  Given queries Q, keys K, values V...
-</Definition>
-
-<Lemma label="lem:bound">...</Lemma>
-<Corollary label="cor:result">...</Corollary>
-<Remark>...</Remark>
-<Example>...</Example>
-
-// D&D
-<StatBlock name="Ancient Dragon" cr={20}>
-  <Stat name="HP" value={350} />
-  <Stat name="AC" value={22} />
-  <Action name="Multiattack">...</Action>
-  <LegendaryAction>...</LegendaryAction>
-</StatBlock>
-
-<ReadAloud>
-  The cavern opens into a vast chamber...
-</ReadAloud>
-
-<Encounter difficulty="deadly">
-  <Monster ref="ancient-dragon" count={1} />
-  <Monster ref="kobold" count={8} />
-</Encounter>
-
-// Legal
-<Clause number="4.2" title="Indemnification">...</Clause>
-<Definition term="Confidential Information">...</Definition>
-<Signature party="Client" />
+const Epigraph = ({ children }: { children: React.ReactNode }) => (
+  <section>
+    <paragraph>{children}</paragraph>
+  </section>
+);
 ```
 
-New domains = new semantic primitives. They compose with the same base primitives.
+## Template Composition
 
----
+Templates are React-authored wrappers around document content.
 
-**4. Class Layer**
+Preferred shape:
 
-A class is a dictionary mapping primitive names to render functions for a specific output target. One class per output format per venue.
+```tsx
+renderToPdf(
+  <ArticleTemplate>
+    <Paper />
+  </ArticleTemplate>
+);
+```
+
+This is preferred over attaching a template directly to the `document` node because:
+
+- content stays portable
+- the same content can be rendered through multiple templates
+- layout concerns stay outside semantic authoring
+
+## Render Pipeline
+
+`v0` uses a multi-stage pipeline:
+
+1. execute the content React tree
+2. reconcile it into semantic IR
+3. execute the template React tree
+4. reconcile it into template IR
+5. resolve semantic regions into template slots
+6. compile the resolved tree to a backend
+7. optionally run `pdflatex` for PDF output
+
+The key point is that React is not rendered directly to LaTeX or HTML strings. It is first normalized into internal tree structures.
+
+## Internal Trees
+
+`v0` uses three internal representations.
+
+### 1. Semantic IR
+
+Represents document meaning.
+
+Example:
 
 ```ts
-// Class interface — every class implements this
-type DocumentClass = {
-  // Structure
-  Document: Renderer<DocumentProps>;
-  Section: Renderer<SectionProps>;
-  Paragraph: Renderer<ParagraphProps>;
-
-  // Text
-  Em: Renderer<EmProps>;
-  Strong: Renderer<StrongProps>;
-  Math: Renderer<MathProps>;
-  MathBlock: Renderer<MathBlockProps>;
-
-  // References
-  Cite: Renderer<CiteProps>;
-  Ref: Renderer<RefProps>;
-  Figure: Renderer<FigureProps>;
-  Table: Renderer<TableProps>;
-
-  // Semantic
-  Theorem: Renderer<TheoremProps>;
-  Definition: Renderer<DefinitionProps>;
-  // ... etc
-};
-
-type Renderer<TProps> = (props: TProps) => string | JSX.Element;
+type SemanticNode =
+  | {
+      kind: "document";
+      title?: string;
+      author?: string | string[];
+      children: SemanticNode[];
+    }
+  | {
+      kind: "abstract";
+      children: SemanticNode[];
+    }
+  | {
+      kind: "section";
+      title: string;
+      children: SemanticNode[];
+    }
+  | {
+      kind: "paragraph";
+      children: SemanticNode[];
+    }
+  | {
+      kind: "text";
+      value: string;
+    };
 ```
 
----
+### 2. Template IR
 
-**5. Built-in Classes**
+Represents layout and style intent.
+
+Example:
 
 ```ts
-// LaTeX targets
-import { IEEEClass } from 'reactdoc/classes/ieee';
-import { ACMClass } from 'reactdoc/classes/acm';
-import { LNCSClass } from 'reactdoc/classes/lncs';
-import { ThesisClass } from 'reactdoc/classes/thesis';
-
-// Web targets
-import { HTMLClass } from 'reactdoc/classes/html';
-import { ObsidianClass } from 'reactdoc/classes/obsidian';
-
-// Other
-import { DocxClass } from 'reactdoc/classes/docx';
-import { PlainTextClass } from 'reactdoc/classes/plaintext';
-
-// Domain specific
-import { DnDHandoutClass } from 'reactdoc/classes/dnd-handout';
-import { DnDVTTClass } from 'reactdoc/classes/dnd-vtt';
+type TemplateNode =
+  | {
+      kind: "page";
+      style?: TemplateStyle;
+      children: TemplateNode[];
+    }
+  | {
+      kind: "box";
+      style?: TemplateStyle;
+      children: TemplateNode[];
+    }
+  | {
+      kind: "stack";
+      gap?: string;
+      children: TemplateNode[];
+    }
+  | {
+      kind: "slot";
+      name: "title" | "author" | "abstract" | "body";
+    };
 ```
 
-Adding a new class = one file, implement the interface. No changes to content.
+### 3. Resolved render tree
 
----
+The template tree after slots have been replaced with actual semantic content.
 
-**6. ClassProvider**
+Backend compilers read this resolved tree rather than reading raw React elements.
 
-Injects the class into the tree via context. Every primitive reads from it.
+## Slot Model
+
+`v0` keeps slotting intentionally small.
+
+Initial slot targets:
+
+- `title`
+- `author`
+- `abstract`
+- `body`
+
+The content tree is normalized first, then the template decides where these regions appear.
+
+## Styling Model
+
+Templates carry styling information.
+
+The public style API should be:
+
+- CSS-inspired
+- constrained
+- mappable to LaTeX
+- mappable to HTML
+
+We are not implementing all of CSS. We are defining a document-layout subset.
+
+Example direction:
 
 ```tsx
-// Render to IEEE LaTeX
-<ClassProvider class={IEEEClass}>
-  <MyPaper />
-</ClassProvider>
-
-// Render to HTML
-<ClassProvider class={HTMLClass}>
-  <MyPaper />
-</ClassProvider>
-
-// Render to D&D handout PDF
-<ClassProvider class={DnDHandoutClass}>
-  <DragonHeist />
-</ClassProvider>
-
-// Custom class — override just the parts you need
-const MyThesisClass = {
-  ...ThesisClass,
-  Theorem: ({ name, children }) =>
-    `\\begin{theorem}[${name}]\n${children}\n\\end{theorem}`
-};
-
-<ClassProvider class={MyThesisClass}>
-  <MyThesis />
-</ClassProvider>
+<page
+  style={{
+    size: "a4",
+    margin: "25mm",
+    fontFamily: "serif",
+    fontSize: "11pt",
+    lineHeight: 1.4,
+    textAlign: "center",
+  }}
+>
+  <slot name="body" />
+</page>
 ```
 
----
+The style system is informed by what LaTeX can actually express, but the API should remain intuitive for people who think in CSS-like terms.
 
-**7. Bibliography**
+## Backends
 
-`.bib` is the source of truth. Always.
+`v0` supports two backend directions.
 
-```tsx
-// Declare once at document root
-<Document bib="refs.bib">
-  ...
-</Document>
+### HTML backend
 
-// Cite by key anywhere in the tree
-<Cite keys={["vaswani2017", "brown2020"]} />
+Used for fast iteration and template feedback.
 
-// In browser — looks up parsed bib, renders formatted citation
-// On LaTeX export — emits \cite{vaswani2017,brown2020}
-// Bibliography style comes from the class, not the content
-```
+Purpose:
 
-Bib parser runs at build time. Keys are validated — missing keys are caught before export, not during LaTeX compilation.
+- inspect structure quickly
+- experiment with layout ideas quickly
+- shorten the design loop
 
----
+### LaTeX backend
 
-**8. Numbering and Cross-References**
+Used for final typesetting and PDF generation.
 
-All numbering is managed by the framework, never by the author.
+Purpose:
 
-```tsx
-// Author declares label, framework assigns number
-<Figure label="fig:pipeline" caption="Our pipeline." src="..." />
+- generate `.tex`
+- compile `.pdf` via `pdflatex`
 
-// Author references label, framework resolves to number
-<Ref label="fig:pipeline" />
-// → "Figure 3" in HTML
-// → \ref{fig:pipeline} in LaTeX (resolves during compilation)
+LaTeX is the stricter backend and should guide what style features are considered real.
 
-// Sections, theorems, equations, tables — same pattern
-<Section label="sec:methods" title="Methods">
-  <MathBlock label="eq:loss">L = -\sum y \log \hat{y}</MathBlock>
-  See <Ref label="eq:loss" /> for the loss function.
-</Section>
-```
+## Custom Template Intrinsics
 
----
+`v0` needs a way to define custom template intrinsics when regular React composition is not enough.
 
-**9. Renderers**
+Use this rule:
 
-Two renderers ship by default.
+- if behavior is just composition, use a PascalCase component
+- if behavior needs backend-aware compilation, register a custom template intrinsic
+
+Conceptually:
 
 ```ts
-// Browser renderer — React DOM, live preview
-import { renderToDOM } from 'reactdoc/renderers/dom';
-
-renderToDOM(
-  <ClassProvider class={HTMLClass}>
-    <MyPaper />
-  </ClassProvider>,
-  document.getElementById('root')
-);
-
-// Static renderer — walks tree, emits string
-import { renderToString } from 'reactdoc/renderers/static';
-
-const latex = renderToString(
-  <ClassProvider class={IEEEClass}>
-    <MyPaper />
-  </ClassProvider>
-);
-
-fs.writeFileSync('paper.tex', latex);
+defineTemplateIntrinsic("runningHeader", {
+  // backend-aware compiler hooks
+});
 ```
 
-Static renderer walks the component tree depth-first. Each primitive calls its class renderer and returns a string. Parent concatenates children strings. Root returns the complete document.
+Built-in template intrinsics are part of the core engine.  
+Custom template intrinsics are an extension point for template authors.
 
----
+Unknown lowercase template intrinsics should fail unless they are registered.
 
-**10. Build Pipeline**
+## Initial Rendering Constraints
 
-```
-npm run preview     → React DOM render, hot reload, browser
-npm run build:ieee  → static render → paper-ieee.tex → pdflatex → paper-ieee.pdf
-npm run build:acm   → static render → paper-acm.tex  → pdflatex → paper-acm.pdf
-npm run build:html  → static render → paper.html
-npm run build:docx  → static render → paper.docx
-```
+`v0` only needs initial render.
 
-One content tree. One command per target. No manual reformatting.
+That means:
 
----
+- no live editing loop inside the reconciler
+- no diff-heavy update system
+- no hydration
+- no browser-specific mutation model
 
-**11. Project Structure**
+This is a static document engine first.
 
-```
-/my-paper
-  /content
-    index.tsx          ← root document component
-    introduction.tsx
-    methods.tsx
-    results.tsx
-    conclusion.tsx
-  /assets
-    /figs
-    /tables
-  /classes
-    my-thesis.ts       ← custom class overrides if needed
-  refs.bib
-  package.json
-```
+## Compile-Time Programmability
 
----
+One of the key reasons for using React and TypeScript is compile-time programmability.
 
-**12. Custom Domain Example — D&D**
+Documents may vary based on:
+
+- command-line arguments
+- environment variables
+- local data files
+- API data fetched during the build step
+
+Example use cases:
+
+- draft vs final output
+- article vs thesis template
+- student vs supervisor build
+- reports generated from structured data
+
+## Minimal `v0` Example
+
+### Content
 
 ```tsx
-// content/dragon-heist.tsx
-const DragonHeist = () => (
-  <Document title="Waterdeep: Dragon Heist">
+const Paper = () => (
+  <document title="Minimal Test" author="Tauraj Greig">
+    <abstract>
+      <paragraph>A tiny document used to validate the pipeline.</paragraph>
+    </abstract>
 
-    <Chapter title="The Yawning Portal" label="ch:tavern">
-      <ReadAloud>
-        The smell of stale ale hits you as you push through the door.
-      </ReadAloud>
-
-      <StatBlock name="Durnan" cr={9}>
-        <Stat name="HP" value={75} />
-        <Stat name="AC" value={16} />
-        <Action name="Longsword">+7 to hit, 1d8+4 slashing</Action>
-      </StatBlock>
-
-      <Encounter difficulty="medium">
-        <Monster ref="thug" count={3} />
-        <Monster ref="bandit-captain" count={1} />
-      </Encounter>
-
-      <Treasure>
-        <Item ref="potion-of-healing" count={2} />
-        <Gold amount={50} />
-      </Treasure>
-    </Chapter>
-
-  </Document>
+    <section title="Introduction">
+      <paragraph>Hello world.</paragraph>
+    </section>
+  </document>
 );
-
-// Build targets
-npm run build:handout   → parchment PDF for players
-npm run build:dm        → detailed DM reference PDF
-npm run build:vtt       → JSON import for Roll20 / Foundry
-npm run build:obsidian  → linked markdown for your notes
 ```
 
-Same content. Four outputs. Zero reformatting.
+### Template
 
----
+```tsx
+const ArticleTemplate = ({ children }: { children: React.ReactNode }) => (
+  <page
+    style={{
+      size: "a4",
+      margin: "25mm",
+      fontFamily: "serif",
+      fontSize: "11pt",
+      lineHeight: 1.4,
+    }}
+  >
+    <stack gap="8mm">
+      <box style={{ textAlign: "center" }}>
+        <slot name="title" />
+        <slot name="author" />
+      </box>
 
-**Open Questions for v0.2**
+      <box>
+        <slot name="abstract" />
+      </box>
 
-- How do classes handle primitives they don't recognise — error, warn, or passthrough?
-- Multi-file documents — how do imports work across content files?
-- Versioning — how do you diff two versions of the same document?
-- Collaboration — multiple authors editing the same content tree?
-- How does the ReactAgent harness compose with ReactDoc — agent produces content tree, ReactDoc renders it?
+      <box>
+        <slot name="body" />
+      </box>
+    </stack>
+  </page>
+);
+```
 
----
+### Render
 
-**What this is not**
+```tsx
+renderToPdf(
+  <ArticleTemplate>
+    <Paper />
+  </ArticleTemplate>
+);
+```
 
-- Not a markdown replacement — it is more structured, not less
-- Not a LaTeX replacement — it compiles to LaTeX for final typesetting
-- Not opinionated about editor — write in any IDE, preview in browser
-- Not a hosted platform — runs locally, outputs files you own
+## Initial Scope
+
+The first implementation only needs enough breadth to validate the architecture.
+
+Recommended starting scope:
+
+- content intrinsics:
+  - `document`
+  - `section`
+  - `paragraph`
+- template intrinsics:
+  - `page`
+  - `stack`
+  - `slot`
+- initial slots:
+  - `title`
+  - `body`
+- backends:
+  - HTML preview
+  - LaTeX output
+
+`abstract`, richer style keys, and more template nodes can be added after the core loop works.
+
+## Suggested Implementation Order
+
+1. implement the content reconciler
+2. implement the template reconciler
+3. define the semantic IR and template IR types
+4. implement slot resolution
+5. implement HTML output for fast inspection
+6. implement LaTeX output
+7. compile LaTeX with `pdflatex`
+
+## Reference Material To Add
+
+The most useful supporting docs to add next are:
+
+- `docs/latex-style-reference.md`
+- `docs/template-vocabulary.md`
+- `docs/content-vocabulary.md`
+- `docs/examples/`
+
+The highest-value reference is a LaTeX style table mapping:
+
+- public style concept
+- API key
+- example value
+- LaTeX command or package
+- whether it belongs in `v0`, later `v1`, or out of scope
+
+## Summary
+
+ReactDoc `v0` is a static document engine with:
+
+- a custom React renderer
+- separate semantic and template scopes
+- two intrinsic families
+- a normalized IR pipeline
+- HTML/CSS iteration
+- LaTeX/PDF export
+- a constrained, CSS-inspired template style system
+
+Everything else comes later.
