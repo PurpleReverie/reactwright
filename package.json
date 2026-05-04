@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node --import tsx ./src/index.ts",
     "check": "tsc --noEmit",
-    "example:minimal": "node --import tsx ./src/examples/minimal.tsx"
+    "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
+    "example:template": "node --import tsx ./src/examples/template.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",
