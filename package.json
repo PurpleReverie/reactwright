@@ -8,6 +8,7 @@
     "dev": "node --import tsx ./src/index.ts",
     "check": "tsc --noEmit",
     "test": "node --import tsx --test tests/**/*.test.tsx",
+    "run:file": "node --import tsx ./src/cli/run-file.ts",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",
     "example:resolve": "node --import tsx ./src/examples/resolve.tsx",

@@ -446,3 +446,20 @@ ReactDoc `v0` is a static document engine with:
 - a constrained, CSS-inspired template style system
 
 Everything else comes later.
+
+## Local Runner
+
+ReactDoc now includes a repo-local runner for testing arbitrary TSX content files before packaging ReactDoc as a module.
+
+Example:
+
+```bash
+npm run run:file -- ./playground/paper.tsx --format html,latex,pdf --out ./build/reactdoc-run
+```
+
+Current `M10` contract:
+
+- input file must export a default React component
+- ReactDoc chooses the built-in `article` template
+- supported formats are `html`, `latex`, and `pdf`
+- default output dir is `build/reactdoc-run`
