@@ -10,7 +10,8 @@
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",
     "example:resolve": "node --import tsx ./src/examples/resolve.tsx",
-    "example:html": "node --import tsx ./src/examples/html.tsx"
+    "example:html": "node --import tsx ./src/examples/html.tsx",
+    "example:latex": "node --import tsx ./src/examples/latex.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",
