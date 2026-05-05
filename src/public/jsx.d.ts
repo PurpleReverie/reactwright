@@ -8,6 +8,7 @@ type ContentIntrinsicMap = {
   };
   section: {
     title: string;
+    role?: string;
     children?: ReactNode;
   };
   paragraph: {
@@ -32,6 +33,7 @@ type ContentIntrinsicMap = {
     children?: ReactNode;
   };
   blockquote: {
+    role?: string;
     children?: ReactNode;
   };
   list: {

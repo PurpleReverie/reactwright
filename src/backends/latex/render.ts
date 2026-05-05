@@ -46,6 +46,11 @@ const FONT_REGISTRY: Record<string, FontDefinition> = {
 
 const fontAvailabilityCache = new Map<string, boolean>();
 
+type RenderContext = {
+  sectionStyle: "heading" | "label";
+  blockquoteStyle: "indent" | "plain";
+};
+
 export function escapeLatex(value: string): string {
   return value
     .replaceAll("\\", "\\textbackslash{}")
@@ -412,39 +417,60 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   return parts.join("\n");
 }
 
-function renderSectionNode(node: ResolvedSectionNode): string {
-  return [
-    `\\section{${escapeLatex(node.title)}}`,
-    ...node.children.map(renderContentNode)
-  ].join("\n\n");
+function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
+  let heading: string;
+
+  if (node.role === "scene-heading") {
+    heading = `\\medskip\\noindent\\textbf{\\MakeUppercase{${escapeLatex(node.title)}}}\\par\\nopagebreak`;
+  } else if (ctx.sectionStyle === "label") {
+    heading = `\\medskip\\noindent\\textbf{${escapeLatex(node.title)}}\\par\\nopagebreak`;
+  } else {
+    heading = `\\section{${escapeLatex(node.title)}}`;
+  }
+
+  return [heading, ...node.children.map((child) => renderContentNode(child, ctx))].join("\n\n");
 }
 
-function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
+function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext): string {
+  const children = node.children.map((child) => renderContentNode(child, ctx));
+
+  if (node.role === "dialogue") {
+    return [
+      "\\smallskip",
+      ...children,
+      "\\smallskip"
+    ].join("\n\n");
+  }
+
+  if (ctx.blockquoteStyle === "plain") {
+    return children.join("\n\n");
+  }
+
   return [
     "\\begin{quote}",
-    ...node.children.map(renderContentNode),
+    ...children,
     "\\end{quote}"
   ].join("\n\n");
 }
 
-function renderListItemNode(node: ResolvedListItemNode): string {
-  const body = node.children.map(renderContentNode).join("\n\n");
+function renderListItemNode(node: ResolvedListItemNode, ctx: RenderContext): string {
+  const body = node.children.map((child) => renderContentNode(child, ctx)).join("\n\n");
   return `\\item ${body}`;
 }
 
-function renderListNode(node: ResolvedListNode): string {
+function renderListNode(node: ResolvedListNode, ctx: RenderContext): string {
   const environment = node.ordered ? "enumerate" : "itemize";
   return [
     `\\begin{${environment}}`,
-    ...node.children.map(renderListItemNode),
+    ...node.children.map((child) => renderListItemNode(child, ctx)),
     `\\end{${environment}}`
   ].join("\n");
 }
 
-function renderAbstractNode(node: ResolvedAbstractNode): string {
+function renderAbstractNode(node: ResolvedAbstractNode, ctx: RenderContext): string {
   return [
     "\\begin{abstract}",
-    ...node.children.map(renderContentNode),
+    ...node.children.map((child) => renderContentNode(child, ctx)),
     "\\end{abstract}"
   ].join("\n");
 }
@@ -457,24 +483,24 @@ function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `\\large ${escapeLatex(node.value)}\\\\`;
 }
 
-function renderContentNode(node: ResolvedContentNode): string {
+function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): string {
   switch (node.kind) {
     case "title":
       return renderTitleNode(node);
     case "author":
       return renderAuthorNode(node);
     case "abstract":
-      return renderAbstractNode(node);
+      return renderAbstractNode(node, ctx);
     case "section":
-      return renderSectionNode(node);
+      return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
     case "blockquote":
-      return renderBlockQuoteNode(node);
+      return renderBlockQuoteNode(node, ctx);
     case "list":
-      return renderListNode(node);
+      return renderListNode(node, ctx);
     case "item":
-      return renderListItemNode(node);
+      return renderListItemNode(node, ctx);
     case "paragraph":
       return renderParagraphNode(node);
     case "em":
@@ -679,8 +705,8 @@ function wrapWithBreakableFrame(content: string, style: TemplateStyle | undefine
   ].join("\n");
 }
 
-function renderBoxNode(node: ResolvedBoxNode): string {
-  const body = node.children.map(renderResolvedChild).join("\n\n");
+function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
+  const body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   let aligned = wrapWithAlignment(body, node.style?.textAlign);
 
   const columns =
@@ -735,7 +761,7 @@ function renderBoxNode(node: ResolvedBoxNode): string {
   return parts.join("\n\n");
 }
 
-function renderCustomNode(node: ResolvedCustomTemplateNode): string {
+function renderCustomNode(node: ResolvedCustomTemplateNode, ctx: RenderContext): string {
   const definition = getTemplateIntrinsic(node.name);
   if (definition?.latex == null) {
     throw new Error(`No LaTeX renderer registered for custom template intrinsic: ${node.name}`);
@@ -747,20 +773,20 @@ function renderCustomNode(node: ResolvedCustomTemplateNode): string {
       ...(node.style != null ? { style: node.style } : {})
     },
     children: node.children,
-    renderChildren: (children) => children.map(renderResolvedChild).join("\n\n"),
+    renderChildren: (children) => children.map((child) => renderResolvedChild(child, ctx)).join("\n\n"),
     escapeLatex,
     wrapWithAlignment
   });
 }
 
-function renderStackNode(node: ResolvedStackNode): string {
-  const pieces = node.children.map(renderResolvedChild);
+function renderStackNode(node: ResolvedStackNode, ctx: RenderContext): string {
+  const pieces = node.children.map((child) => renderResolvedChild(child, ctx));
   const gap = node.gap != null ? `\n\\vspace*{${node.gap}}\n` : "\n\n";
   return pieces.join(gap);
 }
 
-function renderPageNode(node: ResolvedPageNode): string {
-  let body = node.children.map(renderResolvedChild).join("\n\n");
+function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
+  let body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   const pageBackground = normalizeHexColor(node.style?.backgroundColor);
   const pageBorder = parseBorder(node.style?.border);
 
@@ -777,16 +803,16 @@ function renderPageNode(node: ResolvedPageNode): string {
   return body;
 }
 
-function renderResolvedChild(node: ResolvedChild): string {
+function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
   switch (node.kind) {
     case "page":
-      return renderPageNode(node);
+      return renderPageNode(node, ctx);
     case "box":
-      return renderBoxNode(node);
+      return renderBoxNode(node, ctx);
     case "stack":
-      return renderStackNode(node);
+      return renderStackNode(node, ctx);
     case "custom":
-      return renderCustomNode(node);
+      return renderCustomNode(node, ctx);
     case "title":
     case "author":
     case "abstract":
@@ -794,15 +820,23 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "figure":
     case "paragraph":
     case "text":
-      return renderContentNode(node);
+      return renderContentNode(node, ctx);
   }
 
   throw new Error("Unsupported resolved child node.");
 }
 
+function buildRenderContext(page: ResolvedPageNode): RenderContext {
+  return {
+    sectionStyle: page.style?.sectionStyle === "label" ? "label" : "heading",
+    blockquoteStyle: page.style?.blockquoteStyle === "plain" ? "plain" : "indent"
+  };
+}
+
 export function renderResolvedToLatex(page: ResolvedPageNode): string {
+  const ctx = buildRenderContext(page);
   const preamble = collectPreamble(page);
-  const body = renderPageNode(page);
+  const body = renderPageNode(page, ctx);
 
   return [
     ...preamble,

@@ -41,6 +41,7 @@ export type ResolvedFigureNode = {
 
 export type ResolvedBlockQuoteNode = {
   kind: "blockquote";
+  role?: string;
   children: ResolvedContentChild[];
 };
 
@@ -58,6 +59,7 @@ export type ResolvedListNode = {
 export type ResolvedSectionNode = {
   kind: "section";
   title: string;
+  role?: string;
   children: ResolvedContentChild[];
 };
 

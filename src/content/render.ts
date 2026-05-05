@@ -35,6 +35,7 @@ type ContentProps = Record<string, unknown> & {
   caption?: string;
   width?: string;
   family?: string;
+  role?: string;
 };
 
 type ContentContainer = {
@@ -60,6 +61,7 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
       return {
         kind: "section",
         title: String(props.title ?? ""),
+        role: typeof props.role === "string" ? props.role : undefined,
         children: []
       };
     case "paragraph":
@@ -78,6 +80,7 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
     case "blockquote":
       return {
         kind: "blockquote",
+        role: typeof props.role === "string" ? props.role : undefined,
         children: []
       };
     case "list":

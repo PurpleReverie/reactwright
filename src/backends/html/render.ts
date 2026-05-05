@@ -184,6 +184,10 @@ function renderInlineNode(node: ResolvedInlineNode): string {
   throw new Error("Unsupported resolved inline node.");
 }
 
+type RenderContext = {
+  blockquoteStyle: "indent" | "plain";
+};
+
 function renderParagraphNode(node: ResolvedParagraphNode): string {
   return `<p>${node.children.map(renderInlineNode).join("")}</p>`;
 }
@@ -196,33 +200,44 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
-function renderSectionNode(node: ResolvedSectionNode): string {
+function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
+  const headingClass = node.role === "scene-heading" ? ' class="scene-heading"' : "";
   return [
     "<section>",
-    `<h2>${escapeHtml(node.title)}</h2>`,
-    ...node.children.map(renderContentNode),
+    `<h2${headingClass}>${escapeHtml(node.title)}</h2>`,
+    ...node.children.map((child) => renderContentNode(child, ctx)),
     "</section>"
   ].join("");
 }
 
-function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
-  return `<blockquote>${node.children.map(renderContentNode).join("")}</blockquote>`;
+function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext): string {
+  const children = node.children.map((child) => renderContentNode(child, ctx)).join("");
+
+  if (node.role === "dialogue") {
+    return `<div class="dialogue">${children}</div>`;
+  }
+
+  if (ctx.blockquoteStyle === "plain") {
+    return `<div class="blockquote-plain">${children}</div>`;
+  }
+
+  return `<blockquote>${children}</blockquote>`;
 }
 
-function renderListItemNode(node: ResolvedListItemNode): string {
-  return `<li>${node.children.map(renderContentNode).join("")}</li>`;
+function renderListItemNode(node: ResolvedListItemNode, ctx: RenderContext): string {
+  return `<li>${node.children.map((child) => renderContentNode(child, ctx)).join("")}</li>`;
 }
 
-function renderListNode(node: ResolvedListNode): string {
+function renderListNode(node: ResolvedListNode, ctx: RenderContext): string {
   const tag = node.ordered ? "ol" : "ul";
-  return `<${tag}>${node.children.map(renderListItemNode).join("")}</${tag}>`;
+  return `<${tag}>${node.children.map((child) => renderListItemNode(child, ctx)).join("")}</${tag}>`;
 }
 
-function renderAbstractNode(node: ResolvedAbstractNode): string {
+function renderAbstractNode(node: ResolvedAbstractNode, ctx: RenderContext): string {
   return [
     '<section data-slot="abstract">',
     "<h2>Abstract</h2>",
-    ...node.children.map(renderContentNode),
+    ...node.children.map((child) => renderContentNode(child, ctx)),
     "</section>"
   ].join("");
 }
@@ -235,24 +250,24 @@ function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `<p>${escapeHtml(node.value)}</p>`;
 }
 
-function renderContentNode(node: ResolvedContentNode): string {
+function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): string {
   switch (node.kind) {
     case "title":
       return renderTitleNode(node);
     case "author":
       return renderAuthorNode(node);
     case "abstract":
-      return renderAbstractNode(node);
+      return renderAbstractNode(node, ctx);
     case "section":
-      return renderSectionNode(node);
+      return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
     case "blockquote":
-      return renderBlockQuoteNode(node);
+      return renderBlockQuoteNode(node, ctx);
     case "list":
-      return renderListNode(node);
+      return renderListNode(node, ctx);
     case "item":
-      return renderListItemNode(node);
+      return renderListItemNode(node, ctx);
     case "paragraph":
       return renderParagraphNode(node);
     case "em":
@@ -266,13 +281,13 @@ function renderContentNode(node: ResolvedContentNode): string {
   throw new Error("Unsupported resolved content node.");
 }
 
-function renderBoxNode(node: ResolvedBoxNode): string {
+function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
   const style = styleToCss(node.style, "box");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="box"${styleAttr}>${node.children.map(renderResolvedChild).join("")}</div>`;
+  return `<div data-node="box"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
 }
 
-function renderCustomNode(node: ResolvedCustomTemplateNode): string {
+function renderCustomNode(node: ResolvedCustomTemplateNode, ctx: RenderContext): string {
   const definition = getTemplateIntrinsic(node.name);
   if (definition?.html == null) {
     throw new Error(`No HTML renderer registered for custom template intrinsic: ${node.name}`);
@@ -284,23 +299,23 @@ function renderCustomNode(node: ResolvedCustomTemplateNode): string {
       ...(node.style != null ? { style: node.style } : {})
     },
     children: node.children,
-    renderChildren: (children) => children.map(renderResolvedChild).join(""),
+    renderChildren: (children) => children.map((child) => renderResolvedChild(child, ctx)).join(""),
     styleToCss,
     escapeHtml
   });
 }
 
-function renderStackNode(node: ResolvedStackNode): string {
+function renderStackNode(node: ResolvedStackNode, ctx: RenderContext): string {
   const mergedStyle: TemplateStyle = {
     ...(node.style ?? {}),
     ...(node.gap != null ? { gap: node.gap } : {})
   };
   const style = styleToCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="stack"${styleAttr}>${node.children.map(renderResolvedChild).join("")}</div>`;
+  return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
 }
 
-function renderPageNode(node: ResolvedPageNode): string {
+function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
   const style = [
     "box-sizing:border-box;",
     "background:white;",
@@ -310,19 +325,19 @@ function renderPageNode(node: ResolvedPageNode): string {
   ].join("");
   const styleAttr = ` style="${escapeHtml(style)}"`;
 
-  return `<main data-node="page"${styleAttr}>${node.children.map(renderResolvedChild).join("")}</main>`;
+  return `<main data-node="page"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</main>`;
 }
 
-function renderResolvedChild(node: ResolvedChild): string {
+function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
   switch (node.kind) {
     case "page":
-      return renderPageNode(node);
+      return renderPageNode(node, ctx);
     case "box":
-      return renderBoxNode(node);
+      return renderBoxNode(node, ctx);
     case "stack":
-      return renderStackNode(node);
+      return renderStackNode(node, ctx);
     case "custom":
-      return renderCustomNode(node);
+      return renderCustomNode(node, ctx);
     case "title":
     case "author":
     case "abstract":
@@ -330,14 +345,17 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "figure":
     case "paragraph":
     case "text":
-      return renderContentNode(node);
+      return renderContentNode(node, ctx);
   }
 
   throw new Error("Unsupported resolved child node.");
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
-  const body = renderPageNode(page);
+  const ctx: RenderContext = {
+    blockquoteStyle: page.style?.blockquoteStyle === "plain" ? "plain" : "indent"
+  };
+  const body = renderPageNode(page, ctx);
   const fontTags = buildFontHeadTags(page);
 
   return [
@@ -351,11 +369,14 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "<style>",
     "body{margin:0;padding:32px;background:#e7ebf0;color:#111827;font-family:Georgia,'Times New Roman',serif;}",
     "h1,h2,p{margin:0;}",
-    "h1{font-size:2rem;line-height:1.2;}",
-    "h2{font-size:1.2rem;line-height:1.3;margin-bottom:0.75rem;}",
-    "p + p{margin-top:0.9rem;}",
-    "section + section{margin-top:1.25rem;}",
-    "blockquote{margin:0;padding-left:1rem;border-left:3px solid #cbd5e1;color:#334155;}",
+    "h1{font-size:inherit;font-weight:bold;line-height:inherit;margin-bottom:0.4em;}",
+    "h2{font-size:inherit;font-weight:bold;line-height:inherit;margin-top:1em;margin-bottom:0.25em;}",
+    "p + p{margin-top:0.75em;}",
+    "section + section{margin-top:1em;}",
+    "blockquote{margin:0;padding-left:2em;}",
+    ".blockquote-plain{margin:0;}",
+    ".dialogue{margin:0.5em 0;}",
+    "h2.scene-heading{text-transform:uppercase;}",
     "ul,ol{margin:0;padding-left:1.5rem;}",
     "li + li{margin-top:0.5rem;}",
     "code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:#f1f5f9;padding:0.1rem 0.25rem;border-radius:0.2rem;}",

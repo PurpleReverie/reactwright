@@ -32,7 +32,8 @@
     "example:pdf": "node --import tsx ./src/examples/pdf.tsx",
     "example:custom-intrinsic": "node --import tsx ./src/examples/custom-intrinsic.tsx",
     "example:project-scope": "node --import tsx ./src/examples/project-scope.tsx",
-    "example:custom-font": "node --import tsx ./src/examples/custom-font.tsx"
+    "example:custom-font": "node --import tsx ./src/examples/custom-font.tsx",
+    "example:story-bible": "node --import tsx ./src/examples/story-bible.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",

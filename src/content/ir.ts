@@ -39,6 +39,7 @@ export type FigureNode = {
 
 export type BlockQuoteNode = {
   kind: "blockquote";
+  role?: string;
   children: SemanticBlockChild[];
 };
 
@@ -56,6 +57,7 @@ export type ListNode = {
 export type SectionNode = {
   kind: "section";
   title: string;
+  role?: string;
   children: SemanticBlockChild[];
 };
 

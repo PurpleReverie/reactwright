@@ -114,6 +114,7 @@ function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
 function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
   return {
     kind: "blockquote",
+    role: node.role,
     children: node.children.map(resolveContentChild)
   };
 }
@@ -137,6 +138,7 @@ function resolveSectionNode(node: SectionNode): ResolvedSectionNode {
   return {
     kind: "section",
     title: node.title,
+    role: node.role,
     children: node.children.map(resolveContentChild)
   };
 }
