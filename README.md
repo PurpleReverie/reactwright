@@ -86,6 +86,7 @@ Canonical authoring now prefers the concise lowercase surface:
 
 - content: `document`, `section`, `p`, `quote`, `list`, `item`, `figure`, `page-break`
 - template: `template`, `flow`, `region`, `columns`, `slot`, `rules`, `page-set`
+- template: `template`, `flow`, `row`, `region`, `columns`, `rule`, `slot`, `rules`, `page-set`
 
 Legacy aliases like `paragraph`, `blockquote`, `page`, `box`, and `stack` are still supported for compatibility.
 
@@ -239,10 +240,12 @@ We are not implementing all of CSS. We are defining a document-layout subset.
 Example direction:
 
 ```tsx
-<page
-  style={{
+<template
+  page={{
     size: "a4",
     margin: "25mm",
+  }}
+  typography={{
     fontFamily: "serif",
     fontSize: "11pt",
     lineHeight: 1.4,
@@ -250,10 +253,12 @@ Example direction:
   }}
 >
   <slot name="body" />
-</page>
+</template>
 ```
 
 The style system is informed by what LaTeX can actually express, but the API should remain intuitive for people who think in CSS-like terms.
+
+Canonical authoring now prefers typed prop groups like `page`, `typography`, `paragraph`, `box`, `layout`, and `breaks`, with raw `style` reserved as a compatibility escape hatch.
 
 ## Backends
 

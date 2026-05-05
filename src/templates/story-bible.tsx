@@ -22,19 +22,25 @@ registerFont("Cormorant SC", {
 export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
   return (
     <template
-      style={{
+      page={{
         size: "a4",
         marginTop: "18mm",
         marginRight: "18mm",
         marginBottom: "20mm",
-        marginLeft: "18mm",
+        marginLeft: "18mm"
+      }}
+      typography={{
         fontFamily: "serif",
         fontSize: "11pt",
         lineHeight: 1.34,
-        sectionStyle: "label",
-        blockquoteStyle: "plain",
-        backgroundColor: "#f7f0df",
         color: "#201818"
+      }}
+      box={{
+        backgroundColor: "#f7f0df"
+      }}
+      style={{
+        sectionStyle: "label",
+        blockquoteStyle: "plain"
       }}
     >
       <rules>
@@ -46,10 +52,12 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
 
       <flow gap="8mm">
         <region
-          style={{
+          typography={{
             textAlign: "center",
-            backgroundColor: "#1c2430",
             color: "#f6ead2",
+          }}
+          box={{
+            backgroundColor: "#1c2430",
             border: "1.5pt solid #8a6a2f",
             paddingTop: "4mm",
             paddingRight: "5mm",
@@ -58,21 +66,25 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
           }}
         >
           <region
-            style={{
+            typography={{
               fontFamily: "Cormorant SC",
               fontSize: "9pt",
-              fontWeight: "bold",
-              paddingBottom: "1.5mm",
-              borderBottom: "0.8pt solid #c8a96b"
+              fontWeight: "bold"
+            }}
+            box={{
+              paddingBottom: "1.5mm"
             }}
           >
             SERIES DOSSIER / DEVELOPMENT MATERIAL
           </region>
+          <rule weight="0.8pt" color="#c8a96b" length="100%" />
           <region
-            style={{
+            typography={{
               fontFamily: "Cormorant SC",
               fontWeight: "bold",
-              fontSize: "16pt",
+              fontSize: "16pt"
+            }}
+            box={{
               paddingTop: "2.5mm",
               paddingBottom: "1mm"
             }}
@@ -80,8 +92,10 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
             <slot name="title" />
           </region>
           <region
-            style={{
-              fontSize: "9pt",
+            typography={{
+              fontSize: "9pt"
+            }}
+            box={{
               paddingTop: "1mm"
             }}
           >
@@ -91,62 +105,70 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
 
         <page-set name="worldbuilding">
           <region
-            style={{
+            typography={{
+              fontFamily: "serif",
+              fontSize: "10.5pt",
+              lineHeight: 1.3
+            }}
+            box={{
               backgroundColor: "#fcf7ea",
               border: "1.1pt solid #b79a67",
               paddingTop: "4mm",
               paddingRight: "4mm",
               paddingBottom: "4mm",
               paddingLeft: "4mm",
-              fontFamily: "serif",
-              fontSize: "10.5pt",
-              lineHeight: 1.3,
               breakable: true
             }}
           >
             <region
-              style={{
+              typography={{
                 fontFamily: "Cormorant SC",
                 fontWeight: "bold",
                 fontSize: "9pt",
-                textAlign: "center",
-                paddingBottom: "2mm",
-                borderBottom: "0.8pt solid #b79a67"
+                textAlign: "center"
+              }}
+              box={{
+                paddingBottom: "2mm"
               }}
             >
               WORLD NOTES / THEMES / CHARACTER STRATEGY
             </region>
+            <rule weight="0.8pt" color="#b79a67" length="100%" />
             {children ?? <slot name="body" />}
           </region>
         </page-set>
 
         <page-set name="script">
           <region
-            style={{
+            typography={{
+              fontFamily: "Courier Prime",
+              fontSize: "10pt",
+              lineHeight: 1.22
+            }}
+            box={{
               backgroundColor: "#fffdf8",
               border: "1.5pt solid #2b2f38",
               paddingTop: "4mm",
               paddingRight: "5mm",
               paddingBottom: "4mm",
               paddingLeft: "5mm",
-              fontFamily: "Courier Prime",
-              fontSize: "10pt",
-              lineHeight: 1.22,
               breakable: true
             }}
           >
             <region
-              style={{
+              typography={{
                 fontFamily: "Cormorant SC",
                 fontWeight: "bold",
                 fontSize: "9pt",
-                textAlign: "center",
-                paddingBottom: "2mm",
-                borderBottom: "0.8pt solid #2b2f38"
+                textAlign: "center"
+              }}
+              box={{
+                paddingBottom: "2mm"
               }}
             >
               SCRIPT SAMPLE / PERFORMANCE OF TONE
             </region>
+            <rule weight="0.8pt" color="#2b2f38" length="100%" />
             {children ?? <slot name="body" />}
           </region>
         </page-set>

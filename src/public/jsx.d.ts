@@ -82,8 +82,108 @@ type ContentIntrinsicMap = {
   "page-break": Record<string, never>;
 };
 
+type TemplatePageProps = {
+  size?: string;
+  orientation?: "portrait" | "landscape";
+  margin?: string;
+  marginTop?: string;
+  marginRight?: string;
+  marginBottom?: string;
+  marginLeft?: string;
+  textWidth?: string;
+  textHeight?: string;
+  bindingOffset?: string;
+  twoSided?: boolean;
+  columns?: number;
+  columnGap?: string;
+};
+
+type TemplateTypographyProps = {
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  fontStyle?: string;
+  fontVariant?: string;
+  textDecoration?: string;
+  color?: string;
+  lineHeight?: number;
+  letterSpacing?: string;
+  wordSpacing?: string;
+  language?: string;
+  textAlign?: "left" | "center" | "right" | "justify";
+};
+
+type TemplateParagraphProps = {
+  textIndent?: string | number;
+  paragraphSpacing?: string;
+  textWrap?: string;
+  firstLineIndent?: string;
+  keepTogether?: boolean;
+  widowControl?: number;
+  orphanControl?: number;
+  hyphenation?: string;
+};
+
+type TemplateBoxProps = {
+  padding?: string;
+  paddingTop?: string;
+  paddingRight?: string;
+  paddingBottom?: string;
+  paddingLeft?: string;
+  marginTop?: string;
+  marginRight?: string;
+  marginBottom?: string;
+  marginLeft?: string;
+  width?: string;
+  maxWidth?: string;
+  border?: string;
+  borderTop?: string;
+  borderRight?: string;
+  borderBottom?: string;
+  borderLeft?: string;
+  borderColor?: string;
+  borderRadius?: string;
+  backgroundColor?: string;
+  breakable?: boolean;
+};
+
+type TemplateLayoutProps = {
+  gap?: string;
+  inlineGap?: string;
+  columns?: number;
+  columnGap?: string;
+  alignSelf?: "left" | "center" | "right" | "stretch";
+  width?: string;
+  maxWidth?: string;
+};
+
+type TemplateBreaksProps = {
+  pageBreakBefore?: string;
+  pageBreakAfter?: string;
+  breakInside?: string;
+  keepTogether?: boolean;
+  keepWithNext?: boolean;
+  clearFloats?: boolean;
+};
+
+type TemplateHeadingProps = {
+  numbering?: boolean;
+  fontSize?: string;
+  fontWeight?: string;
+  textAlign?: "left" | "center" | "right" | "justify";
+  marginTop?: string;
+  marginBottom?: string;
+};
+
 type TemplateStyleProps = {
   style?: Record<string, unknown>;
+  page?: TemplatePageProps;
+  typography?: TemplateTypographyProps;
+  paragraph?: TemplateParagraphProps;
+  box?: TemplateBoxProps;
+  layout?: TemplateLayoutProps;
+  breaks?: TemplateBreaksProps;
+  heading?: TemplateHeadingProps;
   children?: ReactNode;
 };
 
@@ -98,9 +198,18 @@ type TemplateIntrinsicMap = {
   flow: TemplateStyleProps & {
     gap?: string;
   };
+  row: TemplateStyleProps & {
+    gap?: string;
+  };
   columns: TemplateStyleProps & {
     count: number;
     gap?: string;
+  };
+  rule: TemplateStyleProps & {
+    axis?: "horizontal" | "vertical";
+    weight?: string;
+    color?: string;
+    length?: string;
   };
   slot: {
     name: "title" | "author" | "abstract" | "body";

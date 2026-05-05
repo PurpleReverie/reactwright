@@ -11,6 +11,8 @@ It is not a claim that ReactDoc `v0` supports every item here. It is a catalog o
 
 The goal is to make LaTeX breadth visible while keeping the eventual React-facing API intuitive and CSS-inspired.
 
+See also [docs/latex-to-intrinsic-mapping.md](/Users/taurajgreig/Projects/Personal/react_doc/docs/latex-to-intrinsic-mapping.md), which maps this feature catalog onto a proposed intrinsic surface for the content layer, template layer, and template rules.
+
 ## Notes
 
 - "Public API name" is the likely ReactDoc style key or concept.

@@ -21,6 +21,8 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedRowNode,
+  ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
@@ -99,9 +101,9 @@ function pageSizeToCss(size: unknown): string | null {
 
 export function styleToCss(
   style: TemplateStyle | undefined,
-  kind?: "page" | "box" | "stack"
+  kind?: "page" | "box" | "stack" | "row"
 ): string {
-  if (style == null && kind !== "stack") {
+  if (style == null && kind !== "stack" && kind !== "row") {
     return "";
   }
 
@@ -109,6 +111,10 @@ export function styleToCss(
 
   if (kind === "stack") {
     declarations.push("display:flex;", "flex-direction:column;");
+  }
+
+  if (kind === "row") {
+    declarations.push("display:flex;", "flex-direction:row;", "align-items:flex-start;");
   }
 
   if (style?.size != null && kind === "page") {
@@ -127,6 +133,8 @@ export function styleToCss(
     marginRight: "margin-right",
     marginBottom: "margin-bottom",
     marginLeft: "margin-left",
+    maxWidth: "max-width",
+    width: "width",
     padding: "padding",
     paddingTop: "padding-top",
     paddingRight: "padding-right",
@@ -142,7 +150,12 @@ export function styleToCss(
     color: "color",
     backgroundColor: "background-color",
     border: "border",
-    borderBottom: "border-bottom"
+    borderTop: "border-top",
+    borderRight: "border-right",
+    borderBottom: "border-bottom",
+    borderLeft: "border-left",
+    borderRadius: "border-radius",
+    alignSelf: "align-self"
   };
 
   for (const [key, cssName] of Object.entries(directMap)) {
@@ -152,7 +165,7 @@ export function styleToCss(
     }
   }
 
-  if (kind === "stack" && style?.gap != null) {
+  if ((kind === "stack" || kind === "row") && style?.gap != null) {
     declarations.push(`gap:${String(style.gap)};`);
   }
 
@@ -218,6 +231,18 @@ function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
 
 function renderThematicBreakNode(_node: ResolvedThematicBreakNode): string {
   return "<hr />";
+}
+
+function renderRuleNode(node: ResolvedRuleNode): string {
+  const axis = node.axis ?? "horizontal";
+  const color = escapeHtml(String(node.color ?? "#111111"));
+  const weight = escapeHtml(String(node.weight ?? "1px"));
+  const length = escapeHtml(String(node.length ?? "100%"));
+  const style =
+    axis === "vertical"
+      ? `display:block;width:${weight};height:${length};background:${color};flex:0 0 auto;`
+      : `display:block;width:${length};height:${weight};background:${color};flex:0 0 auto;`;
+  return `<div data-node="rule" style="${style}"></div>`;
 }
 
 function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
@@ -345,6 +370,16 @@ function renderStackNode(node: ResolvedStackNode, ctx: RenderContext): string {
   return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
 }
 
+function renderRowNode(node: ResolvedRowNode, ctx: RenderContext): string {
+  const mergedStyle: TemplateStyle = {
+    ...(node.style ?? {}),
+    ...(node.gap != null ? { gap: node.gap } : {})
+  };
+  const style = styleToCss(mergedStyle, "row");
+  const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
+  return `<div data-node="row"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
+}
+
 function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
   const style = [
     "box-sizing:border-box;",
@@ -366,6 +401,10 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderBoxNode(node, ctx);
     case "stack":
       return renderStackNode(node, ctx);
+    case "row":
+      return renderRowNode(node, ctx);
+    case "rule":
+      return renderRuleNode(node);
     case "custom":
       return renderCustomNode(node, ctx);
     case "title":

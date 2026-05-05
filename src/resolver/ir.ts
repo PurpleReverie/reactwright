@@ -136,6 +136,22 @@ export type ResolvedStackNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedRowNode = {
+  kind: "row";
+  gap?: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
+export type ResolvedRuleNode = {
+  kind: "rule";
+  axis?: "horizontal" | "vertical";
+  weight?: string;
+  color?: string;
+  length?: string;
+  style?: TemplateStyle;
+};
+
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
@@ -179,6 +195,8 @@ export type ResolvedTemplateNode =
   | ResolvedPageNode
   | ResolvedBoxNode
   | ResolvedStackNode
+  | ResolvedRowNode
+  | ResolvedRuleNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

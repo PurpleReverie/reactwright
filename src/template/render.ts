@@ -9,6 +9,12 @@ import type {
   PageNode,
   PageRoleRuleNode,
   PageSetNode,
+  RowNode,
+  RuleNode,
+  TemplateBreaksProps,
+  TemplateBoxProps,
+  TemplateHeadingProps,
+  TemplateLayoutProps,
   SlotName,
   SlotNode,
   StackNode,
@@ -18,7 +24,10 @@ import type {
   TemplateChild,
   TemplateContainerNode,
   TemplateNode,
+  TemplatePageProps,
+  TemplateParagraphProps,
   TemplateStyle,
+  TemplateTypographyProps,
   TemplateTextNode
 } from "./ir.js";
 
@@ -28,6 +37,13 @@ type HostContext = {
 
 type TemplateProps = Record<string, unknown> & {
   style?: TemplateStyle;
+  page?: TemplatePageProps;
+  typography?: TemplateTypographyProps;
+  paragraph?: TemplateParagraphProps;
+  box?: TemplateBoxProps;
+  layout?: TemplateLayoutProps;
+  breaks?: TemplateBreaksProps;
+  heading?: TemplateHeadingProps;
   gap?: string;
   name?: string;
   role?: string;
@@ -35,12 +51,69 @@ type TemplateProps = Record<string, unknown> & {
   page?: string;
   use?: string;
   count?: number;
+  axis?: unknown;
+  weight?: unknown;
+  color?: unknown;
+  length?: unknown;
 };
 
 type TemplateContainer = {
   root: TemplateNode | null;
   children: TemplateNode[];
 };
+
+function readOptionalObjectProp<T extends Record<string, unknown>>(
+  props: TemplateProps,
+  key: "page" | "typography" | "paragraph" | "box" | "layout" | "breaks" | "heading"
+): T | undefined {
+  const value = props[key];
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`\`${key}\` must be an object when provided.`);
+  }
+
+  return value as T;
+}
+
+function flattenHeadingProps(heading: TemplateHeadingProps | undefined): TemplateStyle {
+  if (heading == null) {
+    return {};
+  }
+
+  const flattened: TemplateStyle = {};
+
+  for (const [key, value] of Object.entries(heading)) {
+    flattened[`section.${key}`] = value;
+  }
+
+  return flattened;
+}
+
+function mergeTemplateStyleGroups(props: TemplateProps): TemplateStyle | undefined {
+  const page = readOptionalObjectProp<TemplatePageProps>(props, "page");
+  const typography = readOptionalObjectProp<TemplateTypographyProps>(props, "typography");
+  const paragraph = readOptionalObjectProp<TemplateParagraphProps>(props, "paragraph");
+  const box = readOptionalObjectProp<TemplateBoxProps>(props, "box");
+  const layout = readOptionalObjectProp<TemplateLayoutProps>(props, "layout");
+  const breaks = readOptionalObjectProp<TemplateBreaksProps>(props, "breaks");
+  const heading = readOptionalObjectProp<TemplateHeadingProps>(props, "heading");
+
+  const merged: TemplateStyle = {
+    ...(page ?? {}),
+    ...(typography ?? {}),
+    ...(paragraph ?? {}),
+    ...(box ?? {}),
+    ...(layout ?? {}),
+    ...(breaks ?? {}),
+    ...flattenHeadingProps(heading),
+    ...(props.style ?? {})
+  };
+
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
 
 function readRequiredTemplateToken(
   props: TemplateProps,
@@ -67,50 +140,105 @@ function readOptionalTemplateToken(props: TemplateProps, key: "gap"): string | u
   return value.trim();
 }
 
-function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
-  const gap = readOptionalTemplateToken(props, "gap");
+function readOptionalRuleToken(props: TemplateProps, key: "weight" | "color" | "length"): string | undefined {
+  const value = props[key];
+  if (value == null) {
+    return undefined;
+  }
 
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`\`${key}\` must be a non-empty string when provided.`);
+  }
+
+  return value.trim();
+}
+
+function readOptionalRuleAxis(props: TemplateProps): "horizontal" | "vertical" | undefined {
+  if (props.axis == null) {
+    return undefined;
+  }
+
+  if (props.axis === "horizontal" || props.axis === "vertical") {
+    return props.axis;
+  }
+
+  throw new Error("`axis` must be `horizontal` or `vertical` when provided.");
+}
+
+function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
   switch (type) {
     case "template":
-    case "page":
+    case "page": {
+      const style = mergeTemplateStyleGroups(props);
       return {
         kind: "page",
-        style: props.style,
+        style,
         children: []
       };
+    }
     case "region":
-    case "box":
+    case "box": {
+      const style = mergeTemplateStyleGroups(props);
       return {
         kind: "box",
-        style: props.style,
+        style,
         children: []
       };
+    }
     case "flow":
-    case "stack":
+    case "stack": {
+      const style = mergeTemplateStyleGroups(props);
+      const inferredGap = typeof style?.gap === "string" ? style.gap : undefined;
+      const gap = readOptionalTemplateToken(props, "gap") ?? inferredGap;
       return {
         kind: "stack",
         gap,
-        style: props.style,
+        style,
         children: []
       };
-    case "columns":
+    }
+    case "row": {
+      const style = mergeTemplateStyleGroups(props);
+      const inferredGap = typeof style?.gap === "string" ? style.gap : undefined;
+      const gap = readOptionalTemplateToken(props, "gap") ?? inferredGap;
+      return {
+        kind: "row",
+        gap,
+        style,
+        children: []
+      } satisfies RowNode;
+    }
+    case "columns": {
+      const style = mergeTemplateStyleGroups(props);
+      const inferredGap = typeof style?.gap === "string" ? style.gap : undefined;
+      const gap = readOptionalTemplateToken(props, "gap") ?? inferredGap;
       if (!Number.isInteger(props.count) || Number(props.count) < 1) {
         throw new Error("`columns` requires a positive integer `count`.");
       }
       return {
         kind: "box",
         style: {
-          ...(props.style ?? {}),
+          ...(style ?? {}),
           columns: props.count,
           ...(gap != null ? { columnGap: gap } : {})
         },
         children: []
       };
+    }
     case "slot":
       return {
         kind: "slot",
         name: validateSlotName(props.name)
       };
+    case "rule":
+      return {
+        kind: "rule",
+        axis: readOptionalRuleAxis(props),
+        weight: readOptionalRuleToken(props, "weight"),
+        color: readOptionalRuleToken(props, "color"),
+        length: readOptionalRuleToken(props, "length"),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies RuleNode;
     case "page-set":
       return {
         kind: "page-set",
@@ -142,12 +270,13 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
       } satisfies PageRoleRuleNode;
     default:
       if (getTemplateIntrinsic(type) != null) {
+        const style = mergeTemplateStyleGroups(props);
         const { children: _children, ...restProps } = props;
         return {
           kind: "custom",
           name: type,
           props: restProps,
-          style: props.style,
+          style,
           children: []
         };
       }
@@ -193,7 +322,9 @@ function appendChildToTemplateContainer(container: TemplateContainer, child: Tem
   }
 
   container.children.push(child);
-  container.root = child;
+  if (container.root == null) {
+    container.root = child;
+  }
 }
 
 function insertBeforeInList<T>(items: T[], child: T, beforeChild: T): void {
@@ -302,7 +433,7 @@ const templateHostConfig = {
     textInstance.value = newText;
   },
   resetTextContent(
-    instance: BoxNode | PageNode | StackNode | CustomTemplateNode | PageSetNode | RulesNode
+    instance: BoxNode | PageNode | StackNode | RowNode | CustomTemplateNode | PageSetNode | RulesNode
   ): void {
     instance.children = [];
   },

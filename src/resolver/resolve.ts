@@ -45,6 +45,8 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedRowNode,
+  ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
@@ -250,6 +252,7 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
       child.kind === "page" ||
       child.kind === "box" ||
       child.kind === "stack" ||
+      child.kind === "row" ||
       child.kind === "custom" ||
       child.kind === "page-set"
     ) {
@@ -289,6 +292,7 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
     template.kind === "page" ||
     template.kind === "box" ||
     template.kind === "stack" ||
+    template.kind === "row" ||
     template.kind === "custom" ||
     template.kind === "page-set"
   ) {
@@ -398,6 +402,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "page":
     case "box":
     case "stack":
+    case "row":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
     case "page-set":
@@ -411,6 +416,17 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       return [];
     case "text":
       return [{ kind: "text", value: child.value }];
+    case "rule":
+      return [
+        {
+          kind: "rule",
+          axis: child.axis,
+          weight: child.weight,
+          color: child.color,
+          length: child.length,
+          style: child.style
+        } satisfies ResolvedRuleNode
+      ];
     case "section-role":
     case "quote-role":
     case "page-role":
@@ -439,6 +455,13 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       };
+    case "row":
+      return {
+        kind: "row",
+        gap: node.gap,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedRowNode;
     case "custom":
       return {
         kind: "custom",
@@ -449,6 +472,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
       };
     case "page-set":
     case "rules":
+    case "rule":
     case "section-role":
     case "quote-role":
     case "page-role":

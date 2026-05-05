@@ -22,6 +22,8 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedRowNode,
+  ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
@@ -141,6 +143,7 @@ function walkTemplateStyles(
         child.kind === "page" ||
         child.kind === "box" ||
         child.kind === "stack" ||
+        child.kind === "row" ||
         child.kind === "custom"
       ) {
         walkTemplateStyles(child, visit);
@@ -163,6 +166,23 @@ function collectDefinedColors(page: ResolvedPageNode): string[] {
     if (border != null) colors.add(border);
     if (borderBottom != null) colors.add(borderBottom);
   });
+
+  const visitRules = (node: ResolvedPageNode | ResolvedChild): void => {
+    if (node.kind === "rule") {
+      const explicit = normalizeHexColor(node.color);
+      const styled = normalizeHexColor(node.style?.color);
+      if (explicit != null) colors.add(explicit);
+      if (styled != null) colors.add(styled);
+    }
+
+    if ("children" in node && Array.isArray(node.children)) {
+      for (const child of node.children) {
+        visitRules(child as ResolvedChild);
+      }
+    }
+  };
+
+  visitRules(page);
 
   return [...colors];
 }
@@ -266,6 +286,7 @@ function findFirstStyleValue(
         child.kind === "page" ||
         child.kind === "box" ||
         child.kind === "stack" ||
+        child.kind === "row" ||
         child.kind === "custom"
       ) {
         const found = findFirstStyleValue(child, key);
@@ -778,6 +799,55 @@ function wrapWithBreakableFrame(content: string, style: TemplateStyle | undefine
   ].join("\n");
 }
 
+function normalizeRuleLength(value: unknown, axis: "horizontal" | "vertical"): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return axis === "vertical" ? "1.5em" : "\\linewidth";
+  }
+
+  const trimmed = value.trim();
+  const percent = trimmed.match(/^([0-9.]+)%$/);
+  if (percent != null) {
+    const ratio = Number(percent[1]) / 100;
+    if (Number.isFinite(ratio) && ratio > 0) {
+      return axis === "vertical" ? `${ratio.toFixed(4)}\\baselineskip` : `${ratio.toFixed(4)}\\linewidth`;
+    }
+  }
+
+  return trimmed;
+}
+
+function normalizeRowWidth(value: unknown): string | null {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  const percent = trimmed.match(/^([0-9.]+)%$/);
+  if (percent != null) {
+    const ratio = Number(percent[1]) / 100;
+    if (Number.isFinite(ratio) && ratio > 0) {
+      return `${ratio.toFixed(4)}\\linewidth`;
+    }
+  }
+
+  return trimmed;
+}
+
+function renderRuleNode(node: ResolvedRuleNode): string {
+  const axis = node.axis ?? "horizontal";
+  const weight = node.weight ?? "0.4pt";
+  const color = normalizeHexColor(node.color ?? node.style?.color);
+  const length = normalizeRuleLength(node.length ?? node.style?.width, axis);
+  const body =
+    axis === "vertical" ? `\\rule{${weight}}{${length}}` : `\\rule{${length}}{${weight}}`;
+
+  if (color == null) {
+    return `\\noindent${body}`;
+  }
+
+  return `\\noindent{\\color{${colorName(color)}}${body}}`;
+}
+
 function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
   const body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   let aligned = wrapWithAlignment(body, node.style?.textAlign);
@@ -858,6 +928,25 @@ function renderStackNode(node: ResolvedStackNode, ctx: RenderContext): string {
   return pieces.join(gap);
 }
 
+function renderRowNode(node: ResolvedRowNode, ctx: RenderContext): string {
+  const pieces = node.children.map((child, index) => {
+    const width =
+      child.kind === "box" || child.kind === "stack" || child.kind === "row" || child.kind === "custom"
+        ? normalizeRowWidth(child.style?.width)
+        : null;
+
+    const content = renderResolvedChild(child, ctx);
+    if (width == null) {
+      return `\\begin{minipage}[t]{\\dimexpr\\linewidth / ${Math.max(node.children.length, 1)}\\relax}\n${content}\n\\end{minipage}`;
+    }
+
+    return `\\begin{minipage}[t]{${width}}\n${content}\n\\end{minipage}`;
+  });
+
+  const gap = node.gap != null ? `\\hspace*{${node.gap}}` : "\\hfill";
+  return ["\\noindent", pieces.join(`\n${gap}\n`)].join("\n");
+}
+
 function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
   let body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   const pageBackground = normalizeHexColor(node.style?.backgroundColor);
@@ -884,6 +973,10 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderBoxNode(node, ctx);
     case "stack":
       return renderStackNode(node, ctx);
+    case "row":
+      return renderRowNode(node, ctx);
+    case "rule":
+      return renderRuleNode(node);
     case "custom":
       return renderCustomNode(node, ctx);
     case "title":

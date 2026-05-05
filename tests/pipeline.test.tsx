@@ -141,6 +141,34 @@ test("custom template intrinsic renders through HTML and LaTeX backends", () => 
   assert.match(latex, /\\fbox\{%/);
 });
 
+test("row and rule template intrinsics render through HTML and LaTeX backends", () => {
+  const template = (
+    <template page={{ size: "a4", margin: "25mm" }}>
+      <flow gap="8mm">
+        <row gap="6mm">
+          <region box={{ width: "45%" }}>
+            <slot name="title" />
+          </region>
+          <rule weight="0.8pt" color="#8a6a2f" length="100%" />
+          <region box={{ width: "45%" }} typography={{ textAlign: "right" }}>
+            <slot name="author" />
+          </region>
+        </row>
+      </flow>
+    </template>
+  );
+
+  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
+  const html = renderResolvedToHTML(resolved);
+  const latex = renderResolvedToLatex(resolved);
+
+  assert.match(html, /data-node="row"/);
+  assert.match(html, /data-node="rule"/);
+  assert.match(latex, /\\begin\{minipage\}\[t\]\{0\.4500\\linewidth\}/);
+  assert.match(latex, /\\hspace\*\{6mm\}/);
+  assert.match(latex, /reactdoc8A6A2F/);
+});
+
 test("resolver applies template rules and page-set filtering", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">
