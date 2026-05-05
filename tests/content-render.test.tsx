@@ -140,3 +140,40 @@ test("content renderer rejects empty metadata tokens", () => {
     /`role` must be a non-empty string|produced no root node/i
   );
 });
+
+test("content renderer supports common markdown-style nodes", () => {
+  const result = renderContentToIR(
+    <document title="Markdown-ish">
+      <p>
+        Visit <a href="https://example.com">Example</a>.
+      </p>
+      <hr />
+      <pre language="ts">const answer = 42;</pre>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Markdown-ish",
+    children: [
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "Visit " },
+          {
+            kind: "link",
+            href: "https://example.com",
+            children: [{ kind: "text", value: "Example" }]
+          },
+          { kind: "text", value: "." }
+        ]
+      },
+      { kind: "thematic-break" },
+      {
+        kind: "code-block",
+        language: "ts",
+        children: [{ kind: "text", value: "const answer = 42;" }]
+      }
+    ]
+  });
+});

@@ -6,16 +6,19 @@ import type {
   AbstractNode,
   BlockQuoteNode,
   CodeNode,
+  CodeBlockNode,
   DocumentNode,
   DocumentChild,
   EmNode,
   FigureNode,
   FontNode,
+  LinkNode,
   ListItemNode,
   ListNode,
   PageBreakNode,
   ParagraphNode,
   SectionNode,
+  ThematicBreakNode,
   SemanticBlockChild,
   SemanticContainerNode,
   StrongNode,
@@ -36,6 +39,9 @@ type ContentProps = Record<string, unknown> & {
   caption?: string;
   width?: string;
   family?: string;
+  href?: string;
+  titleText?: string;
+  language?: string;
   role?: string;
   page?: string;
   speaker?: string;
@@ -111,6 +117,20 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         ...(speaker != null ? { speaker } : {}),
         children: []
       };
+    case "pre":
+    case "code-block":
+      return {
+        kind: "code-block",
+        ...(typeof props.language === "string" && props.language.trim().length > 0
+          ? { language: props.language.trim() }
+          : {}),
+        children: []
+      } satisfies CodeBlockNode;
+    case "hr":
+    case "thematic-break":
+      return {
+        kind: "thematic-break"
+      } satisfies ThematicBreakNode;
     case "list":
       return {
         kind: "list",
@@ -143,6 +163,19 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         family: String(props.family ?? ""),
         children: []
       };
+    case "a":
+    case "link":
+      if (typeof props.href !== "string" || props.href.trim().length === 0) {
+        throw new Error("`link` requires a non-empty `href`.");
+      }
+      return {
+        kind: "link",
+        href: props.href.trim(),
+        ...(typeof props.titleText === "string" && props.titleText.trim().length > 0
+          ? { title: props.titleText.trim() }
+          : {}),
+        children: []
+      } satisfies LinkNode;
     case "page-break":
       return {
         kind: "page-break"
@@ -168,7 +201,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "em" &&
         child.kind !== "strong" &&
         child.kind !== "code" &&
-        child.kind !== "font"
+        child.kind !== "font" &&
+        child.kind !== "link"
       ) {
         throw new Error("`paragraph` may only contain inline primitives.");
       }
@@ -179,12 +213,14 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
     case "em":
     case "strong":
     case "font":
+    case "link":
       if (
         child.kind !== "text" &&
         child.kind !== "em" &&
         child.kind !== "strong" &&
         child.kind !== "code" &&
-        child.kind !== "font"
+        child.kind !== "font" &&
+        child.kind !== "link"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }
@@ -193,6 +229,12 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
     case "code":
       if (child.kind !== "text") {
         throw new Error("`code` may only contain text.");
+      }
+      parent.children.push(child);
+      return;
+    case "code-block":
+      if (child.kind !== "text") {
+        throw new Error("`code-block` may only contain text.");
       }
       parent.children.push(child);
       return;
@@ -208,6 +250,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
+        child.kind !== "code-block" &&
+        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error("`item` may only contain block primitives.");
@@ -222,6 +266,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
+        child.kind !== "code-block" &&
+        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error("`document` may only contain document-level block primitives.");
@@ -237,6 +283,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
+        child.kind !== "code-block" &&
+        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain block primitives.`);

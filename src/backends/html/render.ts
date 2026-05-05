@@ -8,12 +8,14 @@ import type {
   ResolvedBoxNode,
   ResolvedChild,
   ResolvedCodeNode,
+  ResolvedCodeBlockNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
+  ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedPageBreakNode,
@@ -22,6 +24,7 @@ import type {
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
+  ResolvedThematicBreakNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
@@ -168,6 +171,11 @@ function renderFontNode(node: ResolvedFontNode): string {
   return `<span style="font-family:${escapeHtml(node.family)};">${node.children.map(renderInlineNode).join("")}</span>`;
 }
 
+function renderLinkNode(node: ResolvedLinkNode): string {
+  const titleAttr = node.title != null ? ` title="${escapeHtml(node.title)}"` : "";
+  return `<a href="${escapeHtml(node.href)}"${titleAttr}>${node.children.map(renderInlineNode).join("")}</a>`;
+}
+
 function renderInlineNode(node: ResolvedInlineNode): string {
   switch (node.kind) {
     case "text":
@@ -180,6 +188,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<code>${node.children.map(renderTextNode).join("")}</code>`;
     case "font":
       return renderFontNode(node);
+    case "link":
+      return renderLinkNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -199,6 +209,15 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   const caption =
     node.caption != null ? `<figcaption>${escapeHtml(node.caption)}</figcaption>` : "";
   return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
+}
+
+function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
+  const dataAttr = node.language != null ? ` data-language="${escapeHtml(node.language)}"` : "";
+  return `<pre${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
+}
+
+function renderThematicBreakNode(_node: ResolvedThematicBreakNode): string {
+  return "<hr />";
 }
 
 function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
@@ -267,6 +286,10 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
       return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
+    case "code-block":
+      return renderCodeBlockNode(node);
+    case "thematic-break":
+      return renderThematicBreakNode(node);
     case "blockquote":
       return renderBlockQuoteNode(node, ctx);
     case "list":
@@ -350,6 +373,8 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
     case "abstract":
     case "section":
     case "figure":
+    case "code-block":
+    case "thematic-break":
     case "paragraph":
     case "text":
     case "page-break":

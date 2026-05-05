@@ -9,12 +9,14 @@ import type {
   ResolvedBoxNode,
   ResolvedChild,
   ResolvedCodeNode,
+  ResolvedCodeBlockNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
+  ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedPageBreakNode,
@@ -23,6 +25,7 @@ import type {
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
+  ResolvedThematicBreakNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
@@ -341,6 +344,16 @@ function collectPreamble(page: ResolvedPageNode): string[] {
     lines.push("\\usepackage{graphicx}");
   }
 
+  if (pageContainsLink(page)) {
+    lines.push("\\usepackage[hidelinks]{hyperref}");
+  }
+
+  if (pageContainsCodeBlock(page)) {
+    lines.push("\\usepackage{fancyvrb}");
+  }
+
+  lines.push("\\emergencystretch=1.5em");
+
   return lines;
 }
 
@@ -351,6 +364,32 @@ function pageContainsFigure(node: ResolvedPageNode | ResolvedChild): boolean {
 
   if ("children" in node && Array.isArray(node.children)) {
     return node.children.some((child) => pageContainsFigure(child as ResolvedChild));
+  }
+
+  return false;
+}
+
+function pageContainsLink(node: ResolvedPageNode | ResolvedChild | ResolvedInlineNode): boolean {
+  if (node.kind === "link") {
+    return true;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children.some((child) =>
+      pageContainsLink(child as ResolvedChild | ResolvedInlineNode)
+    );
+  }
+
+  return false;
+}
+
+function pageContainsCodeBlock(node: ResolvedPageNode | ResolvedChild): boolean {
+  if (node.kind === "code-block") {
+    return true;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children.some((child) => pageContainsCodeBlock(child as ResolvedChild));
   }
 
   return false;
@@ -382,6 +421,11 @@ function renderFontNode(node: ResolvedFontNode): string {
   return cmd != null ? `{${cmd} ${inner}}` : inner;
 }
 
+function renderLinkNode(node: ResolvedLinkNode): string {
+  const label = node.children.map(renderInlineNode).join("");
+  return `\\href{${escapeLatex(node.href)}}{${label}}`;
+}
+
 function renderInlineNode(node: ResolvedInlineNode): string {
   switch (node.kind) {
     case "text":
@@ -394,6 +438,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `\\texttt{${node.children.map(renderTextNode).join("")}}`;
     case "font":
       return renderFontNode(node);
+    case "link":
+      return renderLinkNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -416,6 +462,19 @@ function renderFigureNode(node: ResolvedFigureNode): string {
 
   parts.push("\\end{center}");
   return parts.join("\n");
+}
+
+function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
+  const content = node.children.map((child) => child.value).join("");
+  return [
+    "\\begin{Verbatim}[fontsize=\\small]",
+    content,
+    "\\end{Verbatim}"
+  ].join("\n");
+}
+
+function renderThematicBreakNode(_node: ResolvedThematicBreakNode): string {
+  return "\\noindent\\rule{\\linewidth}{0.5pt}";
 }
 
 function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
@@ -462,9 +521,15 @@ function renderListItemNode(node: ResolvedListItemNode, ctx: RenderContext): str
 function renderListNode(node: ResolvedListNode, ctx: RenderContext): string {
   const environment = node.ordered ? "enumerate" : "itemize";
   return [
+    "\\begingroup",
+    "\\setlength{\\topsep}{0.4em}",
+    "\\setlength{\\itemsep}{0.3em}",
+    "\\setlength{\\parsep}{0pt}",
+    "\\setlength{\\parskip}{0pt}",
     `\\begin{${environment}}`,
     ...node.children.map((child) => renderListItemNode(child, ctx)),
-    `\\end{${environment}}`
+    `\\end{${environment}}`,
+    "\\endgroup"
   ].join("\n");
 }
 
@@ -496,6 +561,10 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
       return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
+    case "code-block":
+      return renderCodeBlockNode(node);
+    case "thematic-break":
+      return renderThematicBreakNode(node);
     case "blockquote":
       return renderBlockQuoteNode(node, ctx);
     case "list":
@@ -703,6 +772,7 @@ function wrapWithBreakableFrame(content: string, style: TemplateStyle | undefine
 
   return [
     `\\begin{mdframed}[${options.join(",")}]`,
+    "\\sloppy",
     wrapWithTypography(content, style),
     "\\end{mdframed}"
   ].join("\n");
@@ -821,6 +891,8 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
     case "abstract":
     case "section":
     case "figure":
+    case "code-block":
+    case "thematic-break":
     case "paragraph":
     case "text":
     case "page-break":

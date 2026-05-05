@@ -3,6 +3,13 @@ export type TextNode = {
   value: string;
 };
 
+export type LinkNode = {
+  kind: "link";
+  href: string;
+  title?: string;
+  children: InlineNode[];
+};
+
 export type EmNode = {
   kind: "em";
   children: InlineNode[];
@@ -30,6 +37,16 @@ export type ParagraphNode = {
   page?: string;
   variant?: string;
   children: InlineNode[];
+};
+
+export type CodeBlockNode = {
+  kind: "code-block";
+  language?: string;
+  children: TextNode[];
+};
+
+export type ThematicBreakNode = {
+  kind: "thematic-break";
 };
 
 export type FigureNode = {
@@ -87,7 +104,7 @@ export type DocumentNode = {
   children: DocumentChild[];
 };
 
-export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | FontNode;
+export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | FontNode | LinkNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -95,6 +112,8 @@ export type SemanticBlockChild =
   | FigureNode
   | BlockQuoteNode
   | ListNode
+  | CodeBlockNode
+  | ThematicBreakNode
   | PageBreakNode;
 
 export type DocumentChild = AbstractNode | SemanticBlockChild;
@@ -108,11 +127,14 @@ export type SemanticNode =
   | BlockQuoteNode
   | ListNode
   | ListItemNode
+  | CodeBlockNode
+  | ThematicBreakNode
   | PageBreakNode
   | EmNode
   | StrongNode
   | CodeNode
   | FontNode
+  | LinkNode
   | TextNode;
 
 export type SemanticContainerNode =
@@ -124,7 +146,10 @@ export type SemanticContainerNode =
   | BlockQuoteNode
   | ListNode
   | ListItemNode
+  | CodeBlockNode
+  | ThematicBreakNode
   | EmNode
   | StrongNode
   | CodeNode
+  | LinkNode
   | FontNode;

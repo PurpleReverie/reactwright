@@ -2,11 +2,13 @@ import type {
   AbstractNode,
   BlockQuoteNode,
   CodeNode,
+  CodeBlockNode,
   DocumentNode,
   DocumentChild,
   EmNode,
   FigureNode,
   FontNode,
+  LinkNode,
   ListItemNode,
   ListNode,
   PageBreakNode,
@@ -14,6 +16,7 @@ import type {
   SectionNode,
   SemanticBlockChild,
   StrongNode,
+  ThematicBreakNode,
   TextNode
 } from "../content/ir.js";
 import type {
@@ -29,12 +32,14 @@ import type {
   ResolvedBlockQuoteNode,
   ResolvedChild,
   ResolvedCodeNode,
+  ResolvedCodeBlockNode,
   ResolvedContentChild,
   ResolvedContentNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
+  ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedPageBreakNode,
@@ -44,6 +49,7 @@ import type {
   ResolvedStackNode,
   ResolvedStrongNode,
   ResolvedTemplateNode,
+  ResolvedThematicBreakNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "./ir.js";
@@ -96,7 +102,18 @@ function resolveFontNode(node: FontNode): ResolvedFontNode {
   };
 }
 
-function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode | FontNode): ResolvedInlineNode {
+function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
+  return {
+    kind: "link",
+    href: node.href,
+    ...(node.title != null ? { title: node.title } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveInlineNode(
+  node: TextNode | EmNode | StrongNode | CodeNode | FontNode | LinkNode
+): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
       return resolveTextNode(node);
@@ -108,6 +125,8 @@ function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode | Fon
       return resolveCodeNode(node);
     case "font":
       return resolveFontNode(node);
+    case "link":
+      return resolveLinkNode(node);
   }
 }
 
@@ -128,6 +147,20 @@ function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
     alt: node.alt,
     caption: node.caption,
     width: node.width
+  };
+}
+
+function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
+  return {
+    kind: "code-block",
+    ...(node.language != null ? { language: node.language } : {}),
+    children: node.children.map(resolveTextNode)
+  };
+}
+
+function resolveThematicBreakNode(_node: ThematicBreakNode): ResolvedThematicBreakNode {
+  return {
+    kind: "thematic-break"
   };
 }
 
@@ -195,6 +228,10 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveBlockQuoteNode(node);
     case "list":
       return resolveListNode(node);
+    case "code-block":
+      return resolveCodeBlockNode(node);
+    case "thematic-break":
+      return resolveThematicBreakNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
   }
@@ -290,6 +327,8 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
       };
     case "paragraph":
     case "figure":
+    case "code-block":
+    case "thematic-break":
     case "item":
     case "title":
     case "author":
@@ -297,6 +336,7 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
     case "strong":
     case "code":
     case "font":
+    case "link":
     case "text":
     case "page-break":
       return node;

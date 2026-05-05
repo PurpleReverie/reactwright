@@ -28,9 +28,9 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
         marginRight: "18mm",
         marginBottom: "20mm",
         marginLeft: "18mm",
-        fontFamily: "Courier Prime",
+        fontFamily: "serif",
         fontSize: "11pt",
-        lineHeight: 1.42,
+        lineHeight: 1.34,
         sectionStyle: "label",
         blockquoteStyle: "plain",
         backgroundColor: "#f7f0df",
@@ -72,9 +72,9 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
             style={{
               fontFamily: "Cormorant SC",
               fontWeight: "bold",
-              fontSize: "18pt",
-              paddingTop: "3mm",
-              paddingBottom: "1.5mm"
+              fontSize: "16pt",
+              paddingTop: "2.5mm",
+              paddingBottom: "1mm"
             }}
           >
             <slot name="title" />
@@ -95,9 +95,12 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
               backgroundColor: "#fcf7ea",
               border: "1.1pt solid #b79a67",
               paddingTop: "4mm",
-              paddingRight: "5mm",
+              paddingRight: "4mm",
               paddingBottom: "4mm",
-              paddingLeft: "5mm",
+              paddingLeft: "4mm",
+              fontFamily: "serif",
+              fontSize: "10.5pt",
+              lineHeight: 1.3,
               breakable: true
             }}
           >
@@ -122,10 +125,13 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
             style={{
               backgroundColor: "#fffdf8",
               border: "1.5pt solid #2b2f38",
-              paddingTop: "5mm",
-              paddingRight: "9mm",
-              paddingBottom: "5mm",
-              paddingLeft: "9mm",
+              paddingTop: "4mm",
+              paddingRight: "5mm",
+              paddingBottom: "4mm",
+              paddingLeft: "5mm",
+              fontFamily: "Courier Prime",
+              fontSize: "10pt",
+              lineHeight: 1.22,
               breakable: true
             }}
           >

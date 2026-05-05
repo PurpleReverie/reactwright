@@ -23,12 +23,17 @@ function createPaper() {
         <paragraph>
           Hello <strong>world</strong>.
         </paragraph>
+        <paragraph>
+          Visit <a href="https://example.com">the notes</a>.
+        </paragraph>
         <figure
           src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
           alt="Tiny test swatch"
           caption="A tiny figure used to validate image support."
           width="35mm"
         />
+        <hr />
+        <pre language="txt">plain-text block</pre>
         <blockquote>
           <paragraph>A quoted observation for the HTML and LaTeX backends.</paragraph>
         </blockquote>
@@ -85,6 +90,9 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<h2>Intro<\/h2>/);
   assert.match(html, /<figure>/);
   assert.match(html, /reactdoc-swatch\.png/);
+  assert.match(html, /href="https:\/\/example\.com"/);
+  assert.match(html, /<hr \/>/);
+  assert.match(html, /<pre data-language="txt"><code>plain-text block<\/code><\/pre>/);
   assert.match(html, /<blockquote>/);
   assert.match(html, /<ul>/);
 });
@@ -97,6 +105,10 @@ test("LaTeX backend emits expected content", () => {
   assert.match(latex, /\\begin\{abstract\}/);
   assert.match(latex, /\\section\{Intro\}/);
   assert.match(latex, /\\usepackage\{graphicx\}/);
+  assert.match(latex, /\\usepackage\[hidelinks\]\{hyperref\}/);
+  assert.match(latex, /\\usepackage\{fancyvrb\}/);
+  assert.match(latex, /\\href\{https:\/\/example\.com\}\{the notes\}/);
+  assert.match(latex, /\\begin\{Verbatim\}\[fontsize=\\small\]/);
   assert.match(latex, /\\includegraphics\[width=35mm\]/);
   assert.match(latex, /\\emph\{end-to-end\}/);
   assert.match(latex, /\\begin\{quote\}/);

@@ -5,6 +5,13 @@ export type ResolvedTextNode = {
   value: string;
 };
 
+export type ResolvedLinkNode = {
+  kind: "link";
+  href: string;
+  title?: string;
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedEmNode = {
   kind: "em";
   children: ResolvedInlineNode[];
@@ -32,6 +39,16 @@ export type ResolvedParagraphNode = {
   page?: string;
   variant?: string;
   children: ResolvedInlineNode[];
+};
+
+export type ResolvedCodeBlockNode = {
+  kind: "code-block";
+  language?: string;
+  children: ResolvedTextNode[];
+};
+
+export type ResolvedThematicBreakNode = {
+  kind: "thematic-break";
 };
 
 export type ResolvedFigureNode = {
@@ -128,12 +145,15 @@ export type ResolvedContentNode =
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedListItemNode
+  | ResolvedCodeBlockNode
+  | ResolvedThematicBreakNode
   | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
   | ResolvedFontNode
+  | ResolvedLinkNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -141,6 +161,8 @@ export type ResolvedContentChild =
   | ResolvedFigureNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
+  | ResolvedCodeBlockNode
+  | ResolvedThematicBreakNode
   | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedTextNode;
@@ -150,7 +172,8 @@ export type ResolvedInlineNode =
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
-  | ResolvedFontNode;
+  | ResolvedFontNode
+  | ResolvedLinkNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

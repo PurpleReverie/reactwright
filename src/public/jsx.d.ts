@@ -37,6 +37,16 @@ type ContentIntrinsicMap = {
   strong: {
     children?: ReactNode;
   };
+  a: {
+    href: string;
+    titleText?: string;
+    children?: ReactNode;
+  };
+  link: {
+    href: string;
+    titleText?: string;
+    children?: ReactNode;
+  };
   code: {
     children?: ReactNode;
   };
@@ -48,6 +58,16 @@ type ContentIntrinsicMap = {
     speaker?: string;
     children?: ReactNode;
   };
+  pre: {
+    language?: string;
+    children?: ReactNode;
+  };
+  "code-block": {
+    language?: string;
+    children?: ReactNode;
+  };
+  hr: Record<string, never>;
+  "thematic-break": Record<string, never>;
   list: {
     ordered?: boolean;
     children?: ReactNode;
