@@ -435,11 +435,7 @@ function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext):
   const children = node.children.map((child) => renderContentNode(child, ctx));
 
   if (node.role === "dialogue") {
-    return [
-      "\\smallskip",
-      ...children,
-      "\\smallskip"
-    ].join("\n\n");
+    return ["\\smallskip", ...children].join("\n\n");
   }
 
   if (ctx.blockquoteStyle === "plain") {
@@ -476,11 +472,11 @@ function renderAbstractNode(node: ResolvedAbstractNode, ctx: RenderContext): str
 }
 
 function renderTitleNode(node: ResolvedTitleNode): string {
-  return `\\LARGE ${escapeLatex(node.value)}\\\\`;
+  return `${escapeLatex(node.value)}\\\\`;
 }
 
 function renderAuthorNode(node: ResolvedAuthorNode): string {
-  return `\\large ${escapeLatex(node.value)}\\\\`;
+  return `${escapeLatex(node.value)}\\\\`;
 }
 
 function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): string {
@@ -674,10 +670,10 @@ function wrapWithBreakableFrame(content: string, style: TemplateStyle | undefine
   const backgroundColor = normalizeHexColor(style?.backgroundColor);
   const border = parseBorder(style?.border);
   const padding = normalizeLength(style?.padding);
-  const top = normalizeLength(style?.paddingTop) ?? padding ?? "6pt";
-  const right = normalizeLength(style?.paddingRight) ?? padding ?? "6pt";
-  const bottom = normalizeLength(style?.paddingBottom) ?? padding ?? "6pt";
-  const left = normalizeLength(style?.paddingLeft) ?? padding ?? "6pt";
+  const top = normalizeLength(style?.paddingTop) ?? padding ?? "0pt";
+  const right = normalizeLength(style?.paddingRight) ?? padding ?? "0pt";
+  const bottom = normalizeLength(style?.paddingBottom) ?? padding ?? "0pt";
+  const left = normalizeLength(style?.paddingLeft) ?? padding ?? "0pt";
   const options = [
     "skipabove=0pt",
     "skipbelow=0pt",
