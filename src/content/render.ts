@@ -38,7 +38,6 @@ type ContentProps = Record<string, unknown> & {
   family?: string;
   role?: string;
   page?: string;
-  variant?: string;
   speaker?: string;
 };
 
@@ -47,7 +46,24 @@ type ContentContainer = {
   children: SemanticNode[];
 };
 
+function readOptionalTokenProp(props: ContentProps, key: "role" | "page" | "speaker"): string | undefined {
+  const value = props[key];
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`\`${key}\` must be a non-empty string when provided.`);
+  }
+
+  return value.trim();
+}
+
 function createContentNode(type: string, props: ContentProps): SemanticNode {
+  const role = readOptionalTokenProp(props, "role");
+  const page = readOptionalTokenProp(props, "page");
+  const speaker = readOptionalTokenProp(props, "speaker");
+
   switch (type) {
     case "document":
       return {
@@ -59,26 +75,23 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "abstract":
       return {
         kind: "abstract",
-        ...(typeof props.page === "string" ? { page: props.page } : {}),
-        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
+        ...(page != null ? { page } : {}),
         children: []
       };
     case "section":
       return {
         kind: "section",
         title: String(props.title ?? ""),
-        ...(typeof props.role === "string" ? { role: props.role } : {}),
-        ...(typeof props.page === "string" ? { page: props.page } : {}),
-        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
         children: []
       };
     case "p":
     case "paragraph":
       return {
         kind: "paragraph",
-        ...(typeof props.role === "string" ? { role: props.role } : {}),
-        ...(typeof props.page === "string" ? { page: props.page } : {}),
-        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
         children: []
       };
     case "figure":
@@ -89,13 +102,13 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         caption: typeof props.caption === "string" ? props.caption : undefined,
         width: typeof props.width === "string" ? props.width : undefined
       } as FigureNode;
+    case "quote":
     case "blockquote":
       return {
         kind: "blockquote",
-        ...(typeof props.role === "string" ? { role: props.role } : {}),
-        ...(typeof props.page === "string" ? { page: props.page } : {}),
-        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
-        ...(typeof props.speaker === "string" ? { speaker: props.speaker } : {}),
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
+        ...(speaker != null ? { speaker } : {}),
         children: []
       };
     case "list":

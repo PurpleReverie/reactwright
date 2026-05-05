@@ -91,7 +91,9 @@ test("content renderer supports concise block aliases and page breaks", () => {
       </section>
       <page-break />
       <section title="Script" role="scene-heading" page="script">
-        <p>Second mode.</p>
+        <quote role="dialogue" speaker="ALDRIC">
+          <p>Second mode.</p>
+        </quote>
       </section>
     </document>
   );
@@ -112,8 +114,29 @@ test("content renderer supports concise block aliases and page breaks", () => {
         title: "Script",
         role: "scene-heading",
         page: "script",
-        children: [{ kind: "paragraph", children: [{ kind: "text", value: "Second mode." }] }]
+        children: [
+          {
+            kind: "blockquote",
+            role: "dialogue",
+            speaker: "ALDRIC",
+            children: [{ kind: "paragraph", children: [{ kind: "text", value: "Second mode." }] }]
+          }
+        ]
       }
     ]
   });
+});
+
+test("content renderer rejects empty metadata tokens", () => {
+  assert.throws(
+    () =>
+      renderContentToIR(
+        <document title="Broken">
+          <section title="Bad" role="   ">
+            <p>Nope.</p>
+          </section>
+        </document>
+      ),
+    /`role` must be a non-empty string|produced no root node/i
+  );
 });

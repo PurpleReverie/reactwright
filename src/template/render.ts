@@ -42,7 +42,34 @@ type TemplateContainer = {
   children: TemplateNode[];
 };
 
+function readRequiredTemplateToken(
+  props: TemplateProps,
+  key: "name" | "role" | "variant" | "page" | "use"
+): string {
+  const value = props[key];
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`\`${key}\` must be a non-empty string.`);
+  }
+
+  return value.trim();
+}
+
+function readOptionalTemplateToken(props: TemplateProps, key: "gap"): string | undefined {
+  const value = props[key];
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`\`${key}\` must be a non-empty string when provided.`);
+  }
+
+  return value.trim();
+}
+
 function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
+  const gap = readOptionalTemplateToken(props, "gap");
+
   switch (type) {
     case "template":
     case "page":
@@ -62,17 +89,20 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
     case "stack":
       return {
         kind: "stack",
-        gap: typeof props.gap === "string" ? props.gap : undefined,
+        gap,
         style: props.style,
         children: []
       };
     case "columns":
+      if (!Number.isInteger(props.count) || Number(props.count) < 1) {
+        throw new Error("`columns` requires a positive integer `count`.");
+      }
       return {
         kind: "box",
         style: {
           ...(props.style ?? {}),
-          ...(typeof props.count === "number" ? { columns: props.count } : {}),
-          ...(typeof props.gap === "string" ? { columnGap: props.gap } : {})
+          columns: props.count,
+          ...(gap != null ? { columnGap: gap } : {})
         },
         children: []
       };
@@ -84,7 +114,7 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
     case "page-set":
       return {
         kind: "page-set",
-        name: typeof props.name === "string" ? props.name : "default",
+        name: readRequiredTemplateToken(props, "name"),
         children: []
       } satisfies PageSetNode;
     case "rules":
@@ -95,20 +125,20 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
     case "section-role":
       return {
         kind: "section-role",
-        role: String(props.role ?? ""),
-        variant: String(props.variant ?? "")
+        role: readRequiredTemplateToken(props, "role"),
+        variant: readRequiredTemplateToken(props, "variant")
       } satisfies SectionRoleRuleNode;
     case "quote-role":
       return {
         kind: "quote-role",
-        role: String(props.role ?? ""),
-        variant: String(props.variant ?? "")
+        role: readRequiredTemplateToken(props, "role"),
+        variant: readRequiredTemplateToken(props, "variant")
       } satisfies QuoteRoleRuleNode;
     case "page-role":
       return {
         kind: "page-role",
-        page: String(props.page ?? ""),
-        use: String(props.use ?? "")
+        page: readRequiredTemplateToken(props, "page"),
+        use: readRequiredTemplateToken(props, "use")
       } satisfies PageRoleRuleNode;
     default:
       if (getTemplateIntrinsic(type) != null) {

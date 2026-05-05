@@ -1,28 +1,24 @@
 import type { ReactNode } from "react";
 
+type ContentMetadataProps = {
+  role?: string;
+  page?: string;
+};
+
 type ContentIntrinsicMap = {
   document: {
     title: string;
     author?: string;
     children?: ReactNode;
   };
-  section: {
+  section: ContentMetadataProps & {
     title: string;
-    role?: string;
-    page?: string;
-    variant?: string;
     children?: ReactNode;
   };
-  paragraph: {
-    role?: string;
-    page?: string;
-    variant?: string;
+  paragraph: ContentMetadataProps & {
     children?: ReactNode;
   };
-  p: {
-    role?: string;
-    page?: string;
-    variant?: string;
+  p: ContentMetadataProps & {
     children?: ReactNode;
   };
   figure: {
@@ -33,7 +29,6 @@ type ContentIntrinsicMap = {
   };
   abstract: {
     page?: string;
-    variant?: string;
     children?: ReactNode;
   };
   em: {
@@ -45,10 +40,11 @@ type ContentIntrinsicMap = {
   code: {
     children?: ReactNode;
   };
-  blockquote: {
-    role?: string;
-    page?: string;
-    variant?: string;
+  blockquote: ContentMetadataProps & {
+    speaker?: string;
+    children?: ReactNode;
+  };
+  quote: ContentMetadataProps & {
     speaker?: string;
     children?: ReactNode;
   };
@@ -66,38 +62,25 @@ type ContentIntrinsicMap = {
   "page-break": Record<string, never>;
 };
 
+type TemplateStyleProps = {
+  style?: Record<string, unknown>;
+  children?: ReactNode;
+};
+
 type TemplateIntrinsicMap = {
-  page: {
-    style?: Record<string, unknown>;
-    children?: ReactNode;
-  };
-  template: {
-    style?: Record<string, unknown>;
-    children?: ReactNode;
-  };
-  box: {
-    style?: Record<string, unknown>;
-    children?: ReactNode;
-  };
-  region: {
-    style?: Record<string, unknown>;
-    children?: ReactNode;
-  };
-  stack: {
+  page: TemplateStyleProps;
+  template: TemplateStyleProps;
+  box: TemplateStyleProps;
+  region: TemplateStyleProps;
+  stack: TemplateStyleProps & {
     gap?: string;
-    style?: Record<string, unknown>;
-    children?: ReactNode;
   };
-  flow: {
+  flow: TemplateStyleProps & {
     gap?: string;
-    style?: Record<string, unknown>;
-    children?: ReactNode;
   };
-  columns: {
+  columns: TemplateStyleProps & {
     count: number;
     gap?: string;
-    style?: Record<string, unknown>;
-    children?: ReactNode;
   };
   slot: {
     name: "title" | "author" | "abstract" | "body";

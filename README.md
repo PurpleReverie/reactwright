@@ -66,7 +66,8 @@ Example `v0` candidates:
 
 - `document`
 - `section`
-- `paragraph`
+- `p`
+- `quote`
 - `abstract`
 
 ### Template intrinsics
@@ -75,10 +76,18 @@ These describe layout and styling.
 
 Example `v0` candidates:
 
-- `page`
-- `box`
-- `stack`
+- `template`
+- `flow`
+- `region`
+- `columns`
 - `slot`
+
+Canonical authoring now prefers the concise lowercase surface:
+
+- content: `document`, `section`, `p`, `quote`, `list`, `item`, `figure`, `page-break`
+- template: `template`, `flow`, `region`, `columns`, `slot`, `rules`, `page-set`
+
+Legacy aliases like `paragraph`, `blockquote`, `page`, `box`, and `stack` are still supported for compatibility.
 
 ### Naming rule
 
@@ -90,7 +99,7 @@ This means a project can define custom components without changing the engine:
 ```tsx
 const Epigraph = ({ children }: { children: React.ReactNode }) => (
   <section>
-    <paragraph>{children}</paragraph>
+    <p>{children}</p>
   </section>
 );
 ```

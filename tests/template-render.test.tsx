@@ -123,3 +123,29 @@ test("template renderer supports rules and page sets in the new syntax", () => {
     ]
   });
 });
+
+test("template renderer rejects empty rule tokens and invalid columns", () => {
+  assert.throws(
+    () =>
+      renderTemplateToIR(
+        <template>
+          <rules>
+            <section-role role="scene-heading" variant="   " />
+          </rules>
+        </template>
+      ),
+    /`variant` must be a non-empty string|produced no root node/i
+  );
+
+  assert.throws(
+    () =>
+      renderTemplateToIR(
+        <template>
+          <columns count={0}>
+            <slot name="body" />
+          </columns>
+        </template>
+      ),
+    /positive integer `count`|produced no root node/i
+  );
+});
