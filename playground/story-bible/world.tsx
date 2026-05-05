@@ -29,6 +29,34 @@ export function WorldSection() {
           habitual arrangement of mutual suspicion that has calcified into something
           almost resembling stability.
         </p>
+
+        <table caption="The Three Noble Houses of Mulgaard">
+          <table-row>
+            <table-cell header><p><strong>House</strong></p></table-cell>
+            <table-cell header><p><strong>Territory</strong></p></table-cell>
+            <table-cell header><p><strong>Seat</strong></p></table-cell>
+            <table-cell header><p><strong>Character</strong></p></table-cell>
+          </table-row>
+          <table-row>
+            <table-cell><p><strong>House Vael</strong></p></table-cell>
+            <table-cell><p>Stonecrown Highlands</p></table-cell>
+            <table-cell><p>Vael's Seat</p></table-cell>
+            <table-cell><p>Warrior aristocracy, northern mountains</p></table-cell>
+          </table-row>
+          <table-row>
+            <table-cell><p><strong>House Mirren</strong></p></table-cell>
+            <table-cell><p>Verdant Marches</p></table-cell>
+            <table-cell><p>Mirren's Landing</p></table-cell>
+            <table-cell><p>Scholars and farmers, floating city on the loch</p></table-cell>
+          </table-row>
+          <table-row>
+            <table-cell><p><strong>House Orath</strong></p></table-cell>
+            <table-cell><p>Tidewarden Coast</p></table-cell>
+            <table-cell><p>Orath's Gate</p></table-cell>
+            <table-cell><p>Maritime traders, the island's Tidewalkers</p></table-cell>
+          </table-row>
+        </table>
+
         <list>
           <item>
             <p>

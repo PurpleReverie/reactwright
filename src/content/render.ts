@@ -48,6 +48,7 @@ type ContentProps = Record<string, unknown> & {
   language?: string;
   role?: string;
   page?: string;
+  variant?: string;
   speaker?: string;
 };
 
@@ -56,7 +57,7 @@ type ContentContainer = {
   children: SemanticNode[];
 };
 
-function readOptionalTokenProp(props: ContentProps, key: "role" | "page" | "speaker"): string | undefined {
+function readOptionalTokenProp(props: ContentProps, key: "role" | "page" | "variant" | "speaker"): string | undefined {
   const value = props[key];
   if (value == null) {
     return undefined;
@@ -72,6 +73,7 @@ function readOptionalTokenProp(props: ContentProps, key: "role" | "page" | "spea
 function createContentNode(type: string, props: ContentProps): SemanticNode {
   const role = readOptionalTokenProp(props, "role");
   const page = readOptionalTokenProp(props, "page");
+  const variant = readOptionalTokenProp(props, "variant");
   const speaker = readOptionalTokenProp(props, "speaker");
 
   switch (type) {
@@ -86,6 +88,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       return {
         kind: "abstract",
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         children: []
       };
     case "section":
@@ -94,6 +97,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         title: String(props.title ?? ""),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         children: []
       };
     case "p":
@@ -102,6 +106,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "paragraph",
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         children: []
       };
     case "figure":
@@ -109,6 +114,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "figure",
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         src: String(props.src ?? ""),
         alt: typeof props.alt === "string" ? props.alt : undefined,
         caption: typeof props.caption === "string" ? props.caption : undefined,
@@ -137,6 +143,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "blockquote",
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         ...(speaker != null ? { speaker } : {}),
         children: []
       };
@@ -159,6 +166,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "list",
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
         ordered: Boolean(props.ordered),
         children: []
       };

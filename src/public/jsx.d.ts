@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 type ContentMetadataProps = {
   role?: string;
   page?: string;
+  variant?: string;
 };
 
 type ContentIntrinsicMap = {
@@ -40,6 +41,7 @@ type ContentIntrinsicMap = {
   };
   abstract: {
     page?: string;
+    variant?: string;
     children?: ReactNode;
   };
   em: {

@@ -134,7 +134,7 @@ test("LaTeX backend emits expected content", () => {
   assert.match(latex, /\\emph\{end-to-end\}/);
   assert.match(latex, /\\begin\{quote\}/);
   assert.match(latex, /\\begin\{itemize\}/);
-  assert.match(latex, /\\begin\{tabular\}/);
+  assert.match(latex, /\\begin\{tabularx\}/);
   assert.match(latex, /\\textbf\{House\} & \\textbf\{Seat\}/);
   assert.match(latex, /House seats/);
 });

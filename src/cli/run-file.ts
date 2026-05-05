@@ -11,11 +11,10 @@ import { resolveDocument } from "../resolver/resolve.js";
 import { ArticleTemplate } from "../templates/article.js";
 import { GoofyCreativeTemplate } from "../templates/goofy.js";
 import { IEEETemplate } from "../templates/ieee.js";
-import { StoryBibleTemplate } from "../templates/story-bible.js";
 import { renderTemplateToIR } from "../template/render.js";
 
 type OutputFormat = "html" | "latex" | "pdf";
-type TemplateName = "article" | "ieee" | "goofy" | "story-bible";
+type TemplateName = "article" | "ieee" | "goofy";
 
 type RunExternalFileOptions = {
   inputPath: string;
@@ -48,11 +47,12 @@ type ExternalDocumentModule =
 function usage(): string {
   return [
     "Usage:",
-    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,latex,pdf] [--out ./build/reactdoc-run] [--template article|ieee|goofy|story-bible]",
+    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,latex,pdf] [--out ./build/reactdoc-run] [--template article|ieee|goofy]",
     "",
     "Examples:",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --template ieee",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --template goofy",
+    "  node --import tsx ./src/cli/run-file.ts ./playground/story-bible.tsx --format html,latex,pdf",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html,latex,pdf --out ./build/reactdoc-run"
   ].join("\n");
 }
@@ -86,10 +86,6 @@ function parseTemplate(value: string | undefined): TemplateName {
     return "goofy";
   }
 
-  if (value === "story-bible") {
-    return "story-bible";
-  }
-
   throw new Error(`Unknown template: ${value}`);
 }
 
@@ -101,8 +97,6 @@ function getBuiltInTemplate(template: TemplateName) {
       return GoofyCreativeTemplate;
     case "ieee":
       return IEEETemplate;
-    case "story-bible":
-      return StoryBibleTemplate;
   }
 }
 

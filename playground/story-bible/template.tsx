@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import { registerFont } from "../fonts/registry.js";
+import { registerFont } from "../../src/fonts/registry.js";
 
-// Courier Prime: the clean, screen-readable version of the industry-standard
-// Courier typeface used in all professional script and development documents.
 registerFont("Courier Prime", {
   html: {
     kind: "link",
@@ -26,7 +24,7 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
         size: "a4",
         marginTop: "18mm",
         marginRight: "18mm",
-        marginBottom: "20mm",
+        marginBottom: "24mm",
         marginLeft: "18mm"
       }}
       typography={{
@@ -46,15 +44,40 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
       <rules>
         <section-role role="scene-heading" variant="sceneHeading" />
         <quote-role role="dialogue" variant="dialogueBlock" />
+        <paragraph-role role="stageDirect" variant="stageDirect" />
         <page-role page="worldbuilding" use="worldbuilding" />
         <page-role page="script" use="script" />
       </rules>
+
+      <repeat when="not-first-page" anchor="top-right">
+        <region
+          typography={{
+            fontFamily: "Cormorant SC",
+            fontWeight: "bold",
+            fontSize: "8pt",
+            color: "#8a6a2f"
+          }}
+        >
+          <slot name="title" />
+        </region>
+      </repeat>
+
+      <repeat when="not-first-page" anchor="bottom-center">
+        <region
+          typography={{
+            fontSize: "8pt",
+            color: "#8a6a2f"
+          }}
+        >
+          <page-number />
+        </region>
+      </repeat>
 
       <flow gap="8mm">
         <region
           typography={{
             textAlign: "center",
-            color: "#f6ead2",
+            color: "#f6ead2"
           }}
           box={{
             backgroundColor: "#1c2430",
@@ -71,9 +94,7 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
               fontSize: "9pt",
               fontWeight: "bold"
             }}
-            box={{
-              paddingBottom: "1.5mm"
-            }}
+            box={{ paddingBottom: "1.5mm" }}
           >
             SERIES DOSSIER / DEVELOPMENT MATERIAL
           </region>
@@ -84,20 +105,13 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
               fontWeight: "bold",
               fontSize: "16pt"
             }}
-            box={{
-              paddingTop: "2.5mm",
-              paddingBottom: "1mm"
-            }}
+            box={{ paddingTop: "2.5mm", paddingBottom: "1mm" }}
           >
             <slot name="title" />
           </region>
           <region
-            typography={{
-              fontSize: "9pt"
-            }}
-            box={{
-              paddingTop: "1mm"
-            }}
+            typography={{ fontSize: "9pt" }}
+            box={{ paddingTop: "1mm" }}
           >
             <slot name="author" />
           </region>
@@ -127,9 +141,7 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
                 fontSize: "9pt",
                 textAlign: "center"
               }}
-              box={{
-                paddingBottom: "2mm"
-              }}
+              box={{ paddingBottom: "2mm" }}
             >
               WORLD NOTES / THEMES / CHARACTER STRATEGY
             </region>
@@ -162,9 +174,7 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
                 fontSize: "9pt",
                 textAlign: "center"
               }}
-              box={{
-                paddingBottom: "2mm"
-              }}
+              box={{ paddingBottom: "2mm" }}
             >
               SCRIPT SAMPLE / PERFORMANCE OF TONE
             </region>

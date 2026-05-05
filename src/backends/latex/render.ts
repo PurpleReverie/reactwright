@@ -367,6 +367,10 @@ function collectPreamble(page: ResolvedPageNode): string[] {
     lines.push("\\usepackage{mdframed}");
   }
 
+  if (pageContainsTable(page)) {
+    lines.push("\\usepackage{tabularx}");
+  }
+
   if (pageContainsFigure(page)) {
     lines.push("\\usepackage{graphicx}");
   }
@@ -392,6 +396,18 @@ function collectPreamble(page: ResolvedPageNode): string[] {
   lines.push("\\emergencystretch=1.5em");
 
   return lines;
+}
+
+function pageContainsTable(node: ResolvedPageNode | ResolvedChild): boolean {
+  if (node.kind === "table") {
+    return true;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children.some((child) => pageContainsTable(child as ResolvedChild));
+  }
+
+  return false;
 }
 
 function pageContainsFigure(node: ResolvedPageNode | ResolvedChild): boolean {
@@ -507,7 +523,17 @@ function renderInlineNode(node: ResolvedInlineNode): string {
 }
 
 function renderParagraphNode(node: ResolvedParagraphNode): string {
-  return `${node.children.map(renderInlineNode).join("")}\n`;
+  const inline = node.children.map(renderInlineNode).join("");
+
+  if (node.variant === "stageDirect") {
+    return `{\\small\\itshape ${inline}}\n`;
+  }
+
+  if (node.variant === "themeStatement") {
+    return `\\medskip\\noindent ${inline}\n`;
+  }
+
+  return `${inline}\n`;
 }
 
 function renderFigureNode(node: ResolvedFigureNode): string {
@@ -540,21 +566,19 @@ function renderTableRowNode(node: ResolvedTableRowNode, ctx: RenderContext): str
 
 function renderTableNode(node: ResolvedTableNode, ctx: RenderContext): string {
   const columnCount = node.children[0]?.children.length ?? 0;
-  const alignment = columnCount > 0 ? `|${Array.from({ length: columnCount }, () => "l").join("|")}|` : "|l|";
+  const alignment = columnCount > 0 ? `|${Array.from({ length: columnCount }, () => "X").join("|")}|` : "|X|";
   const rows = node.children.map((child) => renderTableRowNode(child, ctx));
   const parts = [
-    "\\begin{center}",
-    `\\begin{tabular}{${alignment}}`,
+    `\\noindent\\begin{tabularx}{\\linewidth}{${alignment}}`,
     "\\hline",
     ...rows.flatMap((row) => [row, "\\hline"]),
-    "\\end{tabular}"
+    "\\end{tabularx}"
   ];
 
   if (node.caption != null) {
-    parts.push(`\\\\[0.5em]\\small ${escapeLatex(node.caption)}`);
+    parts.push(`\\smallskip\\noindent{\\small\\itshape ${escapeLatex(node.caption)}}`);
   }
 
-  parts.push("\\end{center}");
   return parts.join("\n");
 }
 

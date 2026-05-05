@@ -219,7 +219,17 @@ type RenderContext = {
 };
 
 function renderParagraphNode(node: ResolvedParagraphNode): string {
-  return `<p>${node.children.map(renderInlineNode).join("")}</p>`;
+  const inner = node.children.map(renderInlineNode).join("");
+
+  if (node.variant === "stageDirect") {
+    return `<p class="stage-dir">${inner}</p>`;
+  }
+
+  if (node.variant === "themeStatement") {
+    return `<p class="theme-statement">${inner}</p>`;
+  }
+
+  return `<p>${inner}</p>`;
 }
 
 function renderFigureNode(node: ResolvedFigureNode): string {

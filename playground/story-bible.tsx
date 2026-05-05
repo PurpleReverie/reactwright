@@ -4,6 +4,8 @@ import { StorySection } from "./story-bible/story.js";
 import { ThemesSection } from "./story-bible/themes.js";
 import { WorldSection } from "./story-bible/world.js";
 
+export { StoryBibleTemplate as Template } from "./story-bible/template.js";
+
 export default function StoryBible() {
   return (
     <document title="THE ISLE OF MULGAARD" author="Story Bible — Development Draft">

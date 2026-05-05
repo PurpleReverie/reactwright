@@ -5,8 +5,7 @@ import { buildPdfFromResolved } from "../backends/latex/build.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
 import { renderTemplateToIR } from "../template/render.js";
-import { StoryBibleTemplate } from "../templates/story-bible.js";
-import StoryBible from "../../playground/story-bible.js";
+import StoryBible, { Template as StoryBibleTemplate } from "../../playground/story-bible.js";
 
 const documentTree = renderContentToIR(<StoryBible />);
 const templateTree = renderTemplateToIR(<StoryBibleTemplate />);
