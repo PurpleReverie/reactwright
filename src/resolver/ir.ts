@@ -166,6 +166,11 @@ export type ResolvedFixedNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedPageNumberNode = {
+  kind: "page-number";
+  style?: TemplateStyle;
+};
+
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
@@ -213,6 +218,7 @@ export type ResolvedTemplateNode =
   | ResolvedRuleNode
   | ResolvedRepeatNode
   | ResolvedFixedNode
+  | ResolvedPageNumberNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

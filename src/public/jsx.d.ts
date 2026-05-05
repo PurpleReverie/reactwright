@@ -227,6 +227,7 @@ type TemplateIntrinsicMap = {
       | "page-bottom-left"
       | "page-bottom-right";
   };
+  "page-number": Omit<TemplateStyleProps, "children">;
   slot: {
     name: "title" | "author" | "abstract" | "body";
   };

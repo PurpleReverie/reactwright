@@ -46,6 +46,7 @@ import type {
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedFixedNode,
+  ResolvedPageNumberNode,
   ResolvedRowNode,
   ResolvedRepeatNode,
   ResolvedRuleNode,
@@ -435,6 +436,13 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedRuleNode
       ];
+    case "page-number":
+      return [
+        {
+          kind: "page-number",
+          style: child.style
+        } satisfies ResolvedPageNumberNode
+      ];
     case "section-role":
     case "quote-role":
     case "page-role":
@@ -495,6 +503,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "page-set":
     case "rules":
     case "rule":
+    case "page-number":
     case "section-role":
     case "quote-role":
     case "page-role":

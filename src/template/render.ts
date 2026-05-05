@@ -8,6 +8,7 @@ import type {
   CustomTemplateNode,
   FixedAnchor,
   FixedNode,
+  PageNumberNode,
   PageNode,
   PageRoleRuleNode,
   PageSetNode,
@@ -294,6 +295,11 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         children: []
       } satisfies FixedNode;
     }
+    case "page-number":
+      return {
+        kind: "page-number",
+        style: mergeTemplateStyleGroups(props)
+      } satisfies PageNumberNode;
     case "page-set":
       return {
         kind: "page-set",

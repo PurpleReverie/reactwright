@@ -176,7 +176,7 @@ test("repeat and fixed template intrinsics render page furniture through HTML an
         <slot name="title" />
       </repeat>
       <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
-        <slot name="author" />
+        <page-number />
       </fixed>
       <flow>
         <slot name="body" />
@@ -194,7 +194,7 @@ test("repeat and fixed template intrinsics render page furniture through HTML an
   assert.match(latex, /\\fancyhead\[R\]\{Pipeline Test\}/);
   assert.match(latex, /\\usepackage\{eso-pic\}/);
   assert.match(latex, /\\AddToShipoutPictureFG\*/);
-  assert.match(latex, /Tauraj Greig/);
+  assert.match(latex, /\\thepage/);
 });
 
 test("resolver applies template rules and page-set filtering", () => {

@@ -86,7 +86,7 @@ Canonical authoring now prefers the concise lowercase surface:
 
 - content: `document`, `section`, `p`, `quote`, `list`, `item`, `figure`, `page-break`
 - template: `template`, `flow`, `region`, `columns`, `slot`, `rules`, `page-set`
-- template: `template`, `flow`, `row`, `region`, `columns`, `rule`, `repeat`, `fixed`, `slot`, `rules`, `page-set`
+- template: `template`, `flow`, `row`, `region`, `columns`, `rule`, `repeat`, `fixed`, `page-number`, `slot`, `rules`, `page-set`
 
 Legacy aliases like `paragraph`, `blockquote`, `page`, `box`, and `stack` are still supported for compatibility.
 

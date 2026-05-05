@@ -14,6 +14,7 @@ import type {
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFixedNode,
+  ResolvedPageNumberNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
@@ -884,6 +885,10 @@ function renderRuleNode(node: ResolvedRuleNode): string {
   return `\\noindent{\\color{${colorName(color)}}${body}}`;
 }
 
+function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
+  return "\\thepage";
+}
+
 function renderFurnitureInlineNode(node: ResolvedInlineNode): string {
   switch (node.kind) {
     case "text":
@@ -923,6 +928,8 @@ function renderFurnitureChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderFurnitureInlineNode(node);
     case "rule":
       return renderRuleNode(node);
+    case "page-number":
+      return renderPageNumberNode(node);
     case "box":
     case "stack":
     case "row":
@@ -1173,6 +1180,8 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderRowNode(node, ctx);
     case "rule":
       return renderRuleNode(node);
+    case "page-number":
+      return renderPageNumberNode(node);
     case "repeat":
     case "fixed":
       return "";

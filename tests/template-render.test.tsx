@@ -152,7 +152,7 @@ test("template renderer supports repeat and fixed intrinsics", () => {
         <slot name="title" />
       </repeat>
       <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
-        <slot name="author" />
+        <page-number />
       </fixed>
       <flow>
         <slot name="body" />
@@ -174,7 +174,7 @@ test("template renderer supports repeat and fixed intrinsics", () => {
         kind: "fixed",
         anchor: "page-bottom-right",
         style: { fontSize: "8pt" },
-        children: [{ kind: "slot", name: "author" }]
+        children: [{ kind: "page-number", style: undefined }]
       },
       {
         kind: "stack",
@@ -183,6 +183,20 @@ test("template renderer supports repeat and fixed intrinsics", () => {
         children: [{ kind: "slot", name: "body" }]
       }
     ]
+  });
+});
+
+test("template renderer supports page-number as a standalone template primitive", () => {
+  const result = renderTemplateToIR(
+    <template>
+      <page-number typography={{ fontSize: "8pt" }} />
+    </template>
+  );
+
+  assert.deepEqual(result, {
+    kind: "page",
+    style: undefined,
+    children: [{ kind: "page-number", style: { fontSize: "8pt" } }]
   });
 });
 

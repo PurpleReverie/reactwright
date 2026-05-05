@@ -13,6 +13,7 @@ import type {
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFixedNode,
+  ResolvedPageNumberNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
@@ -247,6 +248,10 @@ function renderRuleNode(node: ResolvedRuleNode): string {
   return `<div data-node="rule" style="${style}"></div>`;
 }
 
+function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
+  return '<span data-node="page-number">1</span>';
+}
+
 function anchorToCss(anchor: string): string {
   switch (anchor) {
     case "top-left":
@@ -453,6 +458,8 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderRowNode(node, ctx);
     case "rule":
       return renderRuleNode(node);
+    case "page-number":
+      return renderPageNumberNode(node);
     case "repeat":
     case "fixed":
       return renderAnchoredNode(node, ctx);

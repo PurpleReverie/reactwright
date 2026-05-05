@@ -169,6 +169,11 @@ export type FixedNode = {
   children: TemplateChild[];
 };
 
+export type PageNumberNode = {
+  kind: "page-number";
+  style?: TemplateStyle;
+};
+
 export type PageEdgeAnchor =
   | "top-left"
   | "top-center"
@@ -218,6 +223,7 @@ export type TemplateNode =
   | RuleNode
   | RepeatNode
   | FixedNode
+  | PageNumberNode
   | SlotNode
   | CustomTemplateNode
   | PageSetNode
@@ -236,4 +242,4 @@ export type TemplateContainerNode =
   | PageSetNode
   | RulesNode;
 
-export type TemplateChild = TemplateContainerNode | RuleNode | SlotNode | TemplateTextNode;
+export type TemplateChild = TemplateContainerNode | RuleNode | PageNumberNode | SlotNode | TemplateTextNode;
