@@ -20,6 +20,9 @@ import type {
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
+  ResolvedTableCellNode,
+  ResolvedTableNode,
+  ResolvedTableRowNode,
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
@@ -227,6 +230,20 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
+function renderTableCellNode(node: ResolvedTableCellNode, ctx: RenderContext): string {
+  const tag = node.header === true ? "th" : "td";
+  return `<${tag}>${node.children.map((child) => renderContentNode(child, ctx)).join("")}</${tag}>`;
+}
+
+function renderTableRowNode(node: ResolvedTableRowNode, ctx: RenderContext): string {
+  return `<tr>${node.children.map((child) => renderTableCellNode(child, ctx)).join("")}</tr>`;
+}
+
+function renderTableNode(node: ResolvedTableNode, ctx: RenderContext): string {
+  const caption = node.caption != null ? `<caption>${escapeHtml(node.caption)}</caption>` : "";
+  return `<table>${caption}<tbody>${node.children.map((child) => renderTableRowNode(child, ctx)).join("")}</tbody></table>`;
+}
+
 function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   const dataAttr = node.language != null ? ` data-language="${escapeHtml(node.language)}"` : "";
   return `<pre${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
@@ -341,6 +358,8 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
       return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
+    case "table":
+      return renderTableNode(node, ctx);
     case "code-block":
       return renderCodeBlockNode(node);
     case "thematic-break":

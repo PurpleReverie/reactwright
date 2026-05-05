@@ -45,6 +45,24 @@ function createPaper() {
             <paragraph>Second bullet.</paragraph>
           </item>
         </list>
+        <table caption="House seats">
+          <table-row>
+            <table-cell header>
+              <paragraph>House</paragraph>
+            </table-cell>
+            <table-cell header>
+              <paragraph>Seat</paragraph>
+            </table-cell>
+          </table-row>
+          <table-row>
+            <table-cell>
+              <paragraph>Vael</paragraph>
+            </table-cell>
+            <table-cell>
+              <paragraph>Greycrown</paragraph>
+            </table-cell>
+          </table-row>
+        </table>
       </section>
     </document>
   );
@@ -95,6 +113,9 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<pre data-language="txt"><code>plain-text block<\/code><\/pre>/);
   assert.match(html, /<blockquote>/);
   assert.match(html, /<ul>/);
+  assert.match(html, /<table>/);
+  assert.match(html, /<caption>House seats<\/caption>/);
+  assert.match(html, /<th><p>House<\/p><\/th>/);
 });
 
 test("LaTeX backend emits expected content", () => {
@@ -113,6 +134,9 @@ test("LaTeX backend emits expected content", () => {
   assert.match(latex, /\\emph\{end-to-end\}/);
   assert.match(latex, /\\begin\{quote\}/);
   assert.match(latex, /\\begin\{itemize\}/);
+  assert.match(latex, /\\begin\{tabular\}/);
+  assert.match(latex, /\\textbf\{House\} & \\textbf\{Seat\}/);
+  assert.match(latex, /House seats/);
 });
 
 test("custom template intrinsic renders through HTML and LaTeX backends", () => {

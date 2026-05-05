@@ -11,6 +11,9 @@ import type {
   LinkNode,
   ListItemNode,
   ListNode,
+  TableCellNode,
+  TableNode,
+  TableRowNode,
   PageBreakNode,
   ParagraphNode,
   SectionNode,
@@ -42,6 +45,9 @@ import type {
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
+  ResolvedTableCellNode,
+  ResolvedTableNode,
+  ResolvedTableRowNode,
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
@@ -155,6 +161,29 @@ function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
   };
 }
 
+function resolveTableCellNode(node: TableCellNode): ResolvedTableCellNode {
+  return {
+    kind: "table-cell",
+    ...(node.header === true ? { header: true } : {}),
+    children: node.children.map(resolveContentChild)
+  };
+}
+
+function resolveTableRowNode(node: TableRowNode): ResolvedTableRowNode {
+  return {
+    kind: "table-row",
+    children: node.children.map(resolveTableCellNode)
+  };
+}
+
+function resolveTableNode(node: TableNode): ResolvedTableNode {
+  return {
+    kind: "table",
+    ...(node.caption != null ? { caption: node.caption } : {}),
+    children: node.children.map(resolveTableRowNode)
+  };
+}
+
 function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
   return {
     kind: "code-block",
@@ -229,6 +258,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveParagraphNode(node);
     case "figure":
       return resolveFigureNode(node);
+    case "table":
+      return resolveTableNode(node);
     case "blockquote":
       return resolveBlockQuoteNode(node);
     case "list":
@@ -334,6 +365,17 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
         children: node.children.map((child) => ({
           ...child,
           children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
+        }))
+      };
+    case "table":
+      return {
+        ...node,
+        children: node.children.map((row) => ({
+          ...row,
+          children: row.children.map((cell) => ({
+            ...cell,
+            children: cell.children.map((child) => applyResolvedRules(child, rules))
+          }))
         }))
       };
     case "paragraph":

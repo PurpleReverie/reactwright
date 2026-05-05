@@ -177,3 +177,55 @@ test("content renderer supports common markdown-style nodes", () => {
     ]
   });
 });
+
+test("content renderer supports table primitives", () => {
+  const result = renderContentToIR(
+    <document title="Tables">
+      <table caption="House alignment">
+        <table-row>
+          <table-cell header>
+            <p>House</p>
+          </table-cell>
+          <table-cell header>
+            <p>Seat</p>
+          </table-cell>
+        </table-row>
+        <table-row>
+          <table-cell>
+            <p>Vael</p>
+          </table-cell>
+          <table-cell>
+            <p>Greycrown</p>
+          </table-cell>
+        </table-row>
+      </table>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Tables",
+    children: [
+      {
+        kind: "table",
+        caption: "House alignment",
+        children: [
+          {
+            kind: "table-row",
+            children: [
+              { kind: "table-cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "House" }] }] },
+              { kind: "table-cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Seat" }] }] }
+            ]
+          },
+          {
+            kind: "table-row",
+            children: [
+              { kind: "table-cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Vael" }] }] },
+              { kind: "table-cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Greycrown" }] }] }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+});

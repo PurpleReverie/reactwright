@@ -21,6 +21,9 @@ import type {
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
+  ResolvedTableCellNode,
+  ResolvedTableNode,
+  ResolvedTableRowNode,
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
@@ -522,6 +525,39 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   return parts.join("\n");
 }
 
+function renderTableCellNode(node: ResolvedTableCellNode, ctx: RenderContext): string {
+  const content = node.children
+    .map((child) => renderContentNode(child, ctx).trim().replace(/\n+/g, " "))
+    .join(" ")
+    .trim();
+
+  return node.header === true ? `\\textbf{${content}}` : content;
+}
+
+function renderTableRowNode(node: ResolvedTableRowNode, ctx: RenderContext): string {
+  return `${node.children.map((child) => renderTableCellNode(child, ctx)).join(" & ")} \\\\`;
+}
+
+function renderTableNode(node: ResolvedTableNode, ctx: RenderContext): string {
+  const columnCount = node.children[0]?.children.length ?? 0;
+  const alignment = columnCount > 0 ? `|${Array.from({ length: columnCount }, () => "l").join("|")}|` : "|l|";
+  const rows = node.children.map((child) => renderTableRowNode(child, ctx));
+  const parts = [
+    "\\begin{center}",
+    `\\begin{tabular}{${alignment}}`,
+    "\\hline",
+    ...rows.flatMap((row) => [row, "\\hline"]),
+    "\\end{tabular}"
+  ];
+
+  if (node.caption != null) {
+    parts.push(`\\\\[0.5em]\\small ${escapeLatex(node.caption)}`);
+  }
+
+  parts.push("\\end{center}");
+  return parts.join("\n");
+}
+
 function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   const content = node.children.map((child) => child.value).join("");
   return [
@@ -619,6 +655,8 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
       return renderSectionNode(node, ctx);
     case "figure":
       return renderFigureNode(node);
+    case "table":
+      return renderTableNode(node, ctx);
     case "code-block":
       return renderCodeBlockNode(node);
     case "thematic-break":

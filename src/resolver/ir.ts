@@ -59,6 +59,23 @@ export type ResolvedFigureNode = {
   width?: string;
 };
 
+export type ResolvedTableCellNode = {
+  kind: "table-cell";
+  header?: boolean;
+  children: ResolvedContentChild[];
+};
+
+export type ResolvedTableRowNode = {
+  kind: "table-row";
+  children: ResolvedTableCellNode[];
+};
+
+export type ResolvedTableNode = {
+  kind: "table";
+  caption?: string;
+  children: ResolvedTableRowNode[];
+};
+
 export type ResolvedBlockQuoteNode = {
   kind: "blockquote";
   role?: string;
@@ -179,6 +196,9 @@ export type ResolvedContentNode =
   | ResolvedAbstractNode
   | ResolvedSectionNode
   | ResolvedFigureNode
+  | ResolvedTableNode
+  | ResolvedTableRowNode
+  | ResolvedTableCellNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedListItemNode
@@ -196,6 +216,7 @@ export type ResolvedContentNode =
 export type ResolvedContentChild =
   | ResolvedSectionNode
   | ResolvedFigureNode
+  | ResolvedTableNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedCodeBlockNode

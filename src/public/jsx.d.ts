@@ -27,6 +27,17 @@ type ContentIntrinsicMap = {
     caption?: string;
     width?: string;
   };
+  table: {
+    caption?: string;
+    children?: ReactNode;
+  };
+  "table-row": {
+    children?: ReactNode;
+  };
+  "table-cell": {
+    header?: boolean;
+    children?: ReactNode;
+  };
   abstract: {
     page?: string;
     children?: ReactNode;

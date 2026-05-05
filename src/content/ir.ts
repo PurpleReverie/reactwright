@@ -57,6 +57,23 @@ export type FigureNode = {
   width?: string;
 };
 
+export type TableCellNode = {
+  kind: "table-cell";
+  header?: boolean;
+  children: SemanticBlockChild[];
+};
+
+export type TableRowNode = {
+  kind: "table-row";
+  children: TableCellNode[];
+};
+
+export type TableNode = {
+  kind: "table";
+  caption?: string;
+  children: TableRowNode[];
+};
+
 export type BlockQuoteNode = {
   kind: "blockquote";
   role?: string;
@@ -110,6 +127,7 @@ export type SemanticBlockChild =
   | SectionNode
   | ParagraphNode
   | FigureNode
+  | TableNode
   | BlockQuoteNode
   | ListNode
   | CodeBlockNode
@@ -124,6 +142,9 @@ export type SemanticNode =
   | SectionNode
   | ParagraphNode
   | FigureNode
+  | TableNode
+  | TableRowNode
+  | TableCellNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode
@@ -143,6 +164,9 @@ export type SemanticContainerNode =
   | SectionNode
   | ParagraphNode
   | FigureNode
+  | TableNode
+  | TableRowNode
+  | TableCellNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode

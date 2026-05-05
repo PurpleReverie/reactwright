@@ -85,6 +85,7 @@ Example `v0` candidates:
 Canonical authoring now prefers the concise lowercase surface:
 
 - content: `document`, `section`, `p`, `quote`, `list`, `item`, `figure`, `page-break`
+- content: `document`, `section`, `p`, `quote`, `list`, `item`, `figure`, `table`, `table-row`, `table-cell`, `page-break`
 - template: `template`, `flow`, `region`, `columns`, `slot`, `rules`, `page-set`
 - template: `template`, `flow`, `row`, `region`, `columns`, `rule`, `repeat`, `fixed`, `page-number`, `slot`, `rules`, `page-set`
 

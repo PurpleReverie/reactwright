@@ -15,6 +15,9 @@ import type {
   LinkNode,
   ListItemNode,
   ListNode,
+  TableCellNode,
+  TableNode,
+  TableRowNode,
   PageBreakNode,
   ParagraphNode,
   SectionNode,
@@ -38,6 +41,7 @@ type ContentProps = Record<string, unknown> & {
   alt?: string;
   caption?: string;
   width?: string;
+  header?: boolean;
   family?: string;
   href?: string;
   titleText?: string;
@@ -108,6 +112,23 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         caption: typeof props.caption === "string" ? props.caption : undefined,
         width: typeof props.width === "string" ? props.width : undefined
       } as FigureNode;
+    case "table":
+      return {
+        kind: "table",
+        caption: typeof props.caption === "string" ? props.caption : undefined,
+        children: []
+      } satisfies TableNode;
+    case "table-row":
+      return {
+        kind: "table-row",
+        children: []
+      } satisfies TableRowNode;
+    case "table-cell":
+      return {
+        kind: "table-cell",
+        header: props.header === true ? true : undefined,
+        children: []
+      } satisfies TableCellNode;
     case "quote":
     case "blockquote":
       return {
@@ -210,6 +231,32 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       return;
     case "figure":
       throw new Error("`figure` may not contain child nodes.");
+    case "table":
+      if (child.kind !== "table-row") {
+        throw new Error("`table` may only contain `table-row` children.");
+      }
+      parent.children.push(child);
+      return;
+    case "table-row":
+      if (child.kind !== "table-cell") {
+        throw new Error("`table-row` may only contain `table-cell` children.");
+      }
+      parent.children.push(child);
+      return;
+    case "table-cell":
+      if (
+        child.kind !== "paragraph" &&
+        child.kind !== "figure" &&
+        child.kind !== "blockquote" &&
+        child.kind !== "list" &&
+        child.kind !== "code-block" &&
+        child.kind !== "thematic-break" &&
+        child.kind !== "page-break"
+      ) {
+        throw new Error("`table-cell` may only contain block primitives.");
+      }
+      parent.children.push(child);
+      return;
     case "em":
     case "strong":
     case "font":
@@ -248,6 +295,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       if (
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
+        child.kind !== "table" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
@@ -264,6 +312,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "section" &&
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
+        child.kind !== "table" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
@@ -281,6 +330,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "section" &&
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
+        child.kind !== "table" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
@@ -300,7 +350,9 @@ function appendChildToContainerNode(container: ContentContainer, child: Semantic
   }
 
   container.children.push(child);
-  container.root = child;
+  if (container.root == null) {
+    container.root = child;
+  }
 }
 
 function insertBeforeInList<T>(items: T[], child: T, beforeChild: T): void {
