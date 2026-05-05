@@ -10,6 +10,7 @@ import type {
   DocumentChild,
   EmNode,
   FigureNode,
+  FontNode,
   ListItemNode,
   ListNode,
   ParagraphNode,
@@ -33,6 +34,7 @@ type ContentProps = Record<string, unknown> & {
   alt?: string;
   caption?: string;
   width?: string;
+  family?: string;
 };
 
 type ContentContainer = {
@@ -104,6 +106,12 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
         kind: "code",
         children: []
       };
+    case "font":
+      return {
+        kind: "font",
+        family: String(props.family ?? ""),
+        children: []
+      };
     default:
       throw new Error(`Unsupported content intrinsic: ${type}`);
   }
@@ -124,7 +132,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "text" &&
         child.kind !== "em" &&
         child.kind !== "strong" &&
-        child.kind !== "code"
+        child.kind !== "code" &&
+        child.kind !== "font"
       ) {
         throw new Error("`paragraph` may only contain inline primitives.");
       }
@@ -134,11 +143,13 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       throw new Error("`figure` may not contain child nodes.");
     case "em":
     case "strong":
+    case "font":
       if (
         child.kind !== "text" &&
         child.kind !== "em" &&
         child.kind !== "strong" &&
-        child.kind !== "code"
+        child.kind !== "code" &&
+        child.kind !== "font"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }
@@ -315,7 +326,7 @@ const contentHostConfig = {
   commitTextUpdate(textInstance: TextNode, _oldText: string, newText: string): void {
     textInstance.value = newText;
   },
-  resetTextContent(instance: ParagraphNode | EmNode | StrongNode | CodeNode): void {
+  resetTextContent(instance: ParagraphNode | EmNode | StrongNode | CodeNode | FontNode): void {
     instance.children = [];
   },
   prepareUpdate(): null {

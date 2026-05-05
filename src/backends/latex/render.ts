@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
+import { getFont } from "../../fonts/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
@@ -12,6 +13,7 @@ import type {
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFigureNode,
+  ResolvedFontNode,
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -162,21 +164,62 @@ function normalizeFontFamily(value: unknown): string | null {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized in FONT_REGISTRY ? normalized : null;
+  if (normalized in FONT_REGISTRY) {
+    return normalized;
+  }
+
+  return getFont(normalized)?.latex != null ? normalized : null;
+}
+
+function collectInlineFontFamilies(node: ResolvedChild | ResolvedInlineNode): string[] {
+  const families: string[] = [];
+
+  if (node.kind === "font") {
+    families.push(node.family);
+    for (const child of node.children) {
+      families.push(...collectInlineFontFamilies(child));
+    }
+    return families;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children as (ResolvedChild | ResolvedInlineNode)[]) {
+      families.push(...collectInlineFontFamilies(child));
+    }
+  }
+
+  return families;
+}
+
+function addFamilyPackage(family: string, packages: Set<string>): void {
+  const normalized = normalizeFontFamily(family);
+  if (normalized == null) return;
+
+  const builtIn = FONT_REGISTRY[normalized] ?? null;
+  if (builtIn != null && isFontDefinitionAvailable(builtIn) && builtIn.package != null) {
+    packages.add(builtIn.package);
+    return;
+  }
+
+  const custom = getFont(normalized)?.latex ?? null;
+  if (custom != null) {
+    const customDef = { package: custom.package, command: custom.command, metric: custom.metric };
+    if (isFontDefinitionAvailable(customDef) && custom.package != null) {
+      packages.add(custom.package);
+    }
+  }
 }
 
 function collectFontPackages(page: ResolvedPageNode): string[] {
   const packages = new Set<string>();
 
   walkTemplateStyles(page, (style) => {
-    const family = normalizeFontFamily(style.fontFamily);
-    const definition = family != null ? FONT_REGISTRY[family] : null;
-    const pkg =
-      definition != null && isFontDefinitionAvailable(definition) ? definition.package ?? null : null;
-    if (pkg != null) {
-      packages.add(pkg);
-    }
+    addFamilyPackage(String(style.fontFamily ?? ""), packages);
   });
+
+  for (const family of collectInlineFontFamilies(page)) {
+    addFamilyPackage(family, packages);
+  }
 
   return [...packages];
 }
@@ -327,6 +370,12 @@ function renderTextNode(node: ResolvedTextNode): string {
   return escapeLatex(node.value);
 }
 
+function renderFontNode(node: ResolvedFontNode): string {
+  const cmd = fontFamilyCommand(node.family);
+  const inner = node.children.map(renderInlineNode).join("");
+  return cmd != null ? `{${cmd} ${inner}}` : inner;
+}
+
 function renderInlineNode(node: ResolvedInlineNode): string {
   switch (node.kind) {
     case "text":
@@ -337,6 +386,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `\\textbf{${node.children.map(renderInlineNode).join("")}}`;
     case "code":
       return `\\texttt{${node.children.map(renderTextNode).join("")}}`;
+    case "font":
+      return renderFontNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -452,24 +503,23 @@ function fontFamilyCommand(value: unknown): string | null {
     return null;
   }
 
-  const definition = FONT_REGISTRY[family];
-  if (definition == null) {
-    return null;
+  const builtIn = FONT_REGISTRY[family];
+  if (builtIn != null) {
+    if (!isFontDefinitionAvailable(builtIn)) {
+      if (family === "helvetica" || family === "avant-garde") return "\\sffamily";
+      if (family === "courier") return "\\ttfamily";
+      return "\\rmfamily";
+    }
+    return builtIn.command;
   }
 
-  if (!isFontDefinitionAvailable(definition)) {
-    if (family === "helvetica" || family === "avant-garde") {
-      return "\\sffamily";
-    }
-
-    if (family === "courier") {
-      return "\\ttfamily";
-    }
-
-    return "\\rmfamily";
+  const custom = getFont(family)?.latex ?? null;
+  if (custom != null) {
+    const customDef = { package: custom.package, command: custom.command, metric: custom.metric };
+    return isFontDefinitionAvailable(customDef) ? custom.command : "\\rmfamily";
   }
 
-  return definition.command;
+  return null;
 }
 
 function fontWeightCommand(value: unknown): string | null {

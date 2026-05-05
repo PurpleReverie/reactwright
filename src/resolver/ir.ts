@@ -20,6 +20,12 @@ export type ResolvedCodeNode = {
   children: ResolvedTextNode[];
 };
 
+export type ResolvedFontNode = {
+  kind: "font";
+  family: string;
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   children: ResolvedInlineNode[];
@@ -110,6 +116,7 @@ export type ResolvedContentNode =
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
+  | ResolvedFontNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -124,7 +131,8 @@ export type ResolvedInlineNode =
   | ResolvedTextNode
   | ResolvedEmNode
   | ResolvedStrongNode
-  | ResolvedCodeNode;
+  | ResolvedCodeNode
+  | ResolvedFontNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

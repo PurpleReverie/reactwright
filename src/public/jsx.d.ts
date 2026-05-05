@@ -41,6 +41,10 @@ type ContentIntrinsicMap = {
   item: {
     children?: ReactNode;
   };
+  font: {
+    family: string;
+    children?: ReactNode;
+  };
 };
 
 type TemplateIntrinsicMap = {

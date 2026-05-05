@@ -18,6 +18,12 @@ export type CodeNode = {
   children: TextNode[];
 };
 
+export type FontNode = {
+  kind: "font";
+  family: string;
+  children: InlineNode[];
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   children: InlineNode[];
@@ -65,7 +71,7 @@ export type DocumentNode = {
   children: DocumentChild[];
 };
 
-export type InlineNode = TextNode | EmNode | StrongNode | CodeNode;
+export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | FontNode;
 
 export type SemanticBlockChild = SectionNode | ParagraphNode | FigureNode | BlockQuoteNode | ListNode;
 
@@ -83,6 +89,7 @@ export type SemanticNode =
   | EmNode
   | StrongNode
   | CodeNode
+  | FontNode
   | TextNode;
 
 export type SemanticContainerNode =
@@ -96,4 +103,5 @@ export type SemanticContainerNode =
   | ListItemNode
   | EmNode
   | StrongNode
-  | CodeNode;
+  | CodeNode
+  | FontNode;

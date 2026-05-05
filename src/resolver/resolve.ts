@@ -6,6 +6,7 @@ import type {
   DocumentChild,
   EmNode,
   FigureNode,
+  FontNode,
   ListItemNode,
   ListNode,
   ParagraphNode,
@@ -26,6 +27,7 @@ import type {
   ResolvedContentNode,
   ResolvedEmNode,
   ResolvedFigureNode,
+  ResolvedFontNode,
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -69,7 +71,15 @@ function resolveCodeNode(node: CodeNode): ResolvedCodeNode {
   };
 }
 
-function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode): ResolvedInlineNode {
+function resolveFontNode(node: FontNode): ResolvedFontNode {
+  return {
+    kind: "font",
+    family: node.family,
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode | FontNode): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
       return resolveTextNode(node);
@@ -79,6 +89,8 @@ function resolveInlineNode(node: TextNode | EmNode | StrongNode | CodeNode): Res
       return resolveStrongNode(node);
     case "code":
       return resolveCodeNode(node);
+    case "font":
+      return resolveFontNode(node);
   }
 }
 

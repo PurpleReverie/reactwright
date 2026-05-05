@@ -1,5 +1,6 @@
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
+import { getAllFonts } from "../../fonts/registry.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
@@ -11,6 +12,7 @@ import type {
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
   ResolvedFigureNode,
+  ResolvedFontNode,
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -22,6 +24,54 @@ import type {
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
+
+function collectUsedFontFamilies(node: ResolvedPageNode | ResolvedChild): Set<string> {
+  const families = new Set<string>();
+
+  if ("style" in node && node.style != null) {
+    const v = node.style.fontFamily;
+    if (typeof v === "string" && v.trim().length > 0) {
+      families.add(v.trim().toLowerCase());
+    }
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      for (const f of collectUsedFontFamilies(child as ResolvedChild)) {
+        families.add(f);
+      }
+    }
+  }
+
+  return families;
+}
+
+function buildFontHeadTags(page: ResolvedPageNode): string[] {
+  const used = collectUsedFontFamilies(page);
+  const registry = getAllFonts();
+  const links: string[] = [];
+  const faces: string[] = [];
+
+  for (const family of used) {
+    const def = registry.get(family);
+    if (def?.html == null) continue;
+
+    if (def.html.kind === "link") {
+      links.push(`<link rel="stylesheet" href="${escapeHtml(def.html.href)}" />`);
+    } else {
+      const formatAttr = def.html.format != null ? ` format('${escapeHtml(def.html.format)}')` : "";
+      faces.push(
+        `@font-face{font-family:'${escapeHtml(family)}';src:url('${escapeHtml(def.html.src)}')${formatAttr};}`
+      );
+    }
+  }
+
+  const tags: string[] = [...links];
+  if (faces.length > 0) {
+    tags.push(`<style>${faces.join("")}</style>`);
+  }
+  return tags;
+}
 
 export function escapeHtml(value: string): string {
   return value
@@ -113,6 +163,10 @@ function renderTextNode(node: ResolvedTextNode): string {
   return escapeHtml(node.value);
 }
 
+function renderFontNode(node: ResolvedFontNode): string {
+  return `<span style="font-family:${escapeHtml(node.family)};">${node.children.map(renderInlineNode).join("")}</span>`;
+}
+
 function renderInlineNode(node: ResolvedInlineNode): string {
   switch (node.kind) {
     case "text":
@@ -123,6 +177,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<strong>${node.children.map(renderInlineNode).join("")}</strong>`;
     case "code":
       return `<code>${node.children.map(renderTextNode).join("")}</code>`;
+    case "font":
+      return renderFontNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -282,6 +338,7 @@ function renderResolvedChild(node: ResolvedChild): string {
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const body = renderPageNode(page);
+  const fontTags = buildFontHeadTags(page);
 
   return [
     "<!DOCTYPE html>",
@@ -290,6 +347,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     '<meta charset="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     "<title>ReactDoc Preview</title>",
+    ...fontTags,
     "<style>",
     "body{margin:0;padding:32px;background:#e7ebf0;color:#111827;font-family:Georgia,'Times New Roman',serif;}",
     "h1,h2,p{margin:0;}",

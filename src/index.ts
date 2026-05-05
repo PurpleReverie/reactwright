@@ -8,6 +8,8 @@ export { renderResolvedToLatex } from "./backends/latex/render.js";
 export { buildPdfFromResolved } from "./backends/latex/build.js";
 export { runExternalFile } from "./cli/run-file.js";
 export { registerTemplateIntrinsic, getTemplateIntrinsic } from "./template/registry.js";
+export { registerFont } from "./fonts/registry.js";
+export type { FontDefinition, HtmlFontSource, LatexFontDefinition } from "./fonts/registry.js";
 export { ArticleTemplate } from "./templates/article.js";
 export { GoofyCreativeTemplate } from "./templates/goofy.js";
 export { IEEETemplate } from "./templates/ieee.js";
