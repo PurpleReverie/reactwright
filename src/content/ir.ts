@@ -51,6 +51,9 @@ export type ThematicBreakNode = {
 
 export type FigureNode = {
   kind: "figure";
+  role?: string;
+  page?: string;
+  variant?: string;
   src: string;
   alt?: string;
   caption?: string;
@@ -90,6 +93,9 @@ export type ListItemNode = {
 
 export type ListNode = {
   kind: "list";
+  role?: string;
+  page?: string;
+  variant?: string;
   ordered: boolean;
   children: ListItemNode[];
 };

@@ -21,7 +21,7 @@ type ContentIntrinsicMap = {
   p: ContentMetadataProps & {
     children?: ReactNode;
   };
-  figure: {
+  figure: ContentMetadataProps & {
     src: string;
     alt?: string;
     caption?: string;
@@ -79,7 +79,7 @@ type ContentIntrinsicMap = {
   };
   hr: Record<string, never>;
   "thematic-break": Record<string, never>;
-  list: {
+  list: ContentMetadataProps & {
     ordered?: boolean;
     children?: ReactNode;
   };
@@ -262,6 +262,18 @@ type TemplateIntrinsicMap = {
   "page-role": {
     page: string;
     use: string;
+  };
+  "paragraph-role": {
+    role: string;
+    variant: string;
+  };
+  "list-role": {
+    role: string;
+    variant: string;
+  };
+  "figure-role": {
+    role: string;
+    variant: string;
   };
 };
 

@@ -242,6 +242,9 @@ test("template renderer supports rules and page sets in the new syntax", () => {
       <rules>
         <section-role role="scene-heading" variant="sceneHeading" />
         <quote-role role="dialogue" variant="dialogueBlock" />
+        <paragraph-role role="lead" variant="leadParagraph" />
+        <list-role role="checklist" variant="compactChecklist" />
+        <figure-role role="map" variant="framedMap" />
         <page-role page="script" use="script" />
       </rules>
       <flow gap="8mm">
@@ -263,6 +266,9 @@ test("template renderer supports rules and page sets in the new syntax", () => {
         children: [
           { kind: "section-role", role: "scene-heading", variant: "sceneHeading" },
           { kind: "quote-role", role: "dialogue", variant: "dialogueBlock" },
+          { kind: "paragraph-role", role: "lead", variant: "leadParagraph" },
+          { kind: "list-role", role: "checklist", variant: "compactChecklist" },
+          { kind: "figure-role", role: "map", variant: "framedMap" },
           { kind: "page-role", page: "script", use: "script" }
         ]
       },

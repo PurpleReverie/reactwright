@@ -227,7 +227,18 @@ test("resolver applies template rules and page-set filtering", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">
       <section title="World" page="world">
-        <paragraph>World copy.</paragraph>
+        <paragraph role="lead">World copy.</paragraph>
+        <figure
+          role="map"
+          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          caption="Map"
+          width="20mm"
+        />
+        <list role="checklist">
+          <item>
+            <paragraph>Bullet.</paragraph>
+          </item>
+        </list>
       </section>
       <section title="Scene One" role="scene-heading" page="script">
         <blockquote role="dialogue">
@@ -242,6 +253,9 @@ test("resolver applies template rules and page-set filtering", () => {
       <rules>
         <section-role role="scene-heading" variant="sceneHeading" />
         <quote-role role="dialogue" variant="dialogueBlock" />
+        <paragraph-role role="lead" variant="leadParagraph" />
+        <list-role role="checklist" variant="compactChecklist" />
+        <figure-role role="map" variant="framedMap" />
         <page-role page="world" use="world" />
         <page-role page="script" use="script" />
       </rules>
@@ -269,6 +283,12 @@ test("resolver applies template rules and page-set filtering", () => {
   assert.equal(worldRegion?.kind, "box");
   assert.equal(worldRegion.children[0]?.kind, "section");
   assert.equal(worldRegion.children[0]?.title, "World");
+  assert.equal(worldRegion.children[0]?.children[0]?.kind, "paragraph");
+  assert.equal(worldRegion.children[0]?.children[0]?.variant, "leadParagraph");
+  assert.equal(worldRegion.children[0]?.children[1]?.kind, "figure");
+  assert.equal(worldRegion.children[0]?.children[1]?.variant, "framedMap");
+  assert.equal(worldRegion.children[0]?.children[2]?.kind, "list");
+  assert.equal(worldRegion.children[0]?.children[2]?.variant, "compactChecklist");
 
   const scriptRegion = stack.children[1];
   assert.equal(scriptRegion?.kind, "box");

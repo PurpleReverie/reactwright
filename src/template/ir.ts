@@ -113,7 +113,31 @@ export type PageRoleRuleNode = {
   use: string;
 };
 
-export type RulesChild = SectionRoleRuleNode | QuoteRoleRuleNode | PageRoleRuleNode;
+export type ParagraphRoleRuleNode = {
+  kind: "paragraph-role";
+  role: string;
+  variant: string;
+};
+
+export type ListRoleRuleNode = {
+  kind: "list-role";
+  role: string;
+  variant: string;
+};
+
+export type FigureRoleRuleNode = {
+  kind: "figure-role";
+  role: string;
+  variant: string;
+};
+
+export type RulesChild =
+  | SectionRoleRuleNode
+  | QuoteRoleRuleNode
+  | PageRoleRuleNode
+  | ParagraphRoleRuleNode
+  | ListRoleRuleNode
+  | FigureRoleRuleNode;
 
 export type RulesNode = {
   kind: "rules";

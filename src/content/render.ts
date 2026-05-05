@@ -107,6 +107,8 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "figure":
       return {
         kind: "figure",
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
         src: String(props.src ?? ""),
         alt: typeof props.alt === "string" ? props.alt : undefined,
         caption: typeof props.caption === "string" ? props.caption : undefined,
@@ -155,6 +157,8 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "list":
       return {
         kind: "list",
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
         ordered: Boolean(props.ordered),
         children: []
       };

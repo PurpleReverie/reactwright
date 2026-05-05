@@ -9,10 +9,13 @@ import type {
   FixedAnchor,
   FixedWhen,
   FixedNode,
+  FigureRoleRuleNode,
+  ListRoleRuleNode,
   PageNumberNode,
   PageNode,
   PageRoleRuleNode,
   PageSetNode,
+  ParagraphRoleRuleNode,
   RepeatAnchor,
   RepeatWhen,
   RepeatNode,
@@ -358,6 +361,24 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         page: readRequiredTemplateToken(props, "page"),
         use: readRequiredTemplateToken(props, "use")
       } satisfies PageRoleRuleNode;
+    case "paragraph-role":
+      return {
+        kind: "paragraph-role",
+        role: readRequiredTemplateToken(props, "role"),
+        variant: readRequiredTemplateToken(props, "variant")
+      } satisfies ParagraphRoleRuleNode;
+    case "list-role":
+      return {
+        kind: "list-role",
+        role: readRequiredTemplateToken(props, "role"),
+        variant: readRequiredTemplateToken(props, "variant")
+      } satisfies ListRoleRuleNode;
+    case "figure-role":
+      return {
+        kind: "figure-role",
+        role: readRequiredTemplateToken(props, "role"),
+        variant: readRequiredTemplateToken(props, "variant")
+      } satisfies FigureRoleRuleNode;
     default:
       if (getTemplateIntrinsic(type) != null) {
         const style = mergeTemplateStyleGroups(props);
@@ -392,14 +413,28 @@ function appendTemplateChild(parent: TemplateContainerNode, child: TemplateNode)
   }
 
   if (parent.kind === "rules") {
-    if (child.kind !== "section-role" && child.kind !== "quote-role" && child.kind !== "page-role") {
+    if (
+      child.kind !== "section-role" &&
+      child.kind !== "quote-role" &&
+      child.kind !== "page-role" &&
+      child.kind !== "paragraph-role" &&
+      child.kind !== "list-role" &&
+      child.kind !== "figure-role"
+    ) {
       throw new Error("`rules` may only contain rule definitions.");
     }
     parent.children.push(child);
     return;
   }
 
-  if (child.kind === "section-role" || child.kind === "quote-role" || child.kind === "page-role") {
+  if (
+    child.kind === "section-role" ||
+    child.kind === "quote-role" ||
+    child.kind === "page-role" ||
+    child.kind === "paragraph-role" ||
+    child.kind === "list-role" ||
+    child.kind === "figure-role"
+  ) {
     throw new Error("Template rule definitions must be placed inside `rules`.");
   }
 

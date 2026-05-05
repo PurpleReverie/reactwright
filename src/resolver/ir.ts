@@ -53,6 +53,9 @@ export type ResolvedThematicBreakNode = {
 
 export type ResolvedFigureNode = {
   kind: "figure";
+  role?: string;
+  page?: string;
+  variant?: string;
   src: string;
   alt?: string;
   caption?: string;
@@ -92,6 +95,9 @@ export type ResolvedListItemNode = {
 
 export type ResolvedListNode = {
   kind: "list";
+  role?: string;
+  page?: string;
+  variant?: string;
   ordered: boolean;
   children: ResolvedListItemNode[];
 };

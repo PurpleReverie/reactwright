@@ -69,6 +69,9 @@ type SlotMap = Record<SlotName, ResolvedContentNode[]>;
 type RuleMaps = {
   sectionRoles: Map<string, string>;
   quoteRoles: Map<string, string>;
+  paragraphRoles: Map<string, string>;
+  listRoles: Map<string, string>;
+  figureRoles: Map<string, string>;
   pageRoles: Map<string, string>;
 };
 type ResolveContext = {
@@ -154,6 +157,9 @@ function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode {
 function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
   return {
     kind: "figure",
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.page != null ? { page: node.page } : {}),
+    ...(node.variant != null ? { variant: node.variant } : {}),
     src: node.src,
     alt: node.alt,
     caption: node.caption,
@@ -219,6 +225,9 @@ function resolveListItemNode(node: ListItemNode): ResolvedListItemNode {
 function resolveListNode(node: ListNode): ResolvedListNode {
   return {
     kind: "list",
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.page != null ? { page: node.page } : {}),
+    ...(node.variant != null ? { variant: node.variant } : {}),
     ordered: node.ordered,
     children: node.children.map(resolveListItemNode)
   };
@@ -314,6 +323,21 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
         rules.pageRoles.set(rule.page, rule.use);
       }
       return;
+    case "paragraph-role":
+      if (rule.role.length > 0 && rule.variant.length > 0) {
+        rules.paragraphRoles.set(rule.role, rule.variant);
+      }
+      return;
+    case "list-role":
+      if (rule.role.length > 0 && rule.variant.length > 0) {
+        rules.listRoles.set(rule.role, rule.variant);
+      }
+      return;
+    case "figure-role":
+      if (rule.role.length > 0 && rule.variant.length > 0) {
+        rules.figureRoles.set(rule.role, rule.variant);
+      }
+      return;
   }
 }
 
@@ -321,6 +345,9 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
   const rules: RuleMaps = {
     sectionRoles: new Map<string, string>(),
     quoteRoles: new Map<string, string>(),
+    paragraphRoles: new Map<string, string>(),
+    listRoles: new Map<string, string>(),
+    figureRoles: new Map<string, string>(),
     pageRoles: new Map<string, string>()
   };
 
@@ -362,6 +389,7 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
     case "list":
       return {
         ...node,
+        variant: node.role != null ? rules.listRoles.get(node.role) ?? node.variant : node.variant,
         children: node.children.map((child) => ({
           ...child,
           children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
@@ -379,7 +407,15 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
         }))
       };
     case "paragraph":
+      return {
+        ...node,
+        variant: node.role != null ? rules.paragraphRoles.get(node.role) ?? node.variant : node.variant
+      };
     case "figure":
+      return {
+        ...node,
+        variant: node.role != null ? rules.figureRoles.get(node.role) ?? node.variant : node.variant
+      };
     case "code-block":
     case "thematic-break":
     case "item":
@@ -488,6 +524,9 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "section-role":
     case "quote-role":
     case "page-role":
+    case "paragraph-role":
+    case "list-role":
+    case "figure-role":
       return [];
   }
 }
@@ -551,6 +590,9 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "section-role":
     case "quote-role":
     case "page-role":
+    case "paragraph-role":
+    case "list-role":
+    case "figure-role":
       throw new Error("Template control nodes should be resolved before returning a template node.");
     case "slot":
       throw new Error("Template slots should be resolved before returning a template node.");
