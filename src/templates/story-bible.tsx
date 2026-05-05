@@ -11,17 +11,30 @@ registerFont("Courier Prime", {
   latex: { command: "\\ttfamily" }
 });
 
+registerFont("Cormorant SC", {
+  html: {
+    kind: "link",
+    href: "https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;600;700&display=swap"
+  },
+  latex: { command: "\\rmfamily" }
+});
+
 export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
   return (
     <template
       style={{
         size: "a4",
-        margin: "25mm",
+        marginTop: "18mm",
+        marginRight: "18mm",
+        marginBottom: "20mm",
+        marginLeft: "18mm",
         fontFamily: "Courier Prime",
-        fontSize: "12pt",
-        lineHeight: 1.5,
+        fontSize: "11pt",
+        lineHeight: 1.42,
         sectionStyle: "label",
-        blockquoteStyle: "plain"
+        blockquoteStyle: "plain",
+        backgroundColor: "#f7f0df",
+        color: "#201818"
       }}
     >
       <rules>
@@ -31,29 +44,103 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
         <page-role page="script" use="script" />
       </rules>
 
-      <flow gap="10mm">
+      <flow gap="8mm">
         <region
           style={{
             textAlign: "center",
-            fontWeight: "bold",
-            fontSize: "14pt",
-            paddingTop: "6mm",
-            paddingBottom: "6mm",
-            borderBottom: "1.5pt solid #000000"
+            backgroundColor: "#1c2430",
+            color: "#f6ead2",
+            border: "1.5pt solid #8a6a2f",
+            paddingTop: "4mm",
+            paddingRight: "5mm",
+            paddingBottom: "4mm",
+            paddingLeft: "5mm"
           }}
         >
-          <slot name="title" />
-          <slot name="author" />
+          <region
+            style={{
+              fontFamily: "Cormorant SC",
+              fontSize: "9pt",
+              fontWeight: "bold",
+              paddingBottom: "1.5mm",
+              borderBottom: "0.8pt solid #c8a96b"
+            }}
+          >
+            SERIES DOSSIER / DEVELOPMENT MATERIAL
+          </region>
+          <region
+            style={{
+              fontFamily: "Cormorant SC",
+              fontWeight: "bold",
+              fontSize: "18pt",
+              paddingTop: "3mm",
+              paddingBottom: "1.5mm"
+            }}
+          >
+            <slot name="title" />
+          </region>
+          <region
+            style={{
+              fontSize: "9pt",
+              paddingTop: "1mm"
+            }}
+          >
+            <slot name="author" />
+          </region>
         </region>
 
         <page-set name="worldbuilding">
-          <region style={{ breakable: true }}>
+          <region
+            style={{
+              backgroundColor: "#fcf7ea",
+              border: "1.1pt solid #b79a67",
+              paddingTop: "4mm",
+              paddingRight: "5mm",
+              paddingBottom: "4mm",
+              paddingLeft: "5mm",
+              breakable: true
+            }}
+          >
+            <region
+              style={{
+                fontFamily: "Cormorant SC",
+                fontWeight: "bold",
+                fontSize: "9pt",
+                textAlign: "center",
+                paddingBottom: "2mm",
+                borderBottom: "0.8pt solid #b79a67"
+              }}
+            >
+              WORLD NOTES / THEMES / CHARACTER STRATEGY
+            </region>
             {children ?? <slot name="body" />}
           </region>
         </page-set>
 
         <page-set name="script">
-          <region style={{ breakable: true }}>
+          <region
+            style={{
+              backgroundColor: "#fffdf8",
+              border: "1.5pt solid #2b2f38",
+              paddingTop: "5mm",
+              paddingRight: "9mm",
+              paddingBottom: "5mm",
+              paddingLeft: "9mm",
+              breakable: true
+            }}
+          >
+            <region
+              style={{
+                fontFamily: "Cormorant SC",
+                fontWeight: "bold",
+                fontSize: "9pt",
+                textAlign: "center",
+                paddingBottom: "2mm",
+                borderBottom: "0.8pt solid #2b2f38"
+              }}
+            >
+              SCRIPT SAMPLE / PERFORMANCE OF TONE
+            </region>
             {children ?? <slot name="body" />}
           </region>
         </page-set>
