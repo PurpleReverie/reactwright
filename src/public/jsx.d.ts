@@ -213,6 +213,7 @@ type TemplateIntrinsicMap = {
   };
   repeat: TemplateStyleProps & {
     anchor: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+    when?: "all" | "first-page" | "not-first-page";
   };
   fixed: TemplateStyleProps & {
     anchor:
@@ -226,6 +227,7 @@ type TemplateIntrinsicMap = {
       | "page-top-right"
       | "page-bottom-left"
       | "page-bottom-right";
+    when?: "all" | "first-page";
   };
   "page-number": Omit<TemplateStyleProps, "children">;
   slot: {

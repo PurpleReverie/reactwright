@@ -148,10 +148,10 @@ test("template renderer supports row and rule intrinsics", () => {
 test("template renderer supports repeat and fixed intrinsics", () => {
   const result = renderTemplateToIR(
     <template>
-      <repeat anchor="top-right" typography={{ fontSize: "8pt" }}>
+      <repeat anchor="top-right" when="not-first-page" typography={{ fontSize: "8pt" }}>
         <slot name="title" />
       </repeat>
-      <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
+      <fixed anchor="page-bottom-right" when="first-page" typography={{ fontSize: "8pt" }}>
         <page-number />
       </fixed>
       <flow>
@@ -167,12 +167,14 @@ test("template renderer supports repeat and fixed intrinsics", () => {
       {
         kind: "repeat",
         anchor: "top-right",
+        when: "not-first-page",
         style: { fontSize: "8pt" },
         children: [{ kind: "slot", name: "title" }]
       },
       {
         kind: "fixed",
         anchor: "page-bottom-right",
+        when: "first-page",
         style: { fontSize: "8pt" },
         children: [{ kind: "page-number", style: undefined }]
       },
@@ -313,5 +315,23 @@ test("template renderer rejects non-object typed prop groups", () => {
         React.createElement("template", { typography: "serif" }, React.createElement("slot", { name: "body" }))
       ),
     /`typography` must be an object|produced no root node/i
+  );
+});
+
+test("template renderer rejects invalid running matter conditions", () => {
+  assert.throws(
+    () =>
+      renderTemplateToIR(
+        React.createElement("template", null, React.createElement("repeat", { anchor: "top-right", when: "chapter" }))
+      ),
+    /`repeat` `when` must be|produced no root node/i
+  );
+
+  assert.throws(
+    () =>
+      renderTemplateToIR(
+        React.createElement("template", null, React.createElement("fixed", { anchor: "page-top-right", when: "not-first-page" }))
+      ),
+    /`fixed` `when` must be|produced no root node/i
   );
 });

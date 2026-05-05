@@ -7,12 +7,14 @@ import type {
   BoxNode,
   CustomTemplateNode,
   FixedAnchor,
+  FixedWhen,
   FixedNode,
   PageNumberNode,
   PageNode,
   PageRoleRuleNode,
   PageSetNode,
   RepeatAnchor,
+  RepeatWhen,
   RepeatNode,
   RowNode,
   RuleNode,
@@ -61,6 +63,7 @@ type TemplateProps = Record<string, unknown> & {
   color?: unknown;
   length?: unknown;
   anchor?: unknown;
+  when?: unknown;
 };
 
 type TemplateContainer = {
@@ -203,6 +206,30 @@ function readFixedAnchor(props: TemplateProps): FixedAnchor {
   }
 }
 
+function readRepeatWhen(props: TemplateProps): RepeatWhen | undefined {
+  if (props.when == null) {
+    return undefined;
+  }
+
+  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
+    return props.when;
+  }
+
+  throw new Error("`repeat` `when` must be `all`, `first-page`, or `not-first-page`.");
+}
+
+function readFixedWhen(props: TemplateProps): FixedWhen | undefined {
+  if (props.when == null) {
+    return undefined;
+  }
+
+  if (props.when === "all" || props.when === "first-page") {
+    return props.when;
+  }
+
+  throw new Error("`fixed` `when` must be `all` or `first-page`.");
+}
+
 function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
   switch (type) {
     case "template":
@@ -282,6 +309,7 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
       return {
         kind: "repeat",
         anchor: readRepeatAnchor(props),
+        when: readRepeatWhen(props),
         style,
         children: []
       } satisfies RepeatNode;
@@ -291,6 +319,7 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
       return {
         kind: "fixed",
         anchor: readFixedAnchor(props),
+        when: readFixedWhen(props),
         style,
         children: []
       } satisfies FixedNode;

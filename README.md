@@ -88,6 +88,11 @@ Canonical authoring now prefers the concise lowercase surface:
 - template: `template`, `flow`, `region`, `columns`, `slot`, `rules`, `page-set`
 - template: `template`, `flow`, `row`, `region`, `columns`, `rule`, `repeat`, `fixed`, `page-number`, `slot`, `rules`, `page-set`
 
+Running matter primitives support basic scope controls:
+
+- `repeat when="all" | "first-page" | "not-first-page"`
+- `fixed when="all" | "first-page"`
+
 Legacy aliases like `paragraph`, `blockquote`, `page`, `box`, and `stack` are still supported for compatibility.
 
 ### Naming rule

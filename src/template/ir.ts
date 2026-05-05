@@ -158,6 +158,7 @@ export type RuleNode = {
 export type RepeatNode = {
   kind: "repeat";
   anchor: RepeatAnchor;
+  when?: RepeatWhen;
   style?: TemplateStyle;
   children: TemplateChild[];
 };
@@ -165,6 +166,7 @@ export type RepeatNode = {
 export type FixedNode = {
   kind: "fixed";
   anchor: FixedAnchor;
+  when?: FixedWhen;
   style?: TemplateStyle;
   children: TemplateChild[];
 };
@@ -190,6 +192,8 @@ export type CornerAnchor =
 
 export type RepeatAnchor = PageEdgeAnchor;
 export type FixedAnchor = PageEdgeAnchor | CornerAnchor;
+export type RepeatWhen = "all" | "first-page" | "not-first-page";
+export type FixedWhen = "all" | "first-page";
 
 export type SlotNode = {
   kind: "slot";

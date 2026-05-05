@@ -420,7 +420,8 @@ function renderAnchoredNode(
     anchorToCss(node.anchor),
     styleToCss(node.style, "box")
   ].join("");
-  return `<div data-node="${node.kind}" style="${escapeHtml(style)}">${node.children
+  const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
+  return `<div data-node="${node.kind}"${whenAttr} style="${escapeHtml(style)}">${node.children
     .map((child) => renderResolvedChild(child, ctx))
     .join("")}</div>`;
 }

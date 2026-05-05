@@ -155,6 +155,7 @@ export type ResolvedRuleNode = {
 export type ResolvedRepeatNode = {
   kind: "repeat";
   anchor: string;
+  when?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -162,6 +163,7 @@ export type ResolvedRepeatNode = {
 export type ResolvedFixedNode = {
   kind: "fixed";
   anchor: string;
+  when?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };

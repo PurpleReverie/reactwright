@@ -172,10 +172,10 @@ test("row and rule template intrinsics render through HTML and LaTeX backends", 
 test("repeat and fixed template intrinsics render page furniture through HTML and LaTeX backends", () => {
   const template = (
     <template page={{ size: "a4", margin: "25mm" }}>
-      <repeat anchor="top-right" typography={{ fontSize: "8pt" }}>
+      <repeat anchor="top-right" when="not-first-page" typography={{ fontSize: "8pt" }}>
         <slot name="title" />
       </repeat>
-      <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
+      <fixed anchor="page-bottom-right" when="first-page" typography={{ fontSize: "8pt" }}>
         <page-number />
       </fixed>
       <flow>
@@ -188,10 +188,12 @@ test("repeat and fixed template intrinsics render page furniture through HTML an
   const html = renderResolvedToHTML(resolved);
   const latex = renderResolvedToLatex(resolved);
 
-  assert.match(html, /data-node="repeat"/);
-  assert.match(html, /data-node="fixed"/);
+  assert.match(html, /data-node="repeat" data-when="not-first-page"/);
+  assert.match(html, /data-node="fixed" data-when="first-page"/);
   assert.match(latex, /\\usepackage\{fancyhdr\}/);
   assert.match(latex, /\\fancyhead\[R\]\{Pipeline Test\}/);
+  assert.match(latex, /\\fancypagestyle\{reactdocfirstpage\}/);
+  assert.match(latex, /\\thispagestyle\{reactdocfirstpage\}/);
   assert.match(latex, /\\usepackage\{eso-pic\}/);
   assert.match(latex, /\\AddToShipoutPictureFG\*/);
   assert.match(latex, /\\thepage/);

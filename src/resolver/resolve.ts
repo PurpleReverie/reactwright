@@ -482,6 +482,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
       return {
         kind: "repeat",
         anchor: node.anchor,
+        when: node.when,
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedRepeatNode;
@@ -489,6 +490,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
       return {
         kind: "fixed",
         anchor: node.anchor,
+        when: node.when,
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedFixedNode;

@@ -1003,7 +1003,10 @@ function latexHeaderSlot(anchor: string): { area: "head" | "foot"; slot: "L" | "
 }
 
 function buildRepeatPreamble(page: ResolvedPageNode, ctx: RenderContext): string[] {
-  return collectRepeatNodes(page)
+  const repeats = collectRepeatNodes(page);
+
+  const regular = repeats
+    .filter((node) => node.when !== "first-page")
     .map((node) => {
       const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
       if (content.length === 0) {
@@ -1013,6 +1016,28 @@ function buildRepeatPreamble(page: ResolvedPageNode, ctx: RenderContext): string
       return `\\fancy${target.area}[${target.slot}]{${content}}`;
     })
     .filter((line): line is string => line != null);
+
+  const firstPage = repeats
+    .filter((node) => node.when !== "not-first-page")
+    .map((node) => {
+      const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
+      if (content.length === 0) {
+        return null;
+      }
+      const target = latexHeaderSlot(node.anchor);
+      return `\\fancy${target.area}[${target.slot}]{${content}}`;
+    })
+    .filter((line): line is string => line != null);
+
+  const lines = [...regular];
+  if (repeats.some((node) => node.when === "first-page" || node.when === "not-first-page")) {
+    lines.push("\\fancypagestyle{reactdocfirstpage}{");
+    lines.push("\\fancyhf{}");
+    lines.push(...firstPage);
+    lines.push("}");
+  }
+
+  return lines;
 }
 
 function fixedAnchorCommand(anchor: string, content: string): string {
@@ -1040,14 +1065,34 @@ function fixedAnchorCommand(anchor: string, content: string): string {
 
 function buildFixedPreamble(page: ResolvedPageNode, ctx: RenderContext): string[] {
   return collectFixedNodes(page)
+    .filter((node) => node.when !== "first-page")
     .map((node) => {
       const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
       if (content.length === 0) {
         return null;
       }
-      return `\\AddToShipoutPictureFG*{${fixedAnchorCommand(node.anchor, content)}}`;
+      return `\\AddToShipoutPictureFG{${fixedAnchorCommand(node.anchor, content)}}`;
     })
     .filter((line): line is string => line != null);
+}
+
+function buildDocumentStartLines(page: ResolvedPageNode, ctx: RenderContext): string[] {
+  const lines: string[] = [];
+  const repeats = collectRepeatNodes(page);
+
+  if (repeats.some((node) => node.when === "first-page" || node.when === "not-first-page")) {
+    lines.push("\\thispagestyle{reactdocfirstpage}");
+  }
+
+  for (const node of collectFixedNodes(page).filter((entry) => entry.when === "first-page")) {
+    const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
+    if (content.length === 0) {
+      continue;
+    }
+    lines.push(`\\AddToShipoutPictureFG*{${fixedAnchorCommand(node.anchor, content)}}`);
+  }
+
+  return lines;
 }
 
 function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
@@ -1215,6 +1260,7 @@ export function renderResolvedToLatex(page: ResolvedPageNode): string {
   const preamble = collectPreamble(page);
   const repeatPreamble = buildRepeatPreamble(page, ctx);
   const fixedPreamble = buildFixedPreamble(page, ctx);
+  const documentStartLines = buildDocumentStartLines(page, ctx);
   const body = renderPageNode(page, ctx);
 
   return [
@@ -1223,6 +1269,7 @@ export function renderResolvedToLatex(page: ResolvedPageNode): string {
     ...fixedPreamble,
     "",
     "\\begin{document}",
+    ...documentStartLines,
     body,
     "\\end{document}",
     ""
