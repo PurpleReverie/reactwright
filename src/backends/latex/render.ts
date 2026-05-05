@@ -13,6 +13,7 @@ import type {
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
+  ResolvedFixedNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
@@ -22,6 +23,7 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedRepeatNode,
   ResolvedRowNode,
   ResolvedRuleNode,
   ResolvedSectionNode,
@@ -373,6 +375,16 @@ function collectPreamble(page: ResolvedPageNode): string[] {
     lines.push("\\usepackage{fancyvrb}");
   }
 
+  if (pageContainsRepeat(page)) {
+    lines.push("\\usepackage{fancyhdr}");
+    lines.push("\\pagestyle{fancy}");
+    lines.push("\\fancyhf{}");
+  }
+
+  if (pageContainsFixed(page)) {
+    lines.push("\\usepackage{eso-pic}");
+  }
+
   lines.push("\\emergencystretch=1.5em");
 
   return lines;
@@ -385,6 +397,30 @@ function pageContainsFigure(node: ResolvedPageNode | ResolvedChild): boolean {
 
   if ("children" in node && Array.isArray(node.children)) {
     return node.children.some((child) => pageContainsFigure(child as ResolvedChild));
+  }
+
+  return false;
+}
+
+function pageContainsRepeat(node: ResolvedPageNode | ResolvedChild): boolean {
+  if (node.kind === "repeat") {
+    return true;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children.some((child) => pageContainsRepeat(child as ResolvedChild));
+  }
+
+  return false;
+}
+
+function pageContainsFixed(node: ResolvedPageNode | ResolvedChild): boolean {
+  if (node.kind === "fixed") {
+    return true;
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children.some((child) => pageContainsFixed(child as ResolvedChild));
   }
 
   return false;
@@ -848,6 +884,165 @@ function renderRuleNode(node: ResolvedRuleNode): string {
   return `\\noindent{\\color{${colorName(color)}}${body}}`;
 }
 
+function renderFurnitureInlineNode(node: ResolvedInlineNode): string {
+  switch (node.kind) {
+    case "text":
+      return renderTextNode(node);
+    case "em":
+      return `\\emph{${node.children.map(renderFurnitureInlineNode).join("")}}`;
+    case "strong":
+      return `\\textbf{${node.children.map(renderFurnitureInlineNode).join("")}}`;
+    case "code":
+      return `\\texttt{${node.children.map(renderTextNode).join("")}}`;
+    case "font":
+      return `{${fontFamilyCommand(node.family) ?? "\\rmfamily"} ${node.children
+        .map(renderFurnitureInlineNode)
+        .join("")}}`;
+    case "link":
+      return pageContainsLink({ kind: "page", children: [node], style: undefined })
+        ? `\\href{${escapeLatex(node.href)}}{${node.children.map(renderFurnitureInlineNode).join("")}}`
+        : node.children.map(renderFurnitureInlineNode).join("");
+  }
+}
+
+function renderFurnitureChild(node: ResolvedChild, ctx: RenderContext): string {
+  switch (node.kind) {
+    case "title":
+      return escapeLatex(node.value);
+    case "author":
+      return escapeLatex(node.value);
+    case "text":
+      return escapeLatex(node.value);
+    case "paragraph":
+      return node.children.map(renderFurnitureInlineNode).join("");
+    case "em":
+    case "strong":
+    case "code":
+    case "font":
+    case "link":
+      return renderFurnitureInlineNode(node);
+    case "rule":
+      return renderRuleNode(node);
+    case "box":
+    case "stack":
+    case "row":
+    case "repeat":
+    case "fixed":
+    case "custom":
+      return node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
+    case "abstract":
+    case "section":
+    case "figure":
+    case "code-block":
+    case "thematic-break":
+    case "blockquote":
+    case "list":
+    case "page-break":
+    case "item":
+    case "page":
+      return "";
+  }
+}
+
+function collectRepeatNodes(node: ResolvedPageNode | ResolvedChild): ResolvedRepeatNode[] {
+  const repeats: ResolvedRepeatNode[] = [];
+
+  if (node.kind === "repeat") {
+    repeats.push(node);
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      repeats.push(...collectRepeatNodes(child as ResolvedChild));
+    }
+  }
+
+  return repeats;
+}
+
+function collectFixedNodes(node: ResolvedPageNode | ResolvedChild): ResolvedFixedNode[] {
+  const fixedNodes: ResolvedFixedNode[] = [];
+
+  if (node.kind === "fixed") {
+    fixedNodes.push(node);
+  }
+
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      fixedNodes.push(...collectFixedNodes(child as ResolvedChild));
+    }
+  }
+
+  return fixedNodes;
+}
+
+function latexHeaderSlot(anchor: string): { area: "head" | "foot"; slot: "L" | "C" | "R" } {
+  switch (anchor) {
+    case "top-left":
+      return { area: "head", slot: "L" };
+    case "top-center":
+      return { area: "head", slot: "C" };
+    case "top-right":
+      return { area: "head", slot: "R" };
+    case "bottom-left":
+      return { area: "foot", slot: "L" };
+    case "bottom-center":
+      return { area: "foot", slot: "C" };
+    case "bottom-right":
+      return { area: "foot", slot: "R" };
+    default:
+      return { area: "head", slot: "R" };
+  }
+}
+
+function buildRepeatPreamble(page: ResolvedPageNode, ctx: RenderContext): string[] {
+  return collectRepeatNodes(page)
+    .map((node) => {
+      const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
+      if (content.length === 0) {
+        return null;
+      }
+      const target = latexHeaderSlot(node.anchor);
+      return `\\fancy${target.area}[${target.slot}]{${content}}`;
+    })
+    .filter((line): line is string => line != null);
+}
+
+function fixedAnchorCommand(anchor: string, content: string): string {
+  switch (anchor) {
+    case "top-left":
+    case "page-top-left":
+      return `\\AtPageUpperLeft{\\raisebox{-12mm}[0pt][0pt]{\\hspace*{12mm}${content}}}`;
+    case "top-center":
+      return `\\AtPageUpperLeft{\\raisebox{-12mm}[0pt][0pt]{\\makebox[\\paperwidth][c]{${content}}}}`;
+    case "top-right":
+    case "page-top-right":
+      return `\\AtPageUpperLeft{\\raisebox{-12mm}[0pt][0pt]{\\makebox[\\paperwidth][r]{\\hspace*{-12mm}${content}}}}`;
+    case "bottom-left":
+    case "page-bottom-left":
+      return `\\AtPageLowerLeft{\\raisebox{12mm}[0pt][0pt]{\\hspace*{12mm}${content}}}`;
+    case "bottom-center":
+      return `\\AtPageLowerLeft{\\raisebox{12mm}[0pt][0pt]{\\makebox[\\paperwidth][c]{${content}}}}`;
+    case "bottom-right":
+    case "page-bottom-right":
+      return `\\AtPageLowerLeft{\\raisebox{12mm}[0pt][0pt]{\\makebox[\\paperwidth][r]{\\hspace*{-12mm}${content}}}}`;
+    default:
+      return `\\AtPageUpperLeft{\\raisebox{-12mm}[0pt][0pt]{\\hspace*{12mm}${content}}}`;
+  }
+}
+
+function buildFixedPreamble(page: ResolvedPageNode, ctx: RenderContext): string[] {
+  return collectFixedNodes(page)
+    .map((node) => {
+      const content = node.children.map((child) => renderFurnitureChild(child, ctx)).filter(Boolean).join(" ");
+      if (content.length === 0) {
+        return null;
+      }
+      return `\\AddToShipoutPictureFG*{${fixedAnchorCommand(node.anchor, content)}}`;
+    })
+    .filter((line): line is string => line != null);
+}
+
 function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
   const body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   let aligned = wrapWithAlignment(body, node.style?.textAlign);
@@ -948,7 +1143,8 @@ function renderRowNode(node: ResolvedRowNode, ctx: RenderContext): string {
 }
 
 function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
-  let body = node.children.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
+  const flowChildren = node.children.filter((child) => child.kind !== "repeat" && child.kind !== "fixed");
+  let body = flowChildren.map((child) => renderResolvedChild(child, ctx)).join("\n\n");
   const pageBackground = normalizeHexColor(node.style?.backgroundColor);
   const pageBorder = parseBorder(node.style?.border);
 
@@ -977,6 +1173,9 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderRowNode(node, ctx);
     case "rule":
       return renderRuleNode(node);
+    case "repeat":
+    case "fixed":
+      return "";
     case "custom":
       return renderCustomNode(node, ctx);
     case "title":
@@ -1005,10 +1204,14 @@ function buildRenderContext(page: ResolvedPageNode): RenderContext {
 export function renderResolvedToLatex(page: ResolvedPageNode): string {
   const ctx = buildRenderContext(page);
   const preamble = collectPreamble(page);
+  const repeatPreamble = buildRepeatPreamble(page, ctx);
+  const fixedPreamble = buildFixedPreamble(page, ctx);
   const body = renderPageNode(page, ctx);
 
   return [
     ...preamble,
+    ...repeatPreamble,
+    ...fixedPreamble,
     "",
     "\\begin{document}",
     body,

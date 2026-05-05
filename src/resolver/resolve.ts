@@ -45,7 +45,9 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedFixedNode,
   ResolvedRowNode,
+  ResolvedRepeatNode,
   ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
@@ -253,6 +255,8 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
       child.kind === "box" ||
       child.kind === "stack" ||
       child.kind === "row" ||
+      child.kind === "repeat" ||
+      child.kind === "fixed" ||
       child.kind === "custom" ||
       child.kind === "page-set"
     ) {
@@ -293,6 +297,8 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
     template.kind === "box" ||
     template.kind === "stack" ||
     template.kind === "row" ||
+    template.kind === "repeat" ||
+    template.kind === "fixed" ||
     template.kind === "custom" ||
     template.kind === "page-set"
   ) {
@@ -403,6 +409,8 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "box":
     case "stack":
     case "row":
+    case "repeat":
+    case "fixed":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
     case "page-set":
@@ -462,6 +470,20 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedRowNode;
+    case "repeat":
+      return {
+        kind: "repeat",
+        anchor: node.anchor,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedRepeatNode;
+    case "fixed":
+      return {
+        kind: "fixed",
+        anchor: node.anchor,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedFixedNode;
     case "custom":
       return {
         kind: "custom",

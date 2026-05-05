@@ -152,6 +152,20 @@ export type ResolvedRuleNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedRepeatNode = {
+  kind: "repeat";
+  anchor: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
+export type ResolvedFixedNode = {
+  kind: "fixed";
+  anchor: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
@@ -197,6 +211,8 @@ export type ResolvedTemplateNode =
   | ResolvedStackNode
   | ResolvedRowNode
   | ResolvedRuleNode
+  | ResolvedRepeatNode
+  | ResolvedFixedNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

@@ -169,6 +169,34 @@ test("row and rule template intrinsics render through HTML and LaTeX backends", 
   assert.match(latex, /reactdoc8A6A2F/);
 });
 
+test("repeat and fixed template intrinsics render page furniture through HTML and LaTeX backends", () => {
+  const template = (
+    <template page={{ size: "a4", margin: "25mm" }}>
+      <repeat anchor="top-right" typography={{ fontSize: "8pt" }}>
+        <slot name="title" />
+      </repeat>
+      <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
+        <slot name="author" />
+      </fixed>
+      <flow>
+        <slot name="body" />
+      </flow>
+    </template>
+  );
+
+  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
+  const html = renderResolvedToHTML(resolved);
+  const latex = renderResolvedToLatex(resolved);
+
+  assert.match(html, /data-node="repeat"/);
+  assert.match(html, /data-node="fixed"/);
+  assert.match(latex, /\\usepackage\{fancyhdr\}/);
+  assert.match(latex, /\\fancyhead\[R\]\{Pipeline Test\}/);
+  assert.match(latex, /\\usepackage\{eso-pic\}/);
+  assert.match(latex, /\\AddToShipoutPictureFG\*/);
+  assert.match(latex, /Tauraj Greig/);
+});
+
 test("resolver applies template rules and page-set filtering", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">

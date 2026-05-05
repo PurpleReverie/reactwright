@@ -211,6 +211,22 @@ type TemplateIntrinsicMap = {
     color?: string;
     length?: string;
   };
+  repeat: TemplateStyleProps & {
+    anchor: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+  };
+  fixed: TemplateStyleProps & {
+    anchor:
+      | "top-left"
+      | "top-center"
+      | "top-right"
+      | "bottom-left"
+      | "bottom-center"
+      | "bottom-right"
+      | "page-top-left"
+      | "page-top-right"
+      | "page-bottom-left"
+      | "page-bottom-right";
+  };
   slot: {
     name: "title" | "author" | "abstract" | "body";
   };

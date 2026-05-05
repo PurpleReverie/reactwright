@@ -12,6 +12,7 @@ import type {
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
+  ResolvedFixedNode,
   ResolvedFigureNode,
   ResolvedFontNode,
   ResolvedInlineNode,
@@ -21,6 +22,7 @@ import type {
   ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
+  ResolvedRepeatNode,
   ResolvedRowNode,
   ResolvedRuleNode,
   ResolvedSectionNode,
@@ -245,6 +247,29 @@ function renderRuleNode(node: ResolvedRuleNode): string {
   return `<div data-node="rule" style="${style}"></div>`;
 }
 
+function anchorToCss(anchor: string): string {
+  switch (anchor) {
+    case "top-left":
+    case "page-top-left":
+      return "top:0;left:0;";
+    case "top-center":
+      return "top:0;left:50%;transform:translateX(-50%);";
+    case "top-right":
+    case "page-top-right":
+      return "top:0;right:0;";
+    case "bottom-left":
+    case "page-bottom-left":
+      return "bottom:0;left:0;";
+    case "bottom-center":
+      return "bottom:0;left:50%;transform:translateX(-50%);";
+    case "bottom-right":
+    case "page-bottom-right":
+      return "bottom:0;right:0;";
+    default:
+      return "top:0;left:0;";
+  }
+}
+
 function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
   const headingClass = node.variant === "sceneHeading" ? ' class="scene-heading"' : "";
   return [
@@ -380,8 +405,29 @@ function renderRowNode(node: ResolvedRowNode, ctx: RenderContext): string {
   return `<div data-node="row"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
 }
 
-function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
+function renderAnchoredNode(
+  node: ResolvedRepeatNode | ResolvedFixedNode,
+  ctx: RenderContext
+): string {
   const style = [
+    "position:absolute;",
+    "z-index:2;",
+    anchorToCss(node.anchor),
+    styleToCss(node.style, "box")
+  ].join("");
+  return `<div data-node="${node.kind}" style="${escapeHtml(style)}">${node.children
+    .map((child) => renderResolvedChild(child, ctx))
+    .join("")}</div>`;
+}
+
+function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
+  const overlays = node.children
+    .filter((child): child is ResolvedRepeatNode | ResolvedFixedNode => child.kind === "repeat" || child.kind === "fixed")
+    .map((child) => renderAnchoredNode(child, ctx))
+    .join("");
+  const flowChildren = node.children.filter((child) => child.kind !== "repeat" && child.kind !== "fixed");
+  const style = [
+    "position:relative;",
     "box-sizing:border-box;",
     "background:white;",
     "margin:24px auto;",
@@ -390,7 +436,9 @@ function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
   ].join("");
   const styleAttr = ` style="${escapeHtml(style)}"`;
 
-  return `<main data-node="page"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</main>`;
+  return `<main data-node="page"${styleAttr}>${overlays}${flowChildren
+    .map((child) => renderResolvedChild(child, ctx))
+    .join("")}</main>`;
 }
 
 function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
@@ -405,6 +453,9 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
       return renderRowNode(node, ctx);
     case "rule":
       return renderRuleNode(node);
+    case "repeat":
+    case "fixed":
+      return renderAnchoredNode(node, ctx);
     case "custom":
       return renderCustomNode(node, ctx);
     case "title":

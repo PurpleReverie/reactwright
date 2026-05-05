@@ -155,6 +155,37 @@ export type RuleNode = {
   style?: TemplateStyle;
 };
 
+export type RepeatNode = {
+  kind: "repeat";
+  anchor: RepeatAnchor;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
+export type FixedNode = {
+  kind: "fixed";
+  anchor: FixedAnchor;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
+export type PageEdgeAnchor =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+
+export type CornerAnchor =
+  | "page-top-left"
+  | "page-top-right"
+  | "page-bottom-left"
+  | "page-bottom-right";
+
+export type RepeatAnchor = PageEdgeAnchor;
+export type FixedAnchor = PageEdgeAnchor | CornerAnchor;
+
 export type SlotNode = {
   kind: "slot";
   name: SlotName;
@@ -185,6 +216,8 @@ export type TemplateNode =
   | StackNode
   | RowNode
   | RuleNode
+  | RepeatNode
+  | FixedNode
   | SlotNode
   | CustomTemplateNode
   | PageSetNode
@@ -192,6 +225,15 @@ export type TemplateNode =
   | RulesChild
   | TemplateTextNode;
 
-export type TemplateContainerNode = PageNode | BoxNode | StackNode | RowNode | CustomTemplateNode | PageSetNode | RulesNode;
+export type TemplateContainerNode =
+  | PageNode
+  | BoxNode
+  | StackNode
+  | RowNode
+  | RepeatNode
+  | FixedNode
+  | CustomTemplateNode
+  | PageSetNode
+  | RulesNode;
 
 export type TemplateChild = TemplateContainerNode | RuleNode | SlotNode | TemplateTextNode;

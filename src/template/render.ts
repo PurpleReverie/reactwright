@@ -6,9 +6,13 @@ import { getTemplateIntrinsic } from "./registry.js";
 import type {
   BoxNode,
   CustomTemplateNode,
+  FixedAnchor,
+  FixedNode,
   PageNode,
   PageRoleRuleNode,
   PageSetNode,
+  RepeatAnchor,
+  RepeatNode,
   RowNode,
   RuleNode,
   TemplateBreaksProps,
@@ -55,6 +59,7 @@ type TemplateProps = Record<string, unknown> & {
   weight?: unknown;
   color?: unknown;
   length?: unknown;
+  anchor?: unknown;
 };
 
 type TemplateContainer = {
@@ -165,6 +170,38 @@ function readOptionalRuleAxis(props: TemplateProps): "horizontal" | "vertical" |
   throw new Error("`axis` must be `horizontal` or `vertical` when provided.");
 }
 
+function readRepeatAnchor(props: TemplateProps): RepeatAnchor {
+  switch (props.anchor) {
+    case "top-left":
+    case "top-center":
+    case "top-right":
+    case "bottom-left":
+    case "bottom-center":
+    case "bottom-right":
+      return props.anchor;
+    default:
+      throw new Error("`repeat` requires an `anchor` like `top-right` or `bottom-center`.");
+  }
+}
+
+function readFixedAnchor(props: TemplateProps): FixedAnchor {
+  switch (props.anchor) {
+    case "top-left":
+    case "top-center":
+    case "top-right":
+    case "bottom-left":
+    case "bottom-center":
+    case "bottom-right":
+    case "page-top-left":
+    case "page-top-right":
+    case "page-bottom-left":
+    case "page-bottom-right":
+      return props.anchor;
+    default:
+      throw new Error("`fixed` requires a supported page anchor like `page-top-right`.");
+  }
+}
+
 function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
   switch (type) {
     case "template":
@@ -239,6 +276,24 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         length: readOptionalRuleToken(props, "length"),
         style: mergeTemplateStyleGroups(props)
       } satisfies RuleNode;
+    case "repeat": {
+      const style = mergeTemplateStyleGroups(props);
+      return {
+        kind: "repeat",
+        anchor: readRepeatAnchor(props),
+        style,
+        children: []
+      } satisfies RepeatNode;
+    }
+    case "fixed": {
+      const style = mergeTemplateStyleGroups(props);
+      return {
+        kind: "fixed",
+        anchor: readFixedAnchor(props),
+        style,
+        children: []
+      } satisfies FixedNode;
+    }
     case "page-set":
       return {
         kind: "page-set",
@@ -433,7 +488,7 @@ const templateHostConfig = {
     textInstance.value = newText;
   },
   resetTextContent(
-    instance: BoxNode | PageNode | StackNode | RowNode | CustomTemplateNode | PageSetNode | RulesNode
+    instance: BoxNode | PageNode | StackNode | RowNode | RepeatNode | FixedNode | CustomTemplateNode | PageSetNode | RulesNode
   ): void {
     instance.children = [];
   },

@@ -145,6 +145,47 @@ test("template renderer supports row and rule intrinsics", () => {
   });
 });
 
+test("template renderer supports repeat and fixed intrinsics", () => {
+  const result = renderTemplateToIR(
+    <template>
+      <repeat anchor="top-right" typography={{ fontSize: "8pt" }}>
+        <slot name="title" />
+      </repeat>
+      <fixed anchor="page-bottom-right" typography={{ fontSize: "8pt" }}>
+        <slot name="author" />
+      </fixed>
+      <flow>
+        <slot name="body" />
+      </flow>
+    </template>
+  );
+
+  assert.deepEqual(result, {
+    kind: "page",
+    style: undefined,
+    children: [
+      {
+        kind: "repeat",
+        anchor: "top-right",
+        style: { fontSize: "8pt" },
+        children: [{ kind: "slot", name: "title" }]
+      },
+      {
+        kind: "fixed",
+        anchor: "page-bottom-right",
+        style: { fontSize: "8pt" },
+        children: [{ kind: "slot", name: "author" }]
+      },
+      {
+        kind: "stack",
+        gap: undefined,
+        style: undefined,
+        children: [{ kind: "slot", name: "body" }]
+      }
+    ]
+  });
+});
+
 test("template renderer rejects unknown lowercase intrinsics", () => {
   assert.throws(
     () =>
