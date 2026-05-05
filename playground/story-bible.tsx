@@ -10,7 +10,7 @@ export default function StoryBible() {
         does.
       </paragraph>
 
-      <section title="THE WORLD">
+      <section title="THE WORLD" page="worldbuilding">
         <section title="Geography and Setting">
           <paragraph>
             The Isle of Mulgaard sits at the convergence of three ocean currents in
@@ -110,7 +110,7 @@ export default function StoryBible() {
         </section>
       </section>
 
-      <section title="THE STORY">
+      <section title="THE STORY" page="worldbuilding">
         <section title="Premise">
           <paragraph>
             Three feuding noble houses. A dying island. A sleeping god at the bottom
@@ -173,7 +173,7 @@ export default function StoryBible() {
         </section>
       </section>
 
-      <section title="THEMES">
+      <section title="THEMES" page="worldbuilding">
         <paragraph>
           <strong>Unity at the cost of identity.</strong> Every argument Caer Vael
           makes for keeping the houses separate is partially correct. Reunification is
@@ -199,7 +199,7 @@ export default function StoryBible() {
         </paragraph>
       </section>
 
-      <section title="THE CHARACTERS">
+      <section title="THE CHARACTERS" page="worldbuilding">
         <section title="ALDRIC VAEL — The Uncrowned">
           <paragraph>
             Twenty-six. Disinherited third son of House Vael. Works as an independent
@@ -279,7 +279,7 @@ export default function StoryBible() {
         </section>
       </section>
 
-      <section title="PROTOTYPE SCENES">
+      <section title="PROTOTYPE SCENES" page="script">
         <section title="Scene One — The Inland Tide, Before Dawn" role="scene-heading">
           <paragraph>
             INT./EXT. SURVEY SKIFF — THE INLAND TIDE — BEFORE DAWN

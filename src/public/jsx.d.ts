@@ -9,9 +9,20 @@ type ContentIntrinsicMap = {
   section: {
     title: string;
     role?: string;
+    page?: string;
+    variant?: string;
     children?: ReactNode;
   };
   paragraph: {
+    role?: string;
+    page?: string;
+    variant?: string;
+    children?: ReactNode;
+  };
+  p: {
+    role?: string;
+    page?: string;
+    variant?: string;
     children?: ReactNode;
   };
   figure: {
@@ -21,6 +32,8 @@ type ContentIntrinsicMap = {
     width?: string;
   };
   abstract: {
+    page?: string;
+    variant?: string;
     children?: ReactNode;
   };
   em: {
@@ -34,6 +47,9 @@ type ContentIntrinsicMap = {
   };
   blockquote: {
     role?: string;
+    page?: string;
+    variant?: string;
+    speaker?: string;
     children?: ReactNode;
   };
   list: {
@@ -47,6 +63,7 @@ type ContentIntrinsicMap = {
     family: string;
     children?: ReactNode;
   };
+  "page-break": Record<string, never>;
 };
 
 type TemplateIntrinsicMap = {
@@ -54,16 +71,55 @@ type TemplateIntrinsicMap = {
     style?: Record<string, unknown>;
     children?: ReactNode;
   };
+  template: {
+    style?: Record<string, unknown>;
+    children?: ReactNode;
+  };
   box: {
+    style?: Record<string, unknown>;
+    children?: ReactNode;
+  };
+  region: {
     style?: Record<string, unknown>;
     children?: ReactNode;
   };
   stack: {
     gap?: string;
+    style?: Record<string, unknown>;
+    children?: ReactNode;
+  };
+  flow: {
+    gap?: string;
+    style?: Record<string, unknown>;
+    children?: ReactNode;
+  };
+  columns: {
+    count: number;
+    gap?: string;
+    style?: Record<string, unknown>;
     children?: ReactNode;
   };
   slot: {
+    name: "title" | "author" | "abstract" | "body";
+  };
+  "page-set": {
     name: string;
+    children?: ReactNode;
+  };
+  rules: {
+    children?: ReactNode;
+  };
+  "section-role": {
+    role: string;
+    variant: string;
+  };
+  "quote-role": {
+    role: string;
+    variant: string;
+  };
+  "page-role": {
+    page: string;
+    use: string;
   };
 };
 

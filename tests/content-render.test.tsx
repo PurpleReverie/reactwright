@@ -82,3 +82,38 @@ test("content renderer rejects block children inside paragraph", () => {
     /paragraph may only contain inline primitives|produced no root node/i
   );
 });
+
+test("content renderer supports concise block aliases and page breaks", () => {
+  const result = renderContentToIR(
+    <document title="Paged Test">
+      <section title="Worldbuilding" page="world">
+        <p>First mode.</p>
+      </section>
+      <page-break />
+      <section title="Script" role="scene-heading" page="script">
+        <p>Second mode.</p>
+      </section>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Paged Test",
+    children: [
+      {
+        kind: "section",
+        title: "Worldbuilding",
+        page: "world",
+        children: [{ kind: "paragraph", children: [{ kind: "text", value: "First mode." }] }]
+      },
+      { kind: "page-break" },
+      {
+        kind: "section",
+        title: "Script",
+        role: "scene-heading",
+        page: "script",
+        children: [{ kind: "paragraph", children: [{ kind: "text", value: "Second mode." }] }]
+      }
+    ]
+  });
+});

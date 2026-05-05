@@ -13,7 +13,7 @@ registerFont("Courier Prime", {
 
 export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
   return (
-    <page
+    <template
       style={{
         size: "a4",
         margin: "25mm",
@@ -24,8 +24,15 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
         blockquoteStyle: "plain"
       }}
     >
-      <stack gap="10mm">
-        <box
+      <rules>
+        <section-role role="scene-heading" variant="sceneHeading" />
+        <quote-role role="dialogue" variant="dialogueBlock" />
+        <page-role page="worldbuilding" use="worldbuilding" />
+        <page-role page="script" use="script" />
+      </rules>
+
+      <flow gap="10mm">
+        <region
           style={{
             textAlign: "center",
             fontWeight: "bold",
@@ -37,12 +44,20 @@ export function StoryBibleTemplate({ children }: { children?: ReactNode }) {
         >
           <slot name="title" />
           <slot name="author" />
-        </box>
+        </region>
 
-        <box style={{ breakable: true }}>
-          {children ?? <slot name="body" />}
-        </box>
-      </stack>
-    </page>
+        <page-set name="worldbuilding">
+          <region style={{ breakable: true }}>
+            {children ?? <slot name="body" />}
+          </region>
+        </page-set>
+
+        <page-set name="script">
+          <region style={{ breakable: true }}>
+            {children ?? <slot name="body" />}
+          </region>
+        </page-set>
+      </flow>
+    </template>
   );
 }

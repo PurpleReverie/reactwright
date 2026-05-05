@@ -128,3 +128,58 @@ test("custom template intrinsic renders through HTML and LaTeX backends", () => 
   assert.match(html, /data-node="callout-test"/);
   assert.match(latex, /\\fbox\{%/);
 });
+
+test("resolver applies template rules and page-set filtering", () => {
+  const documentTree = renderContentToIR(
+    <document title="Story Pilot">
+      <section title="World" page="world">
+        <paragraph>World copy.</paragraph>
+      </section>
+      <section title="Scene One" role="scene-heading" page="script">
+        <blockquote role="dialogue">
+          <paragraph>Dialogue line.</paragraph>
+        </blockquote>
+      </section>
+    </document>
+  );
+
+  const templateTree = renderTemplateToIR(
+    <template>
+      <rules>
+        <section-role role="scene-heading" variant="sceneHeading" />
+        <quote-role role="dialogue" variant="dialogueBlock" />
+        <page-role page="world" use="world" />
+        <page-role page="script" use="script" />
+      </rules>
+      <flow>
+        <page-set name="world">
+          <region>
+            <slot name="body" />
+          </region>
+        </page-set>
+        <page-set name="script">
+          <region>
+            <slot name="body" />
+          </region>
+        </page-set>
+      </flow>
+    </template>
+  );
+
+  const resolved = resolveDocument(documentTree, templateTree);
+  const stack = resolved.children[0];
+  assert.equal(stack?.kind, "stack");
+  assert.equal(stack.children.length, 2);
+
+  const worldRegion = stack.children[0];
+  assert.equal(worldRegion?.kind, "box");
+  assert.equal(worldRegion.children[0]?.kind, "section");
+  assert.equal(worldRegion.children[0]?.title, "World");
+
+  const scriptRegion = stack.children[1];
+  assert.equal(scriptRegion?.kind, "box");
+  assert.equal(scriptRegion.children[0]?.kind, "section");
+  assert.equal(scriptRegion.children[0]?.variant, "sceneHeading");
+  assert.equal(scriptRegion.children[0]?.children[0]?.kind, "blockquote");
+  assert.equal(scriptRegion.children[0]?.children[0]?.variant, "dialogueBlock");
+});

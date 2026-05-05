@@ -77,3 +77,49 @@ test("template renderer accepts registered custom intrinsics", () => {
     ]
   });
 });
+
+test("template renderer supports rules and page sets in the new syntax", () => {
+  const result = renderTemplateToIR(
+    <template style={{ size: "a4" }}>
+      <rules>
+        <section-role role="scene-heading" variant="sceneHeading" />
+        <quote-role role="dialogue" variant="dialogueBlock" />
+        <page-role page="script" use="script" />
+      </rules>
+      <flow gap="8mm">
+        <page-set name="script">
+          <region>
+            <slot name="body" />
+          </region>
+        </page-set>
+      </flow>
+    </template>
+  );
+
+  assert.deepEqual(result, {
+    kind: "page",
+    style: { size: "a4" },
+    children: [
+      {
+        kind: "rules",
+        children: [
+          { kind: "section-role", role: "scene-heading", variant: "sceneHeading" },
+          { kind: "quote-role", role: "dialogue", variant: "dialogueBlock" },
+          { kind: "page-role", page: "script", use: "script" }
+        ]
+      },
+      {
+        kind: "stack",
+        gap: "8mm",
+        style: undefined,
+        children: [
+          {
+            kind: "page-set",
+            name: "script",
+            children: [{ kind: "box", style: undefined, children: [{ kind: "slot", name: "body" }] }]
+          }
+        ]
+      }
+    ]
+  });
+});

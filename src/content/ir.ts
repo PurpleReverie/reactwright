@@ -26,6 +26,9 @@ export type FontNode = {
 
 export type ParagraphNode = {
   kind: "paragraph";
+  role?: string;
+  page?: string;
+  variant?: string;
   children: InlineNode[];
 };
 
@@ -40,6 +43,9 @@ export type FigureNode = {
 export type BlockQuoteNode = {
   kind: "blockquote";
   role?: string;
+  page?: string;
+  variant?: string;
+  speaker?: string;
   children: SemanticBlockChild[];
 };
 
@@ -58,11 +64,19 @@ export type SectionNode = {
   kind: "section";
   title: string;
   role?: string;
+  page?: string;
+  variant?: string;
   children: SemanticBlockChild[];
+};
+
+export type PageBreakNode = {
+  kind: "page-break";
 };
 
 export type AbstractNode = {
   kind: "abstract";
+  page?: string;
+  variant?: string;
   children: SemanticBlockChild[];
 };
 
@@ -75,7 +89,13 @@ export type DocumentNode = {
 
 export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | FontNode;
 
-export type SemanticBlockChild = SectionNode | ParagraphNode | FigureNode | BlockQuoteNode | ListNode;
+export type SemanticBlockChild =
+  | SectionNode
+  | ParagraphNode
+  | FigureNode
+  | BlockQuoteNode
+  | ListNode
+  | PageBreakNode;
 
 export type DocumentChild = AbstractNode | SemanticBlockChild;
 
@@ -88,6 +108,7 @@ export type SemanticNode =
   | BlockQuoteNode
   | ListNode
   | ListItemNode
+  | PageBreakNode
   | EmNode
   | StrongNode
   | CodeNode

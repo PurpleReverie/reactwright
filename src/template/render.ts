@@ -7,9 +7,14 @@ import type {
   BoxNode,
   CustomTemplateNode,
   PageNode,
+  PageRoleRuleNode,
+  PageSetNode,
   SlotName,
   SlotNode,
   StackNode,
+  QuoteRoleRuleNode,
+  RulesNode,
+  SectionRoleRuleNode,
   TemplateChild,
   TemplateContainerNode,
   TemplateNode,
@@ -25,6 +30,11 @@ type TemplateProps = Record<string, unknown> & {
   style?: TemplateStyle;
   gap?: string;
   name?: string;
+  role?: string;
+  variant?: string;
+  page?: string;
+  use?: string;
+  count?: number;
 };
 
 type TemplateContainer = {
@@ -34,18 +44,21 @@ type TemplateContainer = {
 
 function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
   switch (type) {
+    case "template":
     case "page":
       return {
         kind: "page",
         style: props.style,
         children: []
       };
+    case "region":
     case "box":
       return {
         kind: "box",
         style: props.style,
         children: []
       };
+    case "flow":
     case "stack":
       return {
         kind: "stack",
@@ -53,11 +66,50 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         style: props.style,
         children: []
       };
+    case "columns":
+      return {
+        kind: "box",
+        style: {
+          ...(props.style ?? {}),
+          ...(typeof props.count === "number" ? { columns: props.count } : {}),
+          ...(typeof props.gap === "string" ? { columnGap: props.gap } : {})
+        },
+        children: []
+      };
     case "slot":
       return {
         kind: "slot",
         name: validateSlotName(props.name)
       };
+    case "page-set":
+      return {
+        kind: "page-set",
+        name: typeof props.name === "string" ? props.name : "default",
+        children: []
+      } satisfies PageSetNode;
+    case "rules":
+      return {
+        kind: "rules",
+        children: []
+      } satisfies RulesNode;
+    case "section-role":
+      return {
+        kind: "section-role",
+        role: String(props.role ?? ""),
+        variant: String(props.variant ?? "")
+      } satisfies SectionRoleRuleNode;
+    case "quote-role":
+      return {
+        kind: "quote-role",
+        role: String(props.role ?? ""),
+        variant: String(props.variant ?? "")
+      } satisfies QuoteRoleRuleNode;
+    case "page-role":
+      return {
+        kind: "page-role",
+        page: String(props.page ?? ""),
+        use: String(props.use ?? "")
+      } satisfies PageRoleRuleNode;
     default:
       if (getTemplateIntrinsic(type) != null) {
         const { children: _children, ...restProps } = props;
@@ -88,6 +140,18 @@ function isWhitespaceOnlyText(node: TemplateNode): boolean {
 function appendTemplateChild(parent: TemplateContainerNode, child: TemplateNode): void {
   if (isWhitespaceOnlyText(child)) {
     return;
+  }
+
+  if (parent.kind === "rules") {
+    if (child.kind !== "section-role" && child.kind !== "quote-role" && child.kind !== "page-role") {
+      throw new Error("`rules` may only contain rule definitions.");
+    }
+    parent.children.push(child);
+    return;
+  }
+
+  if (child.kind === "section-role" || child.kind === "quote-role" || child.kind === "page-role") {
+    throw new Error("Template rule definitions must be placed inside `rules`.");
   }
 
   parent.children.push(child as TemplateChild);
@@ -207,7 +271,9 @@ const templateHostConfig = {
   commitTextUpdate(textInstance: TemplateTextNode, _oldText: string, newText: string): void {
     textInstance.value = newText;
   },
-  resetTextContent(instance: BoxNode | PageNode | StackNode | CustomTemplateNode): void {
+  resetTextContent(
+    instance: BoxNode | PageNode | StackNode | CustomTemplateNode | PageSetNode | RulesNode
+  ): void {
     instance.children = [];
   },
   prepareUpdate(): null {

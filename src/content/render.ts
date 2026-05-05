@@ -13,6 +13,7 @@ import type {
   FontNode,
   ListItemNode,
   ListNode,
+  PageBreakNode,
   ParagraphNode,
   SectionNode,
   SemanticBlockChild,
@@ -36,6 +37,9 @@ type ContentProps = Record<string, unknown> & {
   width?: string;
   family?: string;
   role?: string;
+  page?: string;
+  variant?: string;
+  speaker?: string;
 };
 
 type ContentContainer = {
@@ -43,30 +47,38 @@ type ContentContainer = {
   children: SemanticNode[];
 };
 
-function createContainerNode(type: string, props: ContentProps): SemanticContainerNode {
+function createContentNode(type: string, props: ContentProps): SemanticNode {
   switch (type) {
     case "document":
       return {
         kind: "document",
         title: String(props.title ?? ""),
-        author: typeof props.author === "string" ? props.author : undefined,
+        ...(typeof props.author === "string" ? { author: props.author } : {}),
         children: []
       };
     case "abstract":
       return {
         kind: "abstract",
+        ...(typeof props.page === "string" ? { page: props.page } : {}),
+        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
         children: []
       };
     case "section":
       return {
         kind: "section",
         title: String(props.title ?? ""),
-        role: typeof props.role === "string" ? props.role : undefined,
+        ...(typeof props.role === "string" ? { role: props.role } : {}),
+        ...(typeof props.page === "string" ? { page: props.page } : {}),
+        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
         children: []
       };
+    case "p":
     case "paragraph":
       return {
         kind: "paragraph",
+        ...(typeof props.role === "string" ? { role: props.role } : {}),
+        ...(typeof props.page === "string" ? { page: props.page } : {}),
+        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
         children: []
       };
     case "figure":
@@ -80,7 +92,10 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
     case "blockquote":
       return {
         kind: "blockquote",
-        role: typeof props.role === "string" ? props.role : undefined,
+        ...(typeof props.role === "string" ? { role: props.role } : {}),
+        ...(typeof props.page === "string" ? { page: props.page } : {}),
+        ...(typeof props.variant === "string" ? { variant: props.variant } : {}),
+        ...(typeof props.speaker === "string" ? { speaker: props.speaker } : {}),
         children: []
       };
     case "list":
@@ -115,6 +130,10 @@ function createContainerNode(type: string, props: ContentProps): SemanticContain
         family: String(props.family ?? ""),
         children: []
       };
+    case "page-break":
+      return {
+        kind: "page-break"
+      } satisfies PageBreakNode;
     default:
       throw new Error(`Unsupported content intrinsic: ${type}`);
   }
@@ -175,7 +194,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
-        child.kind !== "list"
+        child.kind !== "list" &&
+        child.kind !== "page-break"
       ) {
         throw new Error("`item` may only contain block primitives.");
       }
@@ -188,7 +208,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
-        child.kind !== "list"
+        child.kind !== "list" &&
+        child.kind !== "page-break"
       ) {
         throw new Error("`document` may only contain document-level block primitives.");
       }
@@ -202,7 +223,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
-        child.kind !== "list"
+        child.kind !== "list" &&
+        child.kind !== "page-break"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain block primitives.`);
       }
@@ -260,8 +282,8 @@ const contentHostConfig = {
   getPublicInstance(instance: SemanticNode): SemanticNode {
     return instance;
   },
-  createInstance(type: string, props: ContentProps): SemanticContainerNode {
-    return createContainerNode(type, props);
+  createInstance(type: string, props: ContentProps): SemanticNode {
+    return createContentNode(type, props);
   },
   appendInitialChild(parent: SemanticContainerNode, child: SemanticNode): void {
     appendSemanticChild(parent, child);

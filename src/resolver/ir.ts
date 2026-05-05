@@ -28,6 +28,9 @@ export type ResolvedFontNode = {
 
 export type ResolvedParagraphNode = {
   kind: "paragraph";
+  role?: string;
+  page?: string;
+  variant?: string;
   children: ResolvedInlineNode[];
 };
 
@@ -42,6 +45,9 @@ export type ResolvedFigureNode = {
 export type ResolvedBlockQuoteNode = {
   kind: "blockquote";
   role?: string;
+  page?: string;
+  variant?: string;
+  speaker?: string;
   children: ResolvedContentChild[];
 };
 
@@ -60,11 +66,19 @@ export type ResolvedSectionNode = {
   kind: "section";
   title: string;
   role?: string;
+  page?: string;
+  variant?: string;
   children: ResolvedContentChild[];
+};
+
+export type ResolvedPageBreakNode = {
+  kind: "page-break";
 };
 
 export type ResolvedAbstractNode = {
   kind: "abstract";
+  page?: string;
+  variant?: string;
   children: ResolvedContentChild[];
 };
 
@@ -114,6 +128,7 @@ export type ResolvedContentNode =
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedListItemNode
+  | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedEmNode
   | ResolvedStrongNode
@@ -126,6 +141,7 @@ export type ResolvedContentChild =
   | ResolvedFigureNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
+  | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedTextNode;
 

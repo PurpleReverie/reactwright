@@ -16,6 +16,7 @@ import type {
   ResolvedInlineNode,
   ResolvedListItemNode,
   ResolvedListNode,
+  ResolvedPageBreakNode,
   ResolvedPageNode,
   ResolvedParagraphNode,
   ResolvedSectionNode,
@@ -201,7 +202,7 @@ function renderFigureNode(node: ResolvedFigureNode): string {
 }
 
 function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
-  const headingClass = node.role === "scene-heading" ? ' class="scene-heading"' : "";
+  const headingClass = node.variant === "sceneHeading" ? ' class="scene-heading"' : "";
   return [
     "<section>",
     `<h2${headingClass}>${escapeHtml(node.title)}</h2>`,
@@ -213,7 +214,7 @@ function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): strin
 function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext): string {
   const children = node.children.map((child) => renderContentNode(child, ctx)).join("");
 
-  if (node.role === "dialogue") {
+  if (node.variant === "dialogueBlock") {
     return `<div class="dialogue">${children}</div>`;
   }
 
@@ -222,6 +223,10 @@ function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext):
   }
 
   return `<blockquote>${children}</blockquote>`;
+}
+
+function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
+  return '<div data-node="page-break" style="break-before:page;page-break-before:always;"></div>';
 }
 
 function renderListItemNode(node: ResolvedListItemNode, ctx: RenderContext): string {
@@ -266,6 +271,8 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
       return renderBlockQuoteNode(node, ctx);
     case "list":
       return renderListNode(node, ctx);
+    case "page-break":
+      return renderPageBreakNode(node);
     case "item":
       return renderListItemNode(node, ctx);
     case "paragraph":
@@ -345,6 +352,7 @@ function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
     case "figure":
     case "paragraph":
     case "text":
+    case "page-break":
       return renderContentNode(node, ctx);
   }
 
