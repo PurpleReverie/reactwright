@@ -4,12 +4,13 @@ import { pathToFileURL } from "node:url";
 import React from "react";
 
 import { renderResolvedToHTML } from "../backends/html/render.js";
+import { buildPdfFromHtml } from "../backends/pdf/render.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
 import { renderTemplateToIR } from "../template/render.js";
 import { ArticleTemplate } from "../public/templates.jsx";
 
-type OutputFormat = "html";
+type OutputFormat = "html" | "pdf";
 
 type RunExternalFileOptions = {
   inputPath: string;
@@ -24,6 +25,7 @@ type RunExternalFileResult = {
   formats: OutputFormat[];
   template: "default" | "external";
   htmlPath?: string;
+  pdfPath?: string;
 };
 
 type ExternalDocumentModule =
@@ -39,11 +41,15 @@ type ExternalDocumentModule =
 function usage(): string {
   return [
     "Usage:",
-    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html] [--out ./build/reactdoc-run]",
+    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,pdf] [--out ./build/reactdoc-run]",
     "",
     "Examples:",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --out ./build/reactdoc-run"
+    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html,pdf",
+    "",
+    "PDF output requires `puppeteer` or `puppeteer-core` to be installed:",
+    "  npm install puppeteer        # bundles its own Chromium",
+    "  npm install puppeteer-core  # uses system Chrome via PUPPETEER_EXECUTABLE_PATH"
   ].join("\n");
 }
 
@@ -52,14 +58,12 @@ function parseFormats(value: string | undefined): OutputFormat[] {
   const formats = new Set<OutputFormat>();
 
   for (const entry of raw) {
-    if (entry === "html") {
+    if (entry === "html" || entry === "pdf") {
       formats.add(entry);
       continue;
     }
 
-    throw new Error(
-      `Unsupported format: ${entry}. Only \`html\` is supported in Phase 0; PDF will return via headless Chromium in M11.`
-    );
+    throw new Error(`Unsupported format: ${entry}. Supported formats: html, pdf.`);
   }
 
   return [...formats];
@@ -142,8 +146,16 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
     template: ExternalTemplateComponent == null ? "default" : "external"
   };
 
+  const html = renderResolvedToHTML(resolvedTree);
+
   if (options.formats.includes("html")) {
-    result.htmlPath = await writeHtmlOutput(outDir, baseName, renderResolvedToHTML(resolvedTree));
+    result.htmlPath = await writeHtmlOutput(outDir, baseName, html);
+  }
+
+  if (options.formats.includes("pdf")) {
+    const pdfPath = join(outDir, `${baseName}.pdf`);
+    await buildPdfFromHtml(html, { outputPath: pdfPath });
+    result.pdfPath = pdfPath;
   }
 
   return result;
