@@ -11,15 +11,8 @@ export type CustomTemplateIntrinsicDefinition = {
     props: CustomTemplateIntrinsicProps;
     children: ResolvedChild[];
     renderChildren: (children: ResolvedChild[]) => string;
-    styleToCss: (style: TemplateStyle | undefined, kind?: "page" | "box" | "stack") => string;
+    styleToCss: (style: TemplateStyle | undefined, kind?: "page" | "region" | "stack") => string;
     escapeHtml: (value: string) => string;
-  }) => string;
-  latex?: (context: {
-    props: CustomTemplateIntrinsicProps;
-    children: ResolvedChild[];
-    renderChildren: (children: ResolvedChild[]) => string;
-    escapeLatex: (value: string) => string;
-    wrapWithAlignment: (content: string, textAlign: unknown) => string;
   }) => string;
 };
 

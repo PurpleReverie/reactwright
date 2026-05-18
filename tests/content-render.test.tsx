@@ -9,9 +9,9 @@ test("content renderer creates semantic IR for a minimal document", () => {
   const result = renderContentToIR(
     <document title="Minimal Test" author="Tauraj Greig">
       <section title="Introduction">
-        <paragraph>
+        <p>
           Hello <em>world</em> with <strong>emphasis</strong> and <code>inline-code</code>.
-        </paragraph>
+        </p>
         <figure
           src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
           alt="Tiny test swatch"
@@ -61,29 +61,29 @@ test("content renderer rejects non-document roots", () => {
     () =>
       renderContentToIR(
         <section title="Bad Root">
-          <paragraph>Nope.</paragraph>
+          <p>Nope.</p>
         </section>
       ),
     /expected a `document` root/i
   );
 });
 
-test("content renderer rejects block children inside paragraph", () => {
+test("content renderer rejects block children inside p", () => {
   assert.throws(
     () =>
       renderContentToIR(
         <document title="Broken">
-          <paragraph>
+          <p>
             {/** invalid on purpose */}
             <section title="Nested">Bad child.</section>
-          </paragraph>
+          </p>
         </document>
       ),
-    /paragraph may only contain inline primitives|produced no root node/i
+    /`p` may only contain inline primitives|produced no root node/i
   );
 });
 
-test("content renderer supports concise block aliases and page breaks", () => {
+test("content renderer carries routing props and page-break primitive", () => {
   const result = renderContentToIR(
     <document title="Paged Test">
       <section title="Worldbuilding" page="world">
@@ -141,14 +141,13 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
-test("content renderer supports common markdown-style nodes", () => {
+test("content renderer supports links and code-block primitives", () => {
   const result = renderContentToIR(
     <document title="Markdown-ish">
       <p>
-        Visit <a href="https://example.com">Example</a>.
+        Visit <link href="https://example.com">Example</link>.
       </p>
-      <hr />
-      <pre language="ts">const answer = 42;</pre>
+      <code-block language="ts">const answer = 42;</code-block>
     </document>
   );
 
@@ -168,7 +167,6 @@ test("content renderer supports common markdown-style nodes", () => {
           { kind: "text", value: "." }
         ]
       },
-      { kind: "thematic-break" },
       {
         kind: "code-block",
         language: "ts",
@@ -178,26 +176,26 @@ test("content renderer supports common markdown-style nodes", () => {
   });
 });
 
-test("content renderer supports table primitives", () => {
+test("content renderer supports table primitives with row/cell", () => {
   const result = renderContentToIR(
     <document title="Tables">
       <table caption="House alignment">
-        <table-row>
-          <table-cell header>
+        <row>
+          <cell header>
             <p>House</p>
-          </table-cell>
-          <table-cell header>
+          </cell>
+          <cell header>
             <p>Seat</p>
-          </table-cell>
-        </table-row>
-        <table-row>
-          <table-cell>
+          </cell>
+        </row>
+        <row>
+          <cell>
             <p>Vael</p>
-          </table-cell>
-          <table-cell>
+          </cell>
+          <cell>
             <p>Greycrown</p>
-          </table-cell>
-        </table-row>
+          </cell>
+        </row>
       </table>
     </document>
   );
@@ -211,17 +209,17 @@ test("content renderer supports table primitives", () => {
         caption: "House alignment",
         children: [
           {
-            kind: "table-row",
+            kind: "row",
             children: [
-              { kind: "table-cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "House" }] }] },
-              { kind: "table-cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Seat" }] }] }
+              { kind: "cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "House" }] }] },
+              { kind: "cell", header: true, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Seat" }] }] }
             ]
           },
           {
-            kind: "table-row",
+            kind: "row",
             children: [
-              { kind: "table-cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Vael" }] }] },
-              { kind: "table-cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Greycrown" }] }] }
+              { kind: "cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Vael" }] }] },
+              { kind: "cell", header: undefined, children: [{ kind: "paragraph", children: [{ kind: "text", value: "Greycrown" }] }] }
             ]
           }
         ]

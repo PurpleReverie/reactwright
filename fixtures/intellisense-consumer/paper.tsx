@@ -8,21 +8,21 @@ export const Template: TemplateComponent = () => <ArticleTemplate />;
 const Paper: ContentComponent = () => (
   <document title="Consumer Paper" author="Tauraj Greig">
     <abstract>
-      <paragraph>
+      <p>
         This file proves TypeScript can understand ReactDoc <em>intrinsics</em> from another project.
-      </paragraph>
+      </p>
     </abstract>
 
     <section title="Introduction">
-      <paragraph>
+      <p>
         Hello from a consumer-style fixture with <strong>inline formatting</strong>.
-      </paragraph>
+      </p>
       <list ordered>
         <item>
-          <paragraph>First numbered item.</paragraph>
+          <p>First numbered item.</p>
         </item>
         <item>
-          <paragraph>Second numbered item.</paragraph>
+          <p>Second numbered item.</p>
         </item>
       </list>
     </section>

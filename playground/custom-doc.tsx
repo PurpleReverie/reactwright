@@ -12,7 +12,7 @@ export function Template() {
       }}
     >
       <stack gap="7mm">
-        <box
+        <region
           style={{
             textAlign: "center",
             padding: "5mm",
@@ -20,11 +20,11 @@ export function Template() {
             backgroundColor: "#f8fafc"
           }}
         >
-          <slot name="title" />,
+          <slot name="title" />
           <slot name="author" />
-        </box>
+        </region>
 
-        <box
+        <region
           style={{
             border: "1px solid #dbe2ea",
             padding: "4mm",
@@ -32,11 +32,11 @@ export function Template() {
           }}
         >
           <slot name="abstract" />
-        </box>
+        </region>
 
-        <box>
+        <region>
           <slot name="body" />
-        </box>
+        </region>
       </stack>
     </page>
   );
@@ -46,17 +46,17 @@ export default function ResearchMemo() {
   return (
     <document title="Same File Custom Doc" author="Tauraj Greig">
       <abstract>
-        <paragraph>
+        <p>
           This file exports both content and template, proving the two React scopes
           can live together in one external module.
-        </paragraph>
+        </p>
       </abstract>
 
       <section title="Introduction">
-        <paragraph>
+        <p>
           ReactDoc should let authors control both meaning and presentation from
           project code.
-        </paragraph>
+        </p>
       </section>
 
       <ObservationSection />

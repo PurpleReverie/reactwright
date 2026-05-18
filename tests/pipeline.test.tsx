@@ -4,7 +4,6 @@ import { resolve } from "node:path";
 import React from "react";
 
 import { renderResolvedToHTML } from "../src/backends/html/render.js";
-import { renderResolvedToLatex } from "../src/backends/latex/render.js";
 import { renderContentToIR } from "../src/content/render.js";
 import { resolveDocument } from "../src/resolver/resolve.js";
 import { renderTemplateToIR } from "../src/template/render.js";
@@ -14,54 +13,53 @@ function createPaper() {
   return (
     <document title="Pipeline Test" author="Tauraj Greig">
       <abstract>
-        <paragraph>
+        <p>
           Testing <em>end-to-end</em> resolution.
-        </paragraph>
+        </p>
       </abstract>
 
       <section title="Intro">
-        <paragraph>
+        <p>
           Hello <strong>world</strong>.
-        </paragraph>
-        <paragraph>
-          Visit <a href="https://example.com">the notes</a>.
-        </paragraph>
+        </p>
+        <p>
+          Visit <link href="https://example.com">the notes</link>.
+        </p>
         <figure
           src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
           alt="Tiny test swatch"
           caption="A tiny figure used to validate image support."
           width="35mm"
         />
-        <hr />
-        <pre language="txt">plain-text block</pre>
-        <blockquote>
-          <paragraph>A quoted observation for the HTML and LaTeX backends.</paragraph>
-        </blockquote>
+        <code-block language="txt">plain-text block</code-block>
+        <quote>
+          <p>A quoted observation for the HTML backend.</p>
+        </quote>
         <list>
           <item>
-            <paragraph>First bullet.</paragraph>
+            <p>First bullet.</p>
           </item>
           <item>
-            <paragraph>Second bullet.</paragraph>
+            <p>Second bullet.</p>
           </item>
         </list>
         <table caption="House seats">
-          <table-row>
-            <table-cell header>
-              <paragraph>House</paragraph>
-            </table-cell>
-            <table-cell header>
-              <paragraph>Seat</paragraph>
-            </table-cell>
-          </table-row>
-          <table-row>
-            <table-cell>
-              <paragraph>Vael</paragraph>
-            </table-cell>
-            <table-cell>
-              <paragraph>Greycrown</paragraph>
-            </table-cell>
-          </table-row>
+          <row>
+            <cell header>
+              <p>House</p>
+            </cell>
+            <cell header>
+              <p>Seat</p>
+            </cell>
+          </row>
+          <row>
+            <cell>
+              <p>Vael</p>
+            </cell>
+            <cell>
+              <p>Greycrown</p>
+            </cell>
+          </row>
         </table>
       </section>
     </document>
@@ -72,16 +70,16 @@ function createTemplate() {
   return (
     <page style={{ size: "a4", margin: "25mm", fontSize: "11pt" }}>
       <stack gap="8mm">
-        <box style={{ textAlign: "center" }}>
+        <region style={{ textAlign: "center" }}>
           <slot name="title" />
           <slot name="author" />
-        </box>
-        <box>
+        </region>
+        <region>
           <slot name="abstract" />
-        </box>
-        <box>
+        </region>
+        <region>
           <slot name="body" />
-        </box>
+        </region>
       </stack>
     </page>
   );
@@ -94,9 +92,9 @@ test("resolver fills title author abstract and body slots", () => {
   assert.equal(resolved.children[0]?.kind, "stack");
   const stack = resolved.children[0];
   assert.equal(stack.kind, "stack");
-  assert.equal(stack.children[0]?.kind, "box");
-  assert.equal(stack.children[1]?.kind, "box");
-  assert.equal(stack.children[2]?.kind, "box");
+  assert.equal(stack.children[0]?.kind, "region");
+  assert.equal(stack.children[1]?.kind, "region");
+  assert.equal(stack.children[2]?.kind, "region");
 });
 
 test("HTML backend emits expected content", () => {
@@ -109,7 +107,6 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<figure>/);
   assert.match(html, /reactdoc-swatch\.png/);
   assert.match(html, /href="https:\/\/example\.com"/);
-  assert.match(html, /<hr \/>/);
   assert.match(html, /<pre data-language="txt"><code>plain-text block<\/code><\/pre>/);
   assert.match(html, /<blockquote>/);
   assert.match(html, /<ul>/);
@@ -118,116 +115,52 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<th><p>House<\/p><\/th>/);
 });
 
-test("LaTeX backend emits expected content", () => {
-  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(createTemplate()));
-  const latex = renderResolvedToLatex(resolved);
-
-  assert.match(latex, /\\documentclass\[11pt\]\{article\}/);
-  assert.match(latex, /\\begin\{abstract\}/);
-  assert.match(latex, /\\section\{Intro\}/);
-  assert.match(latex, /\\usepackage\{graphicx\}/);
-  assert.match(latex, /\\usepackage\[hidelinks\]\{hyperref\}/);
-  assert.match(latex, /\\usepackage\{fancyvrb\}/);
-  assert.match(latex, /\\href\{https:\/\/example\.com\}\{the notes\}/);
-  assert.match(latex, /\\begin\{Verbatim\}\[fontsize=\\small\]/);
-  assert.match(latex, /\\includegraphics\[width=35mm\]/);
-  assert.match(latex, /\\emph\{end-to-end\}/);
-  assert.match(latex, /\\begin\{quote\}/);
-  assert.match(latex, /\\begin\{itemize\}/);
-  assert.match(latex, /\\begin\{tabularx\}/);
-  assert.match(latex, /\\textbf\{House\} & \\textbf\{Seat\}/);
-  assert.match(latex, /House seats/);
-});
-
-test("custom template intrinsic renders through HTML and LaTeX backends", () => {
+test("custom template intrinsic renders through HTML backend", () => {
   registerTemplateIntrinsic({
     name: "callout-test",
     html: ({ children, renderChildren }) =>
-      `<aside data-node="callout-test">${renderChildren(children)}</aside>`,
-    latex: ({ children, renderChildren }) =>
-      ["\\fbox{%", renderChildren(children), "}"].join("\n")
+      `<aside data-node="callout-test">${renderChildren(children)}</aside>`
   });
 
   const template = (
     <page>
       {React.createElement("callout-test", null, <slot name="abstract" />)}
-      <box>
+      <region>
         <slot name="body" />
-      </box>
+      </region>
     </page>
   );
 
   const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
   const html = renderResolvedToHTML(resolved);
-  const latex = renderResolvedToLatex(resolved);
 
   assert.match(html, /data-node="callout-test"/);
-  assert.match(latex, /\\fbox\{%/);
 });
 
-test("row and rule template intrinsics render through HTML and LaTeX backends", () => {
+test("fixed overlay renders with data attributes for anchor and when", () => {
   const template = (
-    <template page={{ size: "a4", margin: "25mm" }}>
-      <flow gap="8mm">
-        <row gap="6mm">
-          <region box={{ width: "45%" }}>
-            <slot name="title" />
-          </region>
-          <rule weight="0.8pt" color="#8a6a2f" length="100%" />
-          <region box={{ width: "45%" }} typography={{ textAlign: "right" }}>
-            <slot name="author" />
-          </region>
-        </row>
-      </flow>
-    </template>
-  );
-
-  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
-  const html = renderResolvedToHTML(resolved);
-  const latex = renderResolvedToLatex(resolved);
-
-  assert.match(html, /data-node="row"/);
-  assert.match(html, /data-node="rule"/);
-  assert.match(latex, /\\begin\{minipage\}\[t\]\{0\.4500\\linewidth\}/);
-  assert.match(latex, /\\hspace\*\{6mm\}/);
-  assert.match(latex, /reactdoc8A6A2F/);
-});
-
-test("repeat and fixed template intrinsics render page furniture through HTML and LaTeX backends", () => {
-  const template = (
-    <template page={{ size: "a4", margin: "25mm" }}>
-      <repeat anchor="top-right" when="not-first-page" typography={{ fontSize: "8pt" }}>
-        <slot name="title" />
-      </repeat>
+    <page page={{ size: "a4", margin: "25mm" }}>
       <fixed anchor="page-bottom-right" when="first-page" typography={{ fontSize: "8pt" }}>
         <page-number />
       </fixed>
-      <flow>
+      <stack>
         <slot name="body" />
-      </flow>
-    </template>
+      </stack>
+    </page>
   );
 
   const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
   const html = renderResolvedToHTML(resolved);
-  const latex = renderResolvedToLatex(resolved);
 
-  assert.match(html, /data-node="repeat" data-when="not-first-page"/);
   assert.match(html, /data-node="fixed" data-when="first-page"/);
-  assert.match(latex, /\\usepackage\{fancyhdr\}/);
-  assert.match(latex, /\\fancyhead\[R\]\{Pipeline Test\}/);
-  assert.match(latex, /\\fancypagestyle\{reactdocfirstpage\}/);
-  assert.match(latex, /\\thispagestyle\{reactdocfirstpage\}/);
-  assert.match(latex, /\\usepackage\{eso-pic\}/);
-  assert.match(latex, /\\AddToShipoutPictureFG\*/);
-  assert.match(latex, /\\thepage/);
+  assert.match(html, /data-node="page-number"/);
 });
 
-test("resolver applies template rules and page-set filtering", () => {
+test("resolver applies unified role rules and page-set filtering", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">
       <section title="World" page="world">
-        <paragraph role="lead">World copy.</paragraph>
+        <p role="lead">World copy.</p>
         <figure
           role="map"
           src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
@@ -236,30 +169,30 @@ test("resolver applies template rules and page-set filtering", () => {
         />
         <list role="checklist">
           <item>
-            <paragraph>Bullet.</paragraph>
+            <p>Bullet.</p>
           </item>
         </list>
       </section>
       <section title="Scene One" role="scene-heading" page="script">
-        <blockquote role="dialogue">
-          <paragraph>Dialogue line.</paragraph>
-        </blockquote>
+        <quote role="dialogue">
+          <p>Dialogue line.</p>
+        </quote>
       </section>
     </document>
   );
 
   const templateTree = renderTemplateToIR(
-    <template>
+    <page>
       <rules>
-        <section-role role="scene-heading" variant="sceneHeading" />
-        <quote-role role="dialogue" variant="dialogueBlock" />
-        <paragraph-role role="lead" variant="leadParagraph" />
-        <list-role role="checklist" variant="compactChecklist" />
-        <figure-role role="map" variant="framedMap" />
-        <page-role page="world" use="world" />
-        <page-role page="script" use="script" />
+        <role on="section" match="scene-heading" apply="sceneHeading" />
+        <role on="quote" match="dialogue" apply="dialogueBlock" />
+        <role on="paragraph" match="lead" apply="leadParagraph" />
+        <role on="list" match="checklist" apply="compactChecklist" />
+        <role on="figure" match="map" apply="framedMap" />
+        <page match="world" use="world" />
+        <page match="script" use="script" />
       </rules>
-      <flow>
+      <stack>
         <page-set name="world">
           <region>
             <slot name="body" />
@@ -270,8 +203,8 @@ test("resolver applies template rules and page-set filtering", () => {
             <slot name="body" />
           </region>
         </page-set>
-      </flow>
-    </template>
+      </stack>
+    </page>
   );
 
   const resolved = resolveDocument(documentTree, templateTree);
@@ -280,7 +213,7 @@ test("resolver applies template rules and page-set filtering", () => {
   assert.equal(stack.children.length, 2);
 
   const worldRegion = stack.children[0];
-  assert.equal(worldRegion?.kind, "box");
+  assert.equal(worldRegion?.kind, "region");
   assert.equal(worldRegion.children[0]?.kind, "section");
   assert.equal(worldRegion.children[0]?.title, "World");
   assert.equal(worldRegion.children[0]?.children[0]?.kind, "paragraph");
@@ -291,7 +224,7 @@ test("resolver applies template rules and page-set filtering", () => {
   assert.equal(worldRegion.children[0]?.children[2]?.variant, "compactChecklist");
 
   const scriptRegion = stack.children[1];
-  assert.equal(scriptRegion?.kind, "box");
+  assert.equal(scriptRegion?.kind, "region");
   assert.equal(scriptRegion.children[0]?.kind, "section");
   assert.equal(scriptRegion.children[0]?.variant, "sceneHeading");
   assert.equal(scriptRegion.children[0]?.children[0]?.kind, "blockquote");

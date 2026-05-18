@@ -25,12 +25,6 @@ export type CodeNode = {
   children: TextNode[];
 };
 
-export type FontNode = {
-  kind: "font";
-  family: string;
-  children: InlineNode[];
-};
-
 export type ParagraphNode = {
   kind: "paragraph";
   role?: string;
@@ -45,10 +39,6 @@ export type CodeBlockNode = {
   children: TextNode[];
 };
 
-export type ThematicBreakNode = {
-  kind: "thematic-break";
-};
-
 export type FigureNode = {
   kind: "figure";
   role?: string;
@@ -60,21 +50,21 @@ export type FigureNode = {
   width?: string;
 };
 
-export type TableCellNode = {
-  kind: "table-cell";
+export type CellNode = {
+  kind: "cell";
   header?: boolean;
   children: SemanticBlockChild[];
 };
 
-export type TableRowNode = {
-  kind: "table-row";
-  children: TableCellNode[];
+export type RowNode = {
+  kind: "row";
+  children: CellNode[];
 };
 
 export type TableNode = {
   kind: "table";
   caption?: string;
-  children: TableRowNode[];
+  children: RowNode[];
 };
 
 export type BlockQuoteNode = {
@@ -127,7 +117,7 @@ export type DocumentNode = {
   children: DocumentChild[];
 };
 
-export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | FontNode | LinkNode;
+export type InlineNode = TextNode | EmNode | StrongNode | CodeNode | LinkNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -137,7 +127,6 @@ export type SemanticBlockChild =
   | BlockQuoteNode
   | ListNode
   | CodeBlockNode
-  | ThematicBreakNode
   | PageBreakNode;
 
 export type DocumentChild = AbstractNode | SemanticBlockChild;
@@ -149,18 +138,16 @@ export type SemanticNode =
   | ParagraphNode
   | FigureNode
   | TableNode
-  | TableRowNode
-  | TableCellNode
+  | RowNode
+  | CellNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode
   | CodeBlockNode
-  | ThematicBreakNode
   | PageBreakNode
   | EmNode
   | StrongNode
   | CodeNode
-  | FontNode
   | LinkNode
   | TextNode;
 
@@ -171,15 +158,13 @@ export type SemanticContainerNode =
   | ParagraphNode
   | FigureNode
   | TableNode
-  | TableRowNode
-  | TableCellNode
+  | RowNode
+  | CellNode
   | BlockQuoteNode
   | ListNode
   | ListItemNode
   | CodeBlockNode
-  | ThematicBreakNode
   | EmNode
   | StrongNode
   | CodeNode
-  | LinkNode
-  | FontNode;
+  | LinkNode;

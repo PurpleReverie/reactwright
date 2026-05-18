@@ -3,18 +3,18 @@ import { renderTemplateToIR } from "../template/render.js";
 const ArticleTemplate = () => (
   <page style={{ size: "a4", margin: "25mm", fontFamily: "serif", fontSize: "11pt" }}>
     <stack gap="8mm">
-      <box style={{ textAlign: "center" }}>
+      <region style={{ textAlign: "center" }}>
         <slot name="title" />
         <slot name="author" />
-      </box>
+      </region>
 
-      <box>
+      <region>
         <slot name="abstract" />
-      </box>
+      </region>
 
-      <box>
+      <region>
         <slot name="body" />
-      </box>
+      </region>
     </stack>
   </page>
 );

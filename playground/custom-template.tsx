@@ -10,7 +10,7 @@ export function ResearchMemoTemplate() {
       }}
     >
       <stack gap="7mm">
-        <box
+        <region
           style={{
             textAlign: "center",
             padding: "6mm",
@@ -18,11 +18,11 @@ export function ResearchMemoTemplate() {
             backgroundColor: "#f8fafc"
           }}
         >
-          <slot name="title" />,
+          <slot name="title" />
           <slot name="author" />
-        </box>
+        </region>
 
-        <box
+        <region
           style={{
             border: "1px solid #dbe2ea",
             padding: "4mm",
@@ -30,11 +30,11 @@ export function ResearchMemoTemplate() {
           }}
         >
           <slot name="abstract" />
-        </box>
+        </region>
 
-        <box>
+        <region>
           <slot name="body" />
-        </box>
+        </region>
       </stack>
     </page>
   );

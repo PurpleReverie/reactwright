@@ -12,7 +12,7 @@
     "paths": {
       "reactdoc": ["../../src/index.ts"],
       "reactdoc/jsx": ["../../src/public/jsx.d.ts"],
-      "reactdoc/templates": ["../../src/public/templates.ts"]
+      "reactdoc/templates": ["../../src/public/templates.tsx"]
     },
     "types": ["node", "react"]
   },

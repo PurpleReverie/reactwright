@@ -3,29 +3,24 @@ import { DefaultEventPriority } from "react-reconciler/constants";
 import type { ReactNode } from "react";
 
 import type {
-  AbstractNode,
-  BlockQuoteNode,
-  CodeNode,
+  CellNode,
   CodeBlockNode,
-  DocumentNode,
+  CodeNode,
   DocumentChild,
+  DocumentNode,
   EmNode,
   FigureNode,
-  FontNode,
   LinkNode,
   ListItemNode,
   ListNode,
-  TableCellNode,
-  TableNode,
-  TableRowNode,
   PageBreakNode,
   ParagraphNode,
-  SectionNode,
-  ThematicBreakNode,
+  RowNode,
   SemanticBlockChild,
   SemanticContainerNode,
-  StrongNode,
   SemanticNode,
+  StrongNode,
+  TableNode,
   TextNode
 } from "./ir.js";
 
@@ -42,7 +37,6 @@ type ContentProps = Record<string, unknown> & {
   caption?: string;
   width?: string;
   header?: boolean;
-  family?: string;
   href?: string;
   titleText?: string;
   language?: string;
@@ -101,7 +95,6 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         children: []
       };
     case "p":
-    case "paragraph":
       return {
         kind: "paragraph",
         ...(role != null ? { role } : {}),
@@ -126,19 +119,18 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         caption: typeof props.caption === "string" ? props.caption : undefined,
         children: []
       } satisfies TableNode;
-    case "table-row":
+    case "row":
       return {
-        kind: "table-row",
+        kind: "row",
         children: []
-      } satisfies TableRowNode;
-    case "table-cell":
+      } satisfies RowNode;
+    case "cell":
       return {
-        kind: "table-cell",
+        kind: "cell",
         header: props.header === true ? true : undefined,
         children: []
-      } satisfies TableCellNode;
+      } satisfies CellNode;
     case "quote":
-    case "blockquote":
       return {
         kind: "blockquote",
         ...(role != null ? { role } : {}),
@@ -147,7 +139,6 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         ...(speaker != null ? { speaker } : {}),
         children: []
       };
-    case "pre":
     case "code-block":
       return {
         kind: "code-block",
@@ -156,11 +147,6 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
           : {}),
         children: []
       } satisfies CodeBlockNode;
-    case "hr":
-    case "thematic-break":
-      return {
-        kind: "thematic-break"
-      } satisfies ThematicBreakNode;
     case "list":
       return {
         kind: "list",
@@ -190,13 +176,6 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "code",
         children: []
       };
-    case "font":
-      return {
-        kind: "font",
-        family: String(props.family ?? ""),
-        children: []
-      };
-    case "a":
     case "link":
       if (typeof props.href !== "string" || props.href.trim().length === 0) {
         throw new Error("`link` requires a non-empty `href`.");
@@ -234,51 +213,47 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "em" &&
         child.kind !== "strong" &&
         child.kind !== "code" &&
-        child.kind !== "font" &&
         child.kind !== "link"
       ) {
-        throw new Error("`paragraph` may only contain inline primitives.");
+        throw new Error("`p` may only contain inline primitives.");
       }
       parent.children.push(child);
       return;
     case "figure":
       throw new Error("`figure` may not contain child nodes.");
     case "table":
-      if (child.kind !== "table-row") {
-        throw new Error("`table` may only contain `table-row` children.");
+      if (child.kind !== "row") {
+        throw new Error("`table` may only contain `row` children.");
       }
       parent.children.push(child);
       return;
-    case "table-row":
-      if (child.kind !== "table-cell") {
-        throw new Error("`table-row` may only contain `table-cell` children.");
+    case "row":
+      if (child.kind !== "cell") {
+        throw new Error("`row` may only contain `cell` children.");
       }
       parent.children.push(child);
       return;
-    case "table-cell":
+    case "cell":
       if (
         child.kind !== "paragraph" &&
         child.kind !== "figure" &&
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
-        throw new Error("`table-cell` may only contain block primitives.");
+        throw new Error("`cell` may only contain block primitives.");
       }
       parent.children.push(child);
       return;
     case "em":
     case "strong":
-    case "font":
     case "link":
       if (
         child.kind !== "text" &&
         child.kind !== "em" &&
         child.kind !== "strong" &&
         child.kind !== "code" &&
-        child.kind !== "font" &&
         child.kind !== "link"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
@@ -311,7 +286,6 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error("`item` may only contain block primitives.");
@@ -328,7 +302,6 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error("`document` may only contain document-level block primitives.");
@@ -346,7 +319,6 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "thematic-break" &&
         child.kind !== "page-break"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain block primitives.`);
@@ -476,7 +448,7 @@ const contentHostConfig = {
   commitTextUpdate(textInstance: TextNode, _oldText: string, newText: string): void {
     textInstance.value = newText;
   },
-  resetTextContent(instance: ParagraphNode | EmNode | StrongNode | CodeNode | FontNode): void {
+  resetTextContent(instance: ParagraphNode | EmNode | StrongNode | CodeNode): void {
     instance.children = [];
   },
   prepareUpdate(): null {

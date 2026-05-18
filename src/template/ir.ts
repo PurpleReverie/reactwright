@@ -84,60 +84,22 @@ export type TemplateBreaksProps = {
   clearFloats?: boolean;
 };
 
-export type TemplateHeadingProps = {
-  numbering?: boolean;
-  fontSize?: string;
-  fontWeight?: string;
-  textAlign?: "left" | "center" | "right" | "justify";
-  marginTop?: string;
-  marginBottom?: string;
-};
-
 export type SlotName = "title" | "author" | "abstract" | "body";
 
-export type SectionRoleRuleNode = {
-  kind: "section-role";
-  role: string;
-  variant: string;
+export type RoleRuleNode = {
+  kind: "role-rule";
+  match: string;
+  apply: string;
+  on?: string;
 };
 
-export type QuoteRoleRuleNode = {
-  kind: "quote-role";
-  role: string;
-  variant: string;
-};
-
-export type PageRoleRuleNode = {
-  kind: "page-role";
-  page: string;
+export type PageRuleNode = {
+  kind: "page-rule";
+  match: string;
   use: string;
 };
 
-export type ParagraphRoleRuleNode = {
-  kind: "paragraph-role";
-  role: string;
-  variant: string;
-};
-
-export type ListRoleRuleNode = {
-  kind: "list-role";
-  role: string;
-  variant: string;
-};
-
-export type FigureRoleRuleNode = {
-  kind: "figure-role";
-  role: string;
-  variant: string;
-};
-
-export type RulesChild =
-  | SectionRoleRuleNode
-  | QuoteRoleRuleNode
-  | PageRoleRuleNode
-  | ParagraphRoleRuleNode
-  | ListRoleRuleNode
-  | FigureRoleRuleNode;
+export type RulesChild = RoleRuleNode | PageRuleNode;
 
 export type RulesNode = {
   kind: "rules";
@@ -150,8 +112,15 @@ export type PageNode = {
   children: TemplateChild[];
 };
 
-export type BoxNode = {
-  kind: "box";
+export type PageSetNode = {
+  kind: "page-set";
+  name: string;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
+export type RegionNode = {
+  kind: "region";
   style?: TemplateStyle;
   children: TemplateChild[];
 };
@@ -163,29 +132,19 @@ export type StackNode = {
   children: TemplateChild[];
 };
 
-export type RowNode = {
-  kind: "row";
-  gap?: string;
-  style?: TemplateStyle;
-  children: TemplateChild[];
-};
+export type FixedAnchor =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "page-top-left"
+  | "page-top-right"
+  | "page-bottom-left"
+  | "page-bottom-right";
 
-export type RuleNode = {
-  kind: "rule";
-  axis?: "horizontal" | "vertical";
-  weight?: string;
-  color?: string;
-  length?: string;
-  style?: TemplateStyle;
-};
-
-export type RepeatNode = {
-  kind: "repeat";
-  anchor: RepeatAnchor;
-  when?: RepeatWhen;
-  style?: TemplateStyle;
-  children: TemplateChild[];
-};
+export type FixedWhen = "all" | "first-page" | "not-first-page";
 
 export type FixedNode = {
   kind: "fixed";
@@ -200,25 +159,6 @@ export type PageNumberNode = {
   style?: TemplateStyle;
 };
 
-export type PageEdgeAnchor =
-  | "top-left"
-  | "top-center"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-center"
-  | "bottom-right";
-
-export type CornerAnchor =
-  | "page-top-left"
-  | "page-top-right"
-  | "page-bottom-left"
-  | "page-bottom-right";
-
-export type RepeatAnchor = PageEdgeAnchor;
-export type FixedAnchor = PageEdgeAnchor | CornerAnchor;
-export type RepeatWhen = "all" | "first-page" | "not-first-page";
-export type FixedWhen = "all" | "first-page";
-
 export type SlotNode = {
   kind: "slot";
   name: SlotName;
@@ -232,12 +172,6 @@ export type CustomTemplateNode = {
   children: TemplateChild[];
 };
 
-export type PageSetNode = {
-  kind: "page-set";
-  name: string;
-  children: TemplateChild[];
-};
-
 export type TemplateTextNode = {
   kind: "text";
   value: string;
@@ -245,29 +179,28 @@ export type TemplateTextNode = {
 
 export type TemplateNode =
   | PageNode
-  | BoxNode
+  | PageSetNode
+  | RegionNode
   | StackNode
-  | RowNode
-  | RuleNode
-  | RepeatNode
   | FixedNode
   | PageNumberNode
   | SlotNode
   | CustomTemplateNode
-  | PageSetNode
   | RulesNode
   | RulesChild
   | TemplateTextNode;
 
 export type TemplateContainerNode =
   | PageNode
-  | BoxNode
+  | PageSetNode
+  | RegionNode
   | StackNode
-  | RowNode
-  | RepeatNode
   | FixedNode
   | CustomTemplateNode
-  | PageSetNode
   | RulesNode;
 
-export type TemplateChild = TemplateContainerNode | RuleNode | PageNumberNode | SlotNode | TemplateTextNode;
+export type TemplateChild =
+  | TemplateContainerNode
+  | PageNumberNode
+  | SlotNode
+  | TemplateTextNode;

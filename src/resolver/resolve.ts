@@ -1,25 +1,23 @@
 import type {
   AbstractNode,
   BlockQuoteNode,
-  CodeNode,
+  CellNode,
   CodeBlockNode,
-  DocumentNode,
+  CodeNode,
   DocumentChild,
+  DocumentNode,
   EmNode,
   FigureNode,
-  FontNode,
   LinkNode,
   ListItemNode,
   ListNode,
-  TableCellNode,
-  TableNode,
-  TableRowNode,
   PageBreakNode,
   ParagraphNode,
+  RowNode,
   SectionNode,
   SemanticBlockChild,
   StrongNode,
-  ThematicBreakNode,
+  TableNode,
   TextNode
 } from "../content/ir.js";
 import type {
@@ -33,50 +31,49 @@ import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
+  ResolvedCellNode,
   ResolvedChild,
-  ResolvedCodeNode,
   ResolvedCodeBlockNode,
+  ResolvedCodeNode,
   ResolvedContentChild,
   ResolvedContentNode,
   ResolvedEmNode,
   ResolvedFigureNode,
-  ResolvedFontNode,
+  ResolvedFixedNode,
   ResolvedInlineNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
-  ResolvedTableCellNode,
-  ResolvedTableNode,
-  ResolvedTableRowNode,
   ResolvedPageBreakNode,
   ResolvedPageNode,
-  ResolvedParagraphNode,
-  ResolvedFixedNode,
   ResolvedPageNumberNode,
+  ResolvedParagraphNode,
+  ResolvedRegionNode,
   ResolvedRowNode,
-  ResolvedRepeatNode,
-  ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
+  ResolvedTableNode,
   ResolvedTemplateNode,
-  ResolvedThematicBreakNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "./ir.js";
 
 type SlotMap = Record<SlotName, ResolvedContentNode[]>;
-type RuleMaps = {
-  sectionRoles: Map<string, string>;
-  quoteRoles: Map<string, string>;
-  paragraphRoles: Map<string, string>;
-  listRoles: Map<string, string>;
-  figureRoles: Map<string, string>;
-  pageRoles: Map<string, string>;
+
+type RoleRule = {
+  match: string;
+  apply: string;
+  on?: string;
 };
+
+type RuleMaps = {
+  roles: RoleRule[];
+  pages: Map<string, string>;
+};
+
 type ResolveContext = {
   currentPageSet?: string;
-  defaultPageSet?: string;
   rules: RuleMaps;
 };
 
@@ -108,14 +105,6 @@ function resolveCodeNode(node: CodeNode): ResolvedCodeNode {
   };
 }
 
-function resolveFontNode(node: FontNode): ResolvedFontNode {
-  return {
-    kind: "font",
-    family: node.family,
-    children: node.children.map(resolveInlineNode)
-  };
-}
-
 function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
   return {
     kind: "link",
@@ -126,7 +115,7 @@ function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
 }
 
 function resolveInlineNode(
-  node: TextNode | EmNode | StrongNode | CodeNode | FontNode | LinkNode
+  node: TextNode | EmNode | StrongNode | CodeNode | LinkNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -137,8 +126,6 @@ function resolveInlineNode(
       return resolveStrongNode(node);
     case "code":
       return resolveCodeNode(node);
-    case "font":
-      return resolveFontNode(node);
     case "link":
       return resolveLinkNode(node);
   }
@@ -167,18 +154,18 @@ function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
   };
 }
 
-function resolveTableCellNode(node: TableCellNode): ResolvedTableCellNode {
+function resolveCellNode(node: CellNode): ResolvedCellNode {
   return {
-    kind: "table-cell",
+    kind: "cell",
     ...(node.header === true ? { header: true } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
 
-function resolveTableRowNode(node: TableRowNode): ResolvedTableRowNode {
+function resolveRowNode(node: RowNode): ResolvedRowNode {
   return {
-    kind: "table-row",
-    children: node.children.map(resolveTableCellNode)
+    kind: "row",
+    children: node.children.map(resolveCellNode)
   };
 }
 
@@ -186,7 +173,7 @@ function resolveTableNode(node: TableNode): ResolvedTableNode {
   return {
     kind: "table",
     ...(node.caption != null ? { caption: node.caption } : {}),
-    children: node.children.map(resolveTableRowNode)
+    children: node.children.map(resolveRowNode)
   };
 }
 
@@ -195,12 +182,6 @@ function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
     kind: "code-block",
     ...(node.language != null ? { language: node.language } : {}),
     children: node.children.map(resolveTextNode)
-  };
-}
-
-function resolveThematicBreakNode(_node: ThematicBreakNode): ResolvedThematicBreakNode {
-  return {
-    kind: "thematic-break"
   };
 }
 
@@ -275,8 +256,6 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveListNode(node);
     case "code-block":
       return resolveCodeBlockNode(node);
-    case "thematic-break":
-      return resolveThematicBreakNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
   }
@@ -293,13 +272,11 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
 
     if (
       child.kind === "page" ||
-      child.kind === "box" ||
+      child.kind === "page-set" ||
+      child.kind === "region" ||
       child.kind === "stack" ||
-      child.kind === "row" ||
-      child.kind === "repeat" ||
       child.kind === "fixed" ||
-      child.kind === "custom" ||
-      child.kind === "page-set"
+      child.kind === "custom"
     ) {
       collectRulesFromChildren(child.children, rules);
     }
@@ -308,34 +285,18 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
 
 function applyRule(rule: RulesChild, rules: RuleMaps): void {
   switch (rule.kind) {
-    case "section-role":
-      if (rule.role.length > 0 && rule.variant.length > 0) {
-        rules.sectionRoles.set(rule.role, rule.variant);
+    case "role-rule":
+      if (rule.match.length > 0 && rule.apply.length > 0) {
+        rules.roles.push({
+          match: rule.match,
+          apply: rule.apply,
+          ...(rule.on != null ? { on: rule.on } : {})
+        });
       }
       return;
-    case "quote-role":
-      if (rule.role.length > 0 && rule.variant.length > 0) {
-        rules.quoteRoles.set(rule.role, rule.variant);
-      }
-      return;
-    case "page-role":
-      if (rule.page.length > 0 && rule.use.length > 0) {
-        rules.pageRoles.set(rule.page, rule.use);
-      }
-      return;
-    case "paragraph-role":
-      if (rule.role.length > 0 && rule.variant.length > 0) {
-        rules.paragraphRoles.set(rule.role, rule.variant);
-      }
-      return;
-    case "list-role":
-      if (rule.role.length > 0 && rule.variant.length > 0) {
-        rules.listRoles.set(rule.role, rule.variant);
-      }
-      return;
-    case "figure-role":
-      if (rule.role.length > 0 && rule.variant.length > 0) {
-        rules.figureRoles.set(rule.role, rule.variant);
+    case "page-rule":
+      if (rule.match.length > 0 && rule.use.length > 0) {
+        rules.pages.set(rule.match, rule.use);
       }
       return;
   }
@@ -343,23 +304,17 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
 
 function buildRuleMaps(template: TemplateNode): RuleMaps {
   const rules: RuleMaps = {
-    sectionRoles: new Map<string, string>(),
-    quoteRoles: new Map<string, string>(),
-    paragraphRoles: new Map<string, string>(),
-    listRoles: new Map<string, string>(),
-    figureRoles: new Map<string, string>(),
-    pageRoles: new Map<string, string>()
+    roles: [],
+    pages: new Map<string, string>()
   };
 
   if (
     template.kind === "page" ||
-    template.kind === "box" ||
+    template.kind === "page-set" ||
+    template.kind === "region" ||
     template.kind === "stack" ||
-    template.kind === "row" ||
-    template.kind === "repeat" ||
     template.kind === "fixed" ||
-    template.kind === "custom" ||
-    template.kind === "page-set"
+    template.kind === "custom"
   ) {
     collectRulesFromChildren(template.children, rules);
   }
@@ -367,34 +322,59 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
   return rules;
 }
 
-function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): ResolvedContentNode {
+const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
+  section: "section",
+  paragraph: "paragraph",
+  p: "paragraph",
+  quote: "blockquote",
+  blockquote: "blockquote",
+  list: "list",
+  figure: "figure"
+};
+
+function findMatchingRole(roleValue: string, elementKind: string, rules: RuleMaps): string | undefined {
+  for (const rule of rules.roles) {
+    if (rule.match !== roleValue) continue;
+    if (rule.on == null) {
+      return rule.apply;
+    }
+    const wantedKind = ROLE_ON_ELEMENT_KIND[rule.on] ?? rule.on;
+    if (wantedKind === elementKind) {
+      return rule.apply;
+    }
+  }
+  return undefined;
+}
+
+function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleMaps): T {
   switch (node.kind) {
     case "section":
       return {
         ...node,
-        variant: node.role != null ? rules.sectionRoles.get(node.role) ?? node.variant : node.variant,
+        variant: node.role != null ? findMatchingRole(node.role, "section", rules) ?? node.variant : node.variant,
         children: node.children.map((child) => applyResolvedRules(child, rules))
-      };
+      } as T;
     case "blockquote":
       return {
         ...node,
-        variant: node.role != null ? rules.quoteRoles.get(node.role) ?? node.variant : node.variant,
+        variant:
+          node.role != null ? findMatchingRole(node.role, "blockquote", rules) ?? node.variant : node.variant,
         children: node.children.map((child) => applyResolvedRules(child, rules))
-      };
+      } as T;
     case "abstract":
       return {
         ...node,
         children: node.children.map((child) => applyResolvedRules(child, rules))
-      };
+      } as T;
     case "list":
       return {
         ...node,
-        variant: node.role != null ? rules.listRoles.get(node.role) ?? node.variant : node.variant,
+        variant: node.role != null ? findMatchingRole(node.role, "list", rules) ?? node.variant : node.variant,
         children: node.children.map((child) => ({
           ...child,
           children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
         }))
-      };
+      } as T;
     case "table":
       return {
         ...node,
@@ -405,31 +385,33 @@ function applyResolvedRules(node: ResolvedContentNode, rules: RuleMaps): Resolve
             children: cell.children.map((child) => applyResolvedRules(child, rules))
           }))
         }))
-      };
+      } as T;
     case "paragraph":
       return {
         ...node,
-        variant: node.role != null ? rules.paragraphRoles.get(node.role) ?? node.variant : node.variant
-      };
+        variant:
+          node.role != null ? findMatchingRole(node.role, "paragraph", rules) ?? node.variant : node.variant
+      } as T;
     case "figure":
       return {
         ...node,
-        variant: node.role != null ? rules.figureRoles.get(node.role) ?? node.variant : node.variant
-      };
+        variant: node.role != null ? findMatchingRole(node.role, "figure", rules) ?? node.variant : node.variant
+      } as T;
+    case "row":
+    case "cell":
     case "code-block":
-    case "thematic-break":
     case "item":
     case "title":
     case "author":
     case "em":
     case "strong":
     case "code":
-    case "font":
     case "link":
     case "text":
     case "page-break":
       return node;
   }
+  return node;
 }
 
 function buildSlotMap(document: DocumentNode): SlotMap {
@@ -472,7 +454,7 @@ function matchesPageSet(node: ResolvedContentNode, ctx: ResolveContext): boolean
   }
 
   const mappedPage =
-    "page" in node && typeof node.page === "string" ? ctx.rules.pageRoles.get(node.page) ?? node.page : undefined;
+    "page" in node && typeof node.page === "string" ? ctx.rules.pages.get(node.page) ?? node.page : undefined;
 
   return mappedPage === ctx.currentPageSet;
 }
@@ -485,10 +467,8 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       }
       return slots[child.name].filter((node) => matchesPageSet(node, ctx));
     case "page":
-    case "box":
+    case "region":
     case "stack":
-    case "row":
-    case "repeat":
     case "fixed":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
@@ -503,17 +483,6 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       return [];
     case "text":
       return [{ kind: "text", value: child.value }];
-    case "rule":
-      return [
-        {
-          kind: "rule",
-          axis: child.axis,
-          weight: child.weight,
-          color: child.color,
-          length: child.length,
-          style: child.style
-        } satisfies ResolvedRuleNode
-      ];
     case "page-number":
       return [
         {
@@ -521,13 +490,6 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedPageNumberNode
       ];
-    case "section-role":
-    case "quote-role":
-    case "page-role":
-    case "paragraph-role":
-    case "list-role":
-    case "figure-role":
-      return [];
   }
 }
 
@@ -539,34 +501,19 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       };
-    case "box":
+    case "region":
       return {
-        kind: "box",
+        kind: "region",
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
-      };
+      } satisfies ResolvedRegionNode;
     case "stack":
       return {
         kind: "stack",
         gap: node.gap,
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
-      };
-    case "row":
-      return {
-        kind: "row",
-        gap: node.gap,
-        style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
-      } satisfies ResolvedRowNode;
-    case "repeat":
-      return {
-        kind: "repeat",
-        anchor: node.anchor,
-        when: node.when,
-        style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
-      } satisfies ResolvedRepeatNode;
+      } satisfies ResolvedStackNode;
     case "fixed":
       return {
         kind: "fixed",
@@ -585,19 +532,14 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
       };
     case "page-set":
     case "rules":
-    case "rule":
     case "page-number":
-    case "section-role":
-    case "quote-role":
-    case "page-role":
-    case "paragraph-role":
-    case "list-role":
-    case "figure-role":
+    case "role-rule":
+    case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
     case "slot":
       throw new Error("Template slots should be resolved before returning a template node.");
     case "text":
-      throw new Error("Top-level template text nodes are not supported in v0.");
+      throw new Error("Top-level template text nodes are not supported.");
   }
 }
 
@@ -616,8 +558,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   } satisfies SlotMap;
   const resolved = resolveTemplateNode(template, slots, {
     rules,
-    currentPageSet: undefined,
-    defaultPageSet: undefined
+    currentPageSet: undefined
   });
 
   if (resolved.kind !== "page") {

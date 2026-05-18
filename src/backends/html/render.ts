@@ -5,34 +5,29 @@ import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
-  ResolvedBoxNode,
+  ResolvedCellNode,
   ResolvedChild,
-  ResolvedCodeNode,
   ResolvedCodeBlockNode,
+  ResolvedCodeNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
   ResolvedEmNode,
-  ResolvedFixedNode,
-  ResolvedPageNumberNode,
   ResolvedFigureNode,
-  ResolvedFontNode,
+  ResolvedFixedNode,
   ResolvedInlineNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
-  ResolvedTableCellNode,
-  ResolvedTableNode,
-  ResolvedTableRowNode,
   ResolvedPageBreakNode,
   ResolvedPageNode,
+  ResolvedPageNumberNode,
   ResolvedParagraphNode,
-  ResolvedRepeatNode,
+  ResolvedRegionNode,
   ResolvedRowNode,
-  ResolvedRuleNode,
   ResolvedSectionNode,
   ResolvedStackNode,
   ResolvedStrongNode,
-  ResolvedThematicBreakNode,
+  ResolvedTableNode,
   ResolvedTextNode,
   ResolvedTitleNode
 } from "../../resolver/ir.js";
@@ -107,9 +102,9 @@ function pageSizeToCss(size: unknown): string | null {
 
 export function styleToCss(
   style: TemplateStyle | undefined,
-  kind?: "page" | "box" | "stack" | "row"
+  kind?: "page" | "region" | "stack"
 ): string {
-  if (style == null && kind !== "stack" && kind !== "row") {
+  if (style == null && kind !== "stack") {
     return "";
   }
 
@@ -117,10 +112,6 @@ export function styleToCss(
 
   if (kind === "stack") {
     declarations.push("display:flex;", "flex-direction:column;");
-  }
-
-  if (kind === "row") {
-    declarations.push("display:flex;", "flex-direction:row;", "align-items:flex-start;");
   }
 
   if (style?.size != null && kind === "page") {
@@ -171,7 +162,7 @@ export function styleToCss(
     }
   }
 
-  if ((kind === "stack" || kind === "row") && style?.gap != null) {
+  if (kind === "stack" && style?.gap != null) {
     declarations.push(`gap:${String(style.gap)};`);
   }
 
@@ -184,10 +175,6 @@ export function styleToCss(
 
 function renderTextNode(node: ResolvedTextNode): string {
   return escapeHtml(node.value);
-}
-
-function renderFontNode(node: ResolvedFontNode): string {
-  return `<span style="font-family:${escapeHtml(node.family)};">${node.children.map(renderInlineNode).join("")}</span>`;
 }
 
 function renderLinkNode(node: ResolvedLinkNode): string {
@@ -205,8 +192,6 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<strong>${node.children.map(renderInlineNode).join("")}</strong>`;
     case "code":
       return `<code>${node.children.map(renderTextNode).join("")}</code>`;
-    case "font":
-      return renderFontNode(node);
     case "link":
       return renderLinkNode(node);
   }
@@ -214,22 +199,10 @@ function renderInlineNode(node: ResolvedInlineNode): string {
   throw new Error("Unsupported resolved inline node.");
 }
 
-type RenderContext = {
-  blockquoteStyle: "indent" | "plain";
-};
-
 function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
-
-  if (node.variant === "stageDirect") {
-    return `<p class="stage-dir">${inner}</p>`;
-  }
-
-  if (node.variant === "themeStatement") {
-    return `<p class="theme-statement">${inner}</p>`;
-  }
-
-  return `<p>${inner}</p>`;
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  return `<p${variantAttr}>${inner}</p>`;
 }
 
 function renderFigureNode(node: ResolvedFigureNode): string {
@@ -240,39 +213,23 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
-function renderTableCellNode(node: ResolvedTableCellNode, ctx: RenderContext): string {
+function renderCellNode(node: ResolvedCellNode): string {
   const tag = node.header === true ? "th" : "td";
-  return `<${tag}>${node.children.map((child) => renderContentNode(child, ctx)).join("")}</${tag}>`;
+  return `<${tag}>${node.children.map((child) => renderContentNode(child)).join("")}</${tag}>`;
 }
 
-function renderTableRowNode(node: ResolvedTableRowNode, ctx: RenderContext): string {
-  return `<tr>${node.children.map((child) => renderTableCellNode(child, ctx)).join("")}</tr>`;
+function renderRowNode(node: ResolvedRowNode): string {
+  return `<tr>${node.children.map((child) => renderCellNode(child)).join("")}</tr>`;
 }
 
-function renderTableNode(node: ResolvedTableNode, ctx: RenderContext): string {
+function renderTableNode(node: ResolvedTableNode): string {
   const caption = node.caption != null ? `<caption>${escapeHtml(node.caption)}</caption>` : "";
-  return `<table>${caption}<tbody>${node.children.map((child) => renderTableRowNode(child, ctx)).join("")}</tbody></table>`;
+  return `<table>${caption}<tbody>${node.children.map((child) => renderRowNode(child)).join("")}</tbody></table>`;
 }
 
 function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   const dataAttr = node.language != null ? ` data-language="${escapeHtml(node.language)}"` : "";
   return `<pre${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
-}
-
-function renderThematicBreakNode(_node: ResolvedThematicBreakNode): string {
-  return "<hr />";
-}
-
-function renderRuleNode(node: ResolvedRuleNode): string {
-  const axis = node.axis ?? "horizontal";
-  const color = escapeHtml(String(node.color ?? "#111111"));
-  const weight = escapeHtml(String(node.weight ?? "1px"));
-  const length = escapeHtml(String(node.length ?? "100%"));
-  const style =
-    axis === "vertical"
-      ? `display:block;width:${weight};height:${length};background:${color};flex:0 0 auto;`
-      : `display:block;width:${length};height:${weight};background:${color};flex:0 0 auto;`;
-  return `<div data-node="rule" style="${style}"></div>`;
 }
 
 function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
@@ -302,48 +259,41 @@ function anchorToCss(anchor: string): string {
   }
 }
 
-function renderSectionNode(node: ResolvedSectionNode, ctx: RenderContext): string {
-  const headingClass = node.variant === "sceneHeading" ? ' class="scene-heading"' : "";
+function renderSectionNode(node: ResolvedSectionNode): string {
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   return [
     "<section>",
-    `<h2${headingClass}>${escapeHtml(node.title)}</h2>`,
-    ...node.children.map((child) => renderContentNode(child, ctx)),
+    `<h2${variantAttr}>${escapeHtml(node.title)}</h2>`,
+    ...node.children.map((child) => renderContentNode(child)),
     "</section>"
   ].join("");
 }
 
-function renderBlockQuoteNode(node: ResolvedBlockQuoteNode, ctx: RenderContext): string {
-  const children = node.children.map((child) => renderContentNode(child, ctx)).join("");
-
-  if (node.variant === "dialogueBlock") {
-    return `<div class="dialogue">${children}</div>`;
-  }
-
-  if (ctx.blockquoteStyle === "plain") {
-    return `<div class="blockquote-plain">${children}</div>`;
-  }
-
-  return `<blockquote>${children}</blockquote>`;
+function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
+  const children = node.children.map((child) => renderContentNode(child)).join("");
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  return `<blockquote${variantAttr}>${children}</blockquote>`;
 }
 
 function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
   return '<div data-node="page-break" style="break-before:page;page-break-before:always;"></div>';
 }
 
-function renderListItemNode(node: ResolvedListItemNode, ctx: RenderContext): string {
-  return `<li>${node.children.map((child) => renderContentNode(child, ctx)).join("")}</li>`;
+function renderListItemNode(node: ResolvedListItemNode): string {
+  return `<li>${node.children.map((child) => renderContentNode(child)).join("")}</li>`;
 }
 
-function renderListNode(node: ResolvedListNode, ctx: RenderContext): string {
+function renderListNode(node: ResolvedListNode): string {
   const tag = node.ordered ? "ol" : "ul";
-  return `<${tag}>${node.children.map((child) => renderListItemNode(child, ctx)).join("")}</${tag}>`;
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  return `<${tag}${variantAttr}>${node.children.map((child) => renderListItemNode(child)).join("")}</${tag}>`;
 }
 
-function renderAbstractNode(node: ResolvedAbstractNode, ctx: RenderContext): string {
+function renderAbstractNode(node: ResolvedAbstractNode): string {
   return [
     '<section data-slot="abstract">',
     "<h2>Abstract</h2>",
-    ...node.children.map((child) => renderContentNode(child, ctx)),
+    ...node.children.map((child) => renderContentNode(child)),
     "</section>"
   ].join("");
 }
@@ -356,37 +306,36 @@ function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `<p>${escapeHtml(node.value)}</p>`;
 }
 
-function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): string {
+function renderContentNode(node: ResolvedContentNode): string {
   switch (node.kind) {
     case "title":
       return renderTitleNode(node);
     case "author":
       return renderAuthorNode(node);
     case "abstract":
-      return renderAbstractNode(node, ctx);
+      return renderAbstractNode(node);
     case "section":
-      return renderSectionNode(node, ctx);
+      return renderSectionNode(node);
     case "figure":
       return renderFigureNode(node);
     case "table":
-      return renderTableNode(node, ctx);
+      return renderTableNode(node);
     case "code-block":
       return renderCodeBlockNode(node);
-    case "thematic-break":
-      return renderThematicBreakNode(node);
     case "blockquote":
-      return renderBlockQuoteNode(node, ctx);
+      return renderBlockQuoteNode(node);
     case "list":
-      return renderListNode(node, ctx);
+      return renderListNode(node);
     case "page-break":
       return renderPageBreakNode(node);
     case "item":
-      return renderListItemNode(node, ctx);
+      return renderListItemNode(node);
     case "paragraph":
       return renderParagraphNode(node);
     case "em":
     case "strong":
     case "code":
+    case "link":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -395,13 +344,13 @@ function renderContentNode(node: ResolvedContentNode, ctx: RenderContext): strin
   throw new Error("Unsupported resolved content node.");
 }
 
-function renderBoxNode(node: ResolvedBoxNode, ctx: RenderContext): string {
-  const style = styleToCss(node.style, "box");
+function renderRegionNode(node: ResolvedRegionNode): string {
+  const style = styleToCss(node.style, "region");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="box"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
+  return `<div data-node="region"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
 }
 
-function renderCustomNode(node: ResolvedCustomTemplateNode, ctx: RenderContext): string {
+function renderCustomNode(node: ResolvedCustomTemplateNode): string {
   const definition = getTemplateIntrinsic(node.name);
   if (definition?.html == null) {
     throw new Error(`No HTML renderer registered for custom template intrinsic: ${node.name}`);
@@ -413,54 +362,41 @@ function renderCustomNode(node: ResolvedCustomTemplateNode, ctx: RenderContext):
       ...(node.style != null ? { style: node.style } : {})
     },
     children: node.children,
-    renderChildren: (children) => children.map((child) => renderResolvedChild(child, ctx)).join(""),
+    renderChildren: (children) => children.map((child) => renderResolvedChild(child)).join(""),
     styleToCss,
     escapeHtml
   });
 }
 
-function renderStackNode(node: ResolvedStackNode, ctx: RenderContext): string {
+function renderStackNode(node: ResolvedStackNode): string {
   const mergedStyle: TemplateStyle = {
     ...(node.style ?? {}),
     ...(node.gap != null ? { gap: node.gap } : {})
   };
   const style = styleToCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
+  return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
 }
 
-function renderRowNode(node: ResolvedRowNode, ctx: RenderContext): string {
-  const mergedStyle: TemplateStyle = {
-    ...(node.style ?? {}),
-    ...(node.gap != null ? { gap: node.gap } : {})
-  };
-  const style = styleToCss(mergedStyle, "row");
-  const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="row"${styleAttr}>${node.children.map((child) => renderResolvedChild(child, ctx)).join("")}</div>`;
-}
-
-function renderAnchoredNode(
-  node: ResolvedRepeatNode | ResolvedFixedNode,
-  ctx: RenderContext
-): string {
+function renderFixedNode(node: ResolvedFixedNode): string {
   const style = [
     "position:absolute;",
     "z-index:2;",
     anchorToCss(node.anchor),
-    styleToCss(node.style, "box")
+    styleToCss(node.style, "region")
   ].join("");
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
-  return `<div data-node="${node.kind}"${whenAttr} style="${escapeHtml(style)}">${node.children
-    .map((child) => renderResolvedChild(child, ctx))
+  return `<div data-node="fixed"${whenAttr} style="${escapeHtml(style)}">${node.children
+    .map((child) => renderResolvedChild(child))
     .join("")}</div>`;
 }
 
-function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
+function renderPageNode(node: ResolvedPageNode): string {
   const overlays = node.children
-    .filter((child): child is ResolvedRepeatNode | ResolvedFixedNode => child.kind === "repeat" || child.kind === "fixed")
-    .map((child) => renderAnchoredNode(child, ctx))
+    .filter((child): child is ResolvedFixedNode => child.kind === "fixed")
+    .map((child) => renderFixedNode(child))
     .join("");
-  const flowChildren = node.children.filter((child) => child.kind !== "repeat" && child.kind !== "fixed");
+  const flowChildren = node.children.filter((child) => child.kind !== "fixed");
   const style = [
     "position:relative;",
     "box-sizing:border-box;",
@@ -472,50 +408,49 @@ function renderPageNode(node: ResolvedPageNode, ctx: RenderContext): string {
   const styleAttr = ` style="${escapeHtml(style)}"`;
 
   return `<main data-node="page"${styleAttr}>${overlays}${flowChildren
-    .map((child) => renderResolvedChild(child, ctx))
+    .map((child) => renderResolvedChild(child))
     .join("")}</main>`;
 }
 
-function renderResolvedChild(node: ResolvedChild, ctx: RenderContext): string {
+function renderResolvedChild(node: ResolvedChild): string {
   switch (node.kind) {
     case "page":
-      return renderPageNode(node, ctx);
-    case "box":
-      return renderBoxNode(node, ctx);
+      return renderPageNode(node);
+    case "region":
+      return renderRegionNode(node);
     case "stack":
-      return renderStackNode(node, ctx);
-    case "row":
-      return renderRowNode(node, ctx);
-    case "rule":
-      return renderRuleNode(node);
+      return renderStackNode(node);
     case "page-number":
       return renderPageNumberNode(node);
-    case "repeat":
     case "fixed":
-      return renderAnchoredNode(node, ctx);
+      return renderFixedNode(node);
     case "custom":
-      return renderCustomNode(node, ctx);
+      return renderCustomNode(node);
     case "title":
     case "author":
     case "abstract":
     case "section":
     case "figure":
+    case "table":
+    case "row":
+    case "cell":
     case "code-block":
-    case "thematic-break":
     case "paragraph":
+    case "blockquote":
+    case "list":
+    case "item":
+    case "em":
+    case "strong":
+    case "code":
+    case "link":
     case "text":
     case "page-break":
-      return renderContentNode(node, ctx);
+      return renderContentNode(node as ResolvedContentNode);
   }
-
-  throw new Error("Unsupported resolved child node.");
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
-  const ctx: RenderContext = {
-    blockquoteStyle: page.style?.blockquoteStyle === "plain" ? "plain" : "indent"
-  };
-  const body = renderPageNode(page, ctx);
+  const body = renderPageNode(page);
   const fontTags = buildFontHeadTags(page);
 
   return [
@@ -534,9 +469,6 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "p + p{margin-top:0.75em;}",
     "section + section{margin-top:1em;}",
     "blockquote{margin:0;padding-left:2em;}",
-    ".blockquote-plain{margin:0;}",
-    ".dialogue{margin:0.5em 0;}",
-    "h2.scene-heading{text-transform:uppercase;}",
     "ul,ol{margin:0;padding-left:1.5rem;}",
     "li + li{margin-top:0.5rem;}",
     "code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:#f1f5f9;padding:0.1rem 0.25rem;border-radius:0.2rem;}",

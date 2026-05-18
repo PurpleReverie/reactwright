@@ -9,12 +9,12 @@ test("template renderer creates template IR for a minimal page", () => {
   const result = renderTemplateToIR(
     <page style={{ size: "a4", margin: "25mm" }}>
       <stack gap="8mm">
-        <box style={{ textAlign: "center" }}>
+        <region style={{ textAlign: "center" }}>
           <slot name="title" />
-        </box>
-        <box>
+        </region>
+        <region>
           <slot name="body" />
-        </box>
+        </region>
       </stack>
     </page>
   );
@@ -29,12 +29,12 @@ test("template renderer creates template IR for a minimal page", () => {
         style: undefined,
         children: [
           {
-            kind: "box",
+            kind: "region",
             style: { textAlign: "center" },
             children: [{ kind: "slot", name: "title" }]
           },
           {
-            kind: "box",
+            kind: "region",
             style: undefined,
             children: [{ kind: "slot", name: "body" }]
           }
@@ -46,22 +46,22 @@ test("template renderer creates template IR for a minimal page", () => {
 
 test("template renderer flattens typed template prop groups into style IR", () => {
   const result = renderTemplateToIR(
-    <template
+    <page
       page={{ size: "a4", margin: "25mm" }}
       typography={{ fontFamily: "serif", fontSize: "11pt", textAlign: "center" }}
       paragraph={{ paragraphSpacing: "0.8em" }}
       box={{ backgroundColor: "#fffdf8" }}
       style={{ sectionStyle: "label" }}
     >
-      <flow layout={{ gap: "8mm" }}>
+      <stack layout={{ gap: "8mm" }}>
         <region
           box={{ paddingBottom: "4mm", borderBottom: "1pt solid #000000" }}
           typography={{ textAlign: "center" }}
         >
           <slot name="title" />
         </region>
-      </flow>
-    </template>
+      </stack>
+    </page>
   );
 
   assert.deepEqual(result, {
@@ -83,7 +83,7 @@ test("template renderer flattens typed template prop groups into style IR", () =
         style: { gap: "8mm" },
         children: [
           {
-            kind: "box",
+            kind: "region",
             style: {
               paddingBottom: "4mm",
               borderBottom: "1pt solid #000000",
@@ -97,80 +97,22 @@ test("template renderer flattens typed template prop groups into style IR", () =
   });
 });
 
-test("template renderer supports row and rule intrinsics", () => {
+test("template renderer supports fixed as overlay primitive with conditional when", () => {
   const result = renderTemplateToIR(
-    <template>
-      <row gap="6mm">
-        <region box={{ width: "60%" }}>
-          <slot name="title" />
-        </region>
-        <rule weight="0.8pt" color="#c8a96b" length="100%" />
-        <region box={{ width: "40%" }}>
-          <slot name="author" />
-        </region>
-      </row>
-    </template>
-  );
-
-  assert.deepEqual(result, {
-    kind: "page",
-    style: undefined,
-    children: [
-      {
-        kind: "row",
-        gap: "6mm",
-        style: undefined,
-        children: [
-          {
-            kind: "box",
-            style: { width: "60%" },
-            children: [{ kind: "slot", name: "title" }]
-          },
-          {
-            kind: "rule",
-            axis: undefined,
-            weight: "0.8pt",
-            color: "#c8a96b",
-            length: "100%",
-            style: undefined
-          },
-          {
-            kind: "box",
-            style: { width: "40%" },
-            children: [{ kind: "slot", name: "author" }]
-          }
-        ]
-      }
-    ]
-  });
-});
-
-test("template renderer supports repeat and fixed intrinsics", () => {
-  const result = renderTemplateToIR(
-    <template>
-      <repeat anchor="top-right" when="not-first-page" typography={{ fontSize: "8pt" }}>
-        <slot name="title" />
-      </repeat>
+    <page>
       <fixed anchor="page-bottom-right" when="first-page" typography={{ fontSize: "8pt" }}>
         <page-number />
       </fixed>
-      <flow>
+      <stack>
         <slot name="body" />
-      </flow>
-    </template>
+      </stack>
+    </page>
   );
 
   assert.deepEqual(result, {
     kind: "page",
     style: undefined,
     children: [
-      {
-        kind: "repeat",
-        anchor: "top-right",
-        when: "not-first-page",
-        style: { fontSize: "8pt" },
-        children: [{ kind: "slot", name: "title" }]
-      },
       {
         kind: "fixed",
         anchor: "page-bottom-right",
@@ -190,9 +132,9 @@ test("template renderer supports repeat and fixed intrinsics", () => {
 
 test("template renderer supports page-number as a standalone template primitive", () => {
   const result = renderTemplateToIR(
-    <template>
+    <page>
       <page-number typography={{ fontSize: "8pt" }} />
-    </template>
+    </page>
   );
 
   assert.deepEqual(result, {
@@ -236,25 +178,23 @@ test("template renderer accepts registered custom intrinsics", () => {
   });
 });
 
-test("template renderer supports rules and page sets in the new syntax", () => {
+test("template renderer supports unified role and page rules", () => {
   const result = renderTemplateToIR(
-    <template style={{ size: "a4" }}>
+    <page style={{ size: "a4" }}>
       <rules>
-        <section-role role="scene-heading" variant="sceneHeading" />
-        <quote-role role="dialogue" variant="dialogueBlock" />
-        <paragraph-role role="lead" variant="leadParagraph" />
-        <list-role role="checklist" variant="compactChecklist" />
-        <figure-role role="map" variant="framedMap" />
-        <page-role page="script" use="script" />
+        <role match="scene-heading" apply="sceneHeading" />
+        <role on="quote" match="dialogue" apply="dialogueBlock" />
+        <role on="paragraph" match="lead" apply="leadParagraph" />
+        <page match="script" use="script" />
       </rules>
-      <flow gap="8mm">
+      <stack gap="8mm">
         <page-set name="script">
           <region>
             <slot name="body" />
           </region>
         </page-set>
-      </flow>
-    </template>
+      </stack>
+    </page>
   );
 
   assert.deepEqual(result, {
@@ -264,12 +204,10 @@ test("template renderer supports rules and page sets in the new syntax", () => {
       {
         kind: "rules",
         children: [
-          { kind: "section-role", role: "scene-heading", variant: "sceneHeading" },
-          { kind: "quote-role", role: "dialogue", variant: "dialogueBlock" },
-          { kind: "paragraph-role", role: "lead", variant: "leadParagraph" },
-          { kind: "list-role", role: "checklist", variant: "compactChecklist" },
-          { kind: "figure-role", role: "map", variant: "framedMap" },
-          { kind: "page-role", page: "script", use: "script" }
+          { kind: "role-rule", match: "scene-heading", apply: "sceneHeading" },
+          { kind: "role-rule", match: "dialogue", apply: "dialogueBlock", on: "quote" },
+          { kind: "role-rule", match: "lead", apply: "leadParagraph", on: "paragraph" },
+          { kind: "page-rule", match: "script", use: "script" }
         ]
       },
       {
@@ -280,7 +218,8 @@ test("template renderer supports rules and page sets in the new syntax", () => {
           {
             kind: "page-set",
             name: "script",
-            children: [{ kind: "box", style: undefined, children: [{ kind: "slot", name: "body" }] }]
+            style: undefined,
+            children: [{ kind: "region", style: undefined, children: [{ kind: "slot", name: "body" }] }]
           }
         ]
       }
@@ -288,29 +227,17 @@ test("template renderer supports rules and page sets in the new syntax", () => {
   });
 });
 
-test("template renderer rejects empty rule tokens and invalid columns", () => {
+test("template renderer rejects empty rule tokens", () => {
   assert.throws(
     () =>
       renderTemplateToIR(
-        <template>
+        <page>
           <rules>
-            <section-role role="scene-heading" variant="   " />
+            <role match="scene-heading" apply="   " />
           </rules>
-        </template>
+        </page>
       ),
-    /`variant` must be a non-empty string|produced no root node/i
-  );
-
-  assert.throws(
-    () =>
-      renderTemplateToIR(
-        <template>
-          <columns count={0}>
-            <slot name="body" />
-          </columns>
-        </template>
-      ),
-    /positive integer `count`|produced no root node/i
+    /`apply` must be a non-empty string|produced no root node/i
   );
 });
 
@@ -318,25 +245,17 @@ test("template renderer rejects non-object typed prop groups", () => {
   assert.throws(
     () =>
       renderTemplateToIR(
-        React.createElement("template", { typography: "serif" }, React.createElement("slot", { name: "body" }))
+        React.createElement("page", { typography: "serif" }, React.createElement("slot", { name: "body" }))
       ),
     /`typography` must be an object|produced no root node/i
   );
 });
 
-test("template renderer rejects invalid running matter conditions", () => {
+test("template renderer rejects invalid fixed when value", () => {
   assert.throws(
     () =>
       renderTemplateToIR(
-        React.createElement("template", null, React.createElement("repeat", { anchor: "top-right", when: "chapter" }))
-      ),
-    /`repeat` `when` must be|produced no root node/i
-  );
-
-  assert.throws(
-    () =>
-      renderTemplateToIR(
-        React.createElement("template", null, React.createElement("fixed", { anchor: "page-top-right", when: "not-first-page" }))
+        React.createElement("page", null, React.createElement("fixed", { anchor: "page-top-right", when: "chapter" }))
       ),
     /`fixed` `when` must be|produced no root node/i
   );

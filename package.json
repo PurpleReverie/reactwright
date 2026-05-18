@@ -14,8 +14,8 @@
       "default": "./src/public/jsx.js"
     },
     "./templates": {
-      "types": "./src/public/templates.ts",
-      "default": "./src/public/templates.ts"
+      "types": "./src/public/templates.tsx",
+      "default": "./src/public/templates.tsx"
     }
   },
   "scripts": {
@@ -27,13 +27,7 @@
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",
     "example:resolve": "node --import tsx ./src/examples/resolve.tsx",
-    "example:html": "node --import tsx ./src/examples/html.tsx",
-    "example:latex": "node --import tsx ./src/examples/latex.tsx",
-    "example:pdf": "node --import tsx ./src/examples/pdf.tsx",
-    "example:custom-intrinsic": "node --import tsx ./src/examples/custom-intrinsic.tsx",
-    "example:project-scope": "node --import tsx ./src/examples/project-scope.tsx",
-    "example:custom-font": "node --import tsx ./src/examples/custom-font.tsx",
-    "example:story-bible": "node --import tsx ./src/examples/story-bible.tsx"
+    "example:html": "node --import tsx ./src/examples/html.tsx"
   },
   "dependencies": {
     "react": "^19.1.0",

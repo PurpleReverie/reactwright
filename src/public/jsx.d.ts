@@ -6,96 +6,88 @@ type ContentMetadataProps = {
   variant?: string;
 };
 
-type ContentIntrinsicMap = {
-  document: {
-    title: string;
-    author?: string;
-    children?: ReactNode;
-  };
-  section: ContentMetadataProps & {
-    title: string;
-    children?: ReactNode;
-  };
-  paragraph: ContentMetadataProps & {
-    children?: ReactNode;
-  };
-  p: ContentMetadataProps & {
-    children?: ReactNode;
-  };
-  figure: ContentMetadataProps & {
-    src: string;
-    alt?: string;
-    caption?: string;
-    width?: string;
-  };
-  table: {
-    caption?: string;
-    children?: ReactNode;
-  };
-  "table-row": {
-    children?: ReactNode;
-  };
-  "table-cell": {
-    header?: boolean;
-    children?: ReactNode;
-  };
-  abstract: {
-    page?: string;
-    variant?: string;
-    children?: ReactNode;
-  };
-  em: {
-    children?: ReactNode;
-  };
-  strong: {
-    children?: ReactNode;
-  };
-  a: {
-    href: string;
-    titleText?: string;
-    children?: ReactNode;
-  };
-  link: {
-    href: string;
-    titleText?: string;
-    children?: ReactNode;
-  };
-  code: {
-    children?: ReactNode;
-  };
-  blockquote: ContentMetadataProps & {
-    speaker?: string;
-    children?: ReactNode;
-  };
-  quote: ContentMetadataProps & {
-    speaker?: string;
-    children?: ReactNode;
-  };
-  pre: {
-    language?: string;
-    children?: ReactNode;
-  };
-  "code-block": {
-    language?: string;
-    children?: ReactNode;
-  };
-  hr: Record<string, never>;
-  "thematic-break": Record<string, never>;
-  list: ContentMetadataProps & {
-    ordered?: boolean;
-    children?: ReactNode;
-  };
-  item: {
-    children?: ReactNode;
-  };
-  font: {
-    family: string;
-    children?: ReactNode;
-  };
-  "page-break": Record<string, never>;
+type DocumentProps = {
+  title: string;
+  author?: string;
+  children?: ReactNode;
 };
 
-type TemplatePageProps = {
+type SectionProps = ContentMetadataProps & {
+  title: string;
+  children?: ReactNode;
+};
+
+type ParagraphProps = ContentMetadataProps & {
+  children?: ReactNode;
+};
+
+type FigureProps = ContentMetadataProps & {
+  src: string;
+  alt?: string;
+  caption?: string;
+  width?: string;
+};
+
+type TableProps = {
+  caption?: string;
+  children?: ReactNode;
+};
+
+type RowProps = {
+  children?: ReactNode;
+};
+
+type CellProps = {
+  header?: boolean;
+  children?: ReactNode;
+};
+
+type AbstractProps = {
+  page?: string;
+  variant?: string;
+  children?: ReactNode;
+};
+
+type EmProps = {
+  children?: ReactNode;
+};
+
+type StrongProps = {
+  children?: ReactNode;
+};
+
+type LinkProps = {
+  href: string;
+  titleText?: string;
+  children?: ReactNode;
+};
+
+type CodeProps = {
+  children?: ReactNode;
+};
+
+type QuoteProps = ContentMetadataProps & {
+  speaker?: string;
+  children?: ReactNode;
+};
+
+type CodeBlockProps = {
+  language?: string;
+  children?: ReactNode;
+};
+
+type ListProps = ContentMetadataProps & {
+  ordered?: boolean;
+  children?: ReactNode;
+};
+
+type ItemProps = {
+  children?: ReactNode;
+};
+
+type PageBreakProps = Record<string, never>;
+
+type TemplatePageStyleProps = {
   size?: string;
   orientation?: "portrait" | "landscape";
   margin?: string;
@@ -179,117 +171,192 @@ type TemplateBreaksProps = {
   clearFloats?: boolean;
 };
 
-type TemplateHeadingProps = {
-  numbering?: boolean;
-  fontSize?: string;
-  fontWeight?: string;
-  textAlign?: "left" | "center" | "right" | "justify";
-  marginTop?: string;
-  marginBottom?: string;
-};
-
-type TemplateStyleProps = {
+type TemplateStyleBag = {
   style?: Record<string, unknown>;
-  page?: TemplatePageProps;
+  page?: TemplatePageStyleProps;
   typography?: TemplateTypographyProps;
   paragraph?: TemplateParagraphProps;
   box?: TemplateBoxProps;
   layout?: TemplateLayoutProps;
   breaks?: TemplateBreaksProps;
-  heading?: TemplateHeadingProps;
   children?: ReactNode;
 };
 
-type TemplateIntrinsicMap = {
-  page: TemplateStyleProps;
-  template: TemplateStyleProps;
-  box: TemplateStyleProps;
-  region: TemplateStyleProps;
-  stack: TemplateStyleProps & {
-    gap?: string;
-  };
-  flow: TemplateStyleProps & {
-    gap?: string;
-  };
-  row: TemplateStyleProps & {
-    gap?: string;
-  };
-  columns: TemplateStyleProps & {
-    count: number;
-    gap?: string;
-  };
-  rule: TemplateStyleProps & {
-    axis?: "horizontal" | "vertical";
-    weight?: string;
-    color?: string;
-    length?: string;
-  };
-  repeat: TemplateStyleProps & {
-    anchor: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
-    when?: "all" | "first-page" | "not-first-page";
-  };
-  fixed: TemplateStyleProps & {
-    anchor:
-      | "top-left"
-      | "top-center"
-      | "top-right"
-      | "bottom-left"
-      | "bottom-center"
-      | "bottom-right"
-      | "page-top-left"
-      | "page-top-right"
-      | "page-bottom-left"
-      | "page-bottom-right";
-    when?: "all" | "first-page";
-  };
-  "page-number": Omit<TemplateStyleProps, "children">;
-  slot: {
-    name: "title" | "author" | "abstract" | "body";
-  };
-  "page-set": {
-    name: string;
-    children?: ReactNode;
-  };
-  rules: {
-    children?: ReactNode;
-  };
-  "section-role": {
-    role: string;
-    variant: string;
-  };
-  "quote-role": {
-    role: string;
-    variant: string;
-  };
-  "page-role": {
-    page: string;
-    use: string;
-  };
-  "paragraph-role": {
-    role: string;
-    variant: string;
-  };
-  "list-role": {
-    role: string;
-    variant: string;
-  };
-  "figure-role": {
-    role: string;
-    variant: string;
-  };
+type PageElementProps = TemplateStyleBag & {
+  match?: string;
+  use?: string;
 };
 
-type ReactDocIntrinsicElements = ContentIntrinsicMap & TemplateIntrinsicMap;
+type PageSetProps = TemplateStyleBag & {
+  name: string;
+};
+
+type RegionProps = TemplateStyleBag;
+
+type StackProps = TemplateStyleBag & {
+  gap?: string;
+};
+
+type FixedProps = TemplateStyleBag & {
+  anchor:
+    | "top-left"
+    | "top-center"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-center"
+    | "bottom-right"
+    | "page-top-left"
+    | "page-top-right"
+    | "page-bottom-left"
+    | "page-bottom-right";
+  when?: "all" | "first-page" | "not-first-page";
+};
+
+type PageNumberProps = Omit<TemplateStyleBag, "children">;
+
+type SlotProps = {
+  name: "title" | "author" | "abstract" | "body";
+};
+
+type RulesProps = {
+  children?: ReactNode;
+};
+
+type RoleRuleProps = {
+  match: string;
+  apply: string;
+  on?: string;
+};
 
 declare module "react" {
   namespace JSX {
-    interface IntrinsicElements extends ReactDocIntrinsicElements {}
+    interface IntrinsicElements {
+      document: DocumentProps;
+      section: SectionProps;
+      p: ParagraphProps;
+      figure: FigureProps;
+      table: TableProps;
+      row: RowProps;
+      cell: CellProps;
+      abstract: AbstractProps;
+      em: EmProps;
+      strong: StrongProps;
+      link: LinkProps;
+      code: CodeProps;
+      quote: QuoteProps;
+      "code-block": CodeBlockProps;
+      list: ListProps;
+      item: ItemProps;
+      "page-break": PageBreakProps;
+      page: PageElementProps;
+      "page-set": PageSetProps;
+      region: RegionProps;
+      stack: StackProps;
+      fixed: FixedProps;
+      "page-number": PageNumberProps;
+      slot: SlotProps;
+      rules: RulesProps;
+      role: RoleRuleProps;
+    }
+  }
+}
+
+declare module "react/jsx-runtime" {
+  namespace JSX {
+    interface IntrinsicElements {
+      document: DocumentProps;
+      section: SectionProps;
+      p: ParagraphProps;
+      figure: FigureProps;
+      table: TableProps;
+      row: RowProps;
+      cell: CellProps;
+      abstract: AbstractProps;
+      em: EmProps;
+      strong: StrongProps;
+      link: LinkProps;
+      code: CodeProps;
+      quote: QuoteProps;
+      "code-block": CodeBlockProps;
+      list: ListProps;
+      item: ItemProps;
+      "page-break": PageBreakProps;
+      page: PageElementProps;
+      "page-set": PageSetProps;
+      region: RegionProps;
+      stack: StackProps;
+      fixed: FixedProps;
+      "page-number": PageNumberProps;
+      slot: SlotProps;
+      rules: RulesProps;
+      role: RoleRuleProps;
+    }
+  }
+}
+
+declare module "react/jsx-dev-runtime" {
+  namespace JSX {
+    interface IntrinsicElements {
+      document: DocumentProps;
+      section: SectionProps;
+      p: ParagraphProps;
+      figure: FigureProps;
+      table: TableProps;
+      row: RowProps;
+      cell: CellProps;
+      abstract: AbstractProps;
+      em: EmProps;
+      strong: StrongProps;
+      link: LinkProps;
+      code: CodeProps;
+      quote: QuoteProps;
+      "code-block": CodeBlockProps;
+      list: ListProps;
+      item: ItemProps;
+      "page-break": PageBreakProps;
+      page: PageElementProps;
+      "page-set": PageSetProps;
+      region: RegionProps;
+      stack: StackProps;
+      fixed: FixedProps;
+      "page-number": PageNumberProps;
+      slot: SlotProps;
+      rules: RulesProps;
+      role: RoleRuleProps;
+    }
   }
 }
 
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends ReactDocIntrinsicElements {}
+    interface IntrinsicElements {
+      document: DocumentProps;
+      section: SectionProps;
+      p: ParagraphProps;
+      figure: FigureProps;
+      table: TableProps;
+      row: RowProps;
+      cell: CellProps;
+      abstract: AbstractProps;
+      em: EmProps;
+      strong: StrongProps;
+      link: LinkProps;
+      code: CodeProps;
+      quote: QuoteProps;
+      "code-block": CodeBlockProps;
+      list: ListProps;
+      item: ItemProps;
+      "page-break": PageBreakProps;
+      page: PageElementProps;
+      "page-set": PageSetProps;
+      region: RegionProps;
+      stack: StackProps;
+      fixed: FixedProps;
+      "page-number": PageNumberProps;
+      slot: SlotProps;
+      rules: RulesProps;
+      role: RoleRuleProps;
+    }
   }
 }
 

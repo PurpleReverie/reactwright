@@ -3,7 +3,7 @@ import { renderContentToIR } from "../content/render.js";
 const Paper = () => (
   <document title="Minimal Test" author="Tauraj Greig">
     <section title="Introduction">
-      <paragraph>Hello world.</paragraph>
+      <p>Hello world.</p>
     </section>
   </document>
 );

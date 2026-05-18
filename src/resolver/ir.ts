@@ -27,12 +27,6 @@ export type ResolvedCodeNode = {
   children: ResolvedTextNode[];
 };
 
-export type ResolvedFontNode = {
-  kind: "font";
-  family: string;
-  children: ResolvedInlineNode[];
-};
-
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   role?: string;
@@ -47,10 +41,6 @@ export type ResolvedCodeBlockNode = {
   children: ResolvedTextNode[];
 };
 
-export type ResolvedThematicBreakNode = {
-  kind: "thematic-break";
-};
-
 export type ResolvedFigureNode = {
   kind: "figure";
   role?: string;
@@ -62,21 +52,21 @@ export type ResolvedFigureNode = {
   width?: string;
 };
 
-export type ResolvedTableCellNode = {
-  kind: "table-cell";
+export type ResolvedCellNode = {
+  kind: "cell";
   header?: boolean;
   children: ResolvedContentChild[];
 };
 
-export type ResolvedTableRowNode = {
-  kind: "table-row";
-  children: ResolvedTableCellNode[];
+export type ResolvedRowNode = {
+  kind: "row";
+  children: ResolvedCellNode[];
 };
 
 export type ResolvedTableNode = {
   kind: "table";
   caption?: string;
-  children: ResolvedTableRowNode[];
+  children: ResolvedRowNode[];
 };
 
 export type ResolvedBlockQuoteNode = {
@@ -146,8 +136,8 @@ export type ResolvedPageNode = {
   children: ResolvedChild[];
 };
 
-export type ResolvedBoxNode = {
-  kind: "box";
+export type ResolvedRegionNode = {
+  kind: "region";
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -155,30 +145,6 @@ export type ResolvedBoxNode = {
 export type ResolvedStackNode = {
   kind: "stack";
   gap?: string;
-  style?: TemplateStyle;
-  children: ResolvedChild[];
-};
-
-export type ResolvedRowNode = {
-  kind: "row";
-  gap?: string;
-  style?: TemplateStyle;
-  children: ResolvedChild[];
-};
-
-export type ResolvedRuleNode = {
-  kind: "rule";
-  axis?: "horizontal" | "vertical";
-  weight?: string;
-  color?: string;
-  length?: string;
-  style?: TemplateStyle;
-};
-
-export type ResolvedRepeatNode = {
-  kind: "repeat";
-  anchor: string;
-  when?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -203,19 +169,17 @@ export type ResolvedContentNode =
   | ResolvedSectionNode
   | ResolvedFigureNode
   | ResolvedTableNode
-  | ResolvedTableRowNode
-  | ResolvedTableCellNode
+  | ResolvedRowNode
+  | ResolvedCellNode
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedListItemNode
   | ResolvedCodeBlockNode
-  | ResolvedThematicBreakNode
   | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
-  | ResolvedFontNode
   | ResolvedLinkNode
   | ResolvedTextNode;
 
@@ -226,7 +190,6 @@ export type ResolvedContentChild =
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedCodeBlockNode
-  | ResolvedThematicBreakNode
   | ResolvedPageBreakNode
   | ResolvedParagraphNode
   | ResolvedTextNode;
@@ -236,16 +199,12 @@ export type ResolvedInlineNode =
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
-  | ResolvedFontNode
   | ResolvedLinkNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
-  | ResolvedBoxNode
+  | ResolvedRegionNode
   | ResolvedStackNode
-  | ResolvedRowNode
-  | ResolvedRuleNode
-  | ResolvedRepeatNode
   | ResolvedFixedNode
   | ResolvedPageNumberNode
   | ResolvedCustomTemplateNode;

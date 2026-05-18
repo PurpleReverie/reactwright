@@ -4,23 +4,17 @@ import { pathToFileURL } from "node:url";
 import React from "react";
 
 import { renderResolvedToHTML } from "../backends/html/render.js";
-import { buildPdfFromResolved } from "../backends/latex/build.js";
-import { renderResolvedToLatex } from "../backends/latex/render.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
-import { ArticleTemplate } from "../templates/article.js";
-import { GoofyCreativeTemplate } from "../templates/goofy.js";
-import { IEEETemplate } from "../templates/ieee.js";
 import { renderTemplateToIR } from "../template/render.js";
+import { ArticleTemplate } from "../public/templates.jsx";
 
-type OutputFormat = "html" | "latex" | "pdf";
-type TemplateName = "article" | "ieee" | "goofy";
+type OutputFormat = "html";
 
 type RunExternalFileOptions = {
   inputPath: string;
   outDir?: string;
   formats: OutputFormat[];
-  template?: TemplateName;
 };
 
 type RunExternalFileResult = {
@@ -28,10 +22,8 @@ type RunExternalFileResult = {
   outDir: string;
   baseName: string;
   formats: OutputFormat[];
-  template: TemplateName | "external";
+  template: "default" | "external";
   htmlPath?: string;
-  texPath?: string;
-  pdfPath?: string;
 };
 
 type ExternalDocumentModule =
@@ -47,13 +39,11 @@ type ExternalDocumentModule =
 function usage(): string {
   return [
     "Usage:",
-    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,latex,pdf] [--out ./build/reactdoc-run] [--template article|ieee|goofy]",
+    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html] [--out ./build/reactdoc-run]",
     "",
     "Examples:",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --template ieee",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --template goofy",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/story-bible.tsx --format html,latex,pdf",
-    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html,latex,pdf --out ./build/reactdoc-run"
+    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html",
+    "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html --out ./build/reactdoc-run"
   ].join("\n");
 }
 
@@ -62,42 +52,17 @@ function parseFormats(value: string | undefined): OutputFormat[] {
   const formats = new Set<OutputFormat>();
 
   for (const entry of raw) {
-    if (entry === "html" || entry === "latex" || entry === "pdf") {
+    if (entry === "html") {
       formats.add(entry);
       continue;
     }
 
-    throw new Error(`Unsupported format: ${entry}`);
+    throw new Error(
+      `Unsupported format: ${entry}. Only \`html\` is supported in Phase 0; PDF will return via headless Chromium in M11.`
+    );
   }
 
   return [...formats];
-}
-
-function parseTemplate(value: string | undefined): TemplateName {
-  if (value == null || value === "article") {
-    return "article";
-  }
-
-  if (value === "ieee") {
-    return "ieee";
-  }
-
-  if (value === "goofy") {
-    return "goofy";
-  }
-
-  throw new Error(`Unknown template: ${value}`);
-}
-
-function getBuiltInTemplate(template: TemplateName) {
-  switch (template) {
-    case "article":
-      return ArticleTemplate;
-    case "goofy":
-      return GoofyCreativeTemplate;
-    case "ieee":
-      return IEEETemplate;
-  }
 }
 
 async function loadExternalDocumentModule(inputPath: string): Promise<unknown> {
@@ -149,16 +114,9 @@ async function writeHtmlOutput(outDir: string, baseName: string, html: string): 
   return htmlPath;
 }
 
-async function writeLatexOutput(outDir: string, baseName: string, latex: string): Promise<string> {
-  const texPath = join(outDir, `${baseName}.tex`);
-  await writeFile(texPath, latex, "utf8");
-  return texPath;
-}
-
 export async function runExternalFile(options: RunExternalFileOptions): Promise<RunExternalFileResult> {
   const absoluteInputPath = resolve(options.inputPath);
   const outDir = resolve(options.outDir ?? "build/reactdoc-run");
-  const template = options.template ?? "article";
   const baseName = basename(absoluteInputPath, extname(absoluteInputPath));
 
   await mkdir(outDir, { recursive: true });
@@ -168,7 +126,7 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
   const ExternalTemplateComponent = getExternalTemplateComponent(loadedModule);
   const contentElement = React.createElement(DocumentComponent);
   const templateElement = React.createElement(
-    ExternalTemplateComponent ?? getBuiltInTemplate(template),
+    ExternalTemplateComponent ?? ArticleTemplate,
     null
   );
 
@@ -181,24 +139,11 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
     outDir,
     baseName,
     formats: options.formats,
-    template: ExternalTemplateComponent == null ? template : "external"
+    template: ExternalTemplateComponent == null ? "default" : "external"
   };
 
   if (options.formats.includes("html")) {
     result.htmlPath = await writeHtmlOutput(outDir, baseName, renderResolvedToHTML(resolvedTree));
-  }
-
-  if (options.formats.includes("latex")) {
-    result.texPath = await writeLatexOutput(outDir, baseName, renderResolvedToLatex(resolvedTree));
-  }
-
-  if (options.formats.includes("pdf")) {
-    const pdfResult = await buildPdfFromResolved(resolvedTree, {
-      outputDir: outDir,
-      baseName
-    });
-    result.texPath ??= pdfResult.texPath;
-    result.pdfPath = pdfResult.pdfPath;
   }
 
   return result;
@@ -208,7 +153,6 @@ function parseArgs(argv: string[]): RunExternalFileOptions {
   const positional: string[] = [];
   let outDir: string | undefined;
   let formatValue: string | undefined;
-  let templateValue: string | undefined;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -225,12 +169,6 @@ function parseArgs(argv: string[]): RunExternalFileOptions {
       continue;
     }
 
-    if (arg === "--template") {
-      templateValue = argv[index + 1];
-      index += 1;
-      continue;
-    }
-
     positional.push(arg);
   }
 
@@ -242,8 +180,7 @@ function parseArgs(argv: string[]): RunExternalFileOptions {
   return {
     inputPath,
     outDir,
-    formats: parseFormats(formatValue),
-    template: parseTemplate(templateValue)
+    formats: parseFormats(formatValue)
   };
 }
 
