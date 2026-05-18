@@ -97,6 +97,15 @@ test("resolver fills title author abstract and body slots", () => {
   assert.equal(stack.children[2]?.kind, "region");
 });
 
+test("HTML backend emits CSS Paged Media @page rule and Paged.js script", () => {
+  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(createTemplate()));
+  const html = renderResolvedToHTML(resolved);
+
+  assert.match(html, /@page\{size:A4;margin:25mm;\}/);
+  assert.match(html, /pagedjs/);
+  assert.match(html, /class="reactdoc-flow"/);
+});
+
 test("HTML backend emits expected content", () => {
   const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(createTemplate()));
   const html = renderResolvedToHTML(resolved);

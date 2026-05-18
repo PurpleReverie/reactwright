@@ -32,6 +32,20 @@ import type {
   ResolvedTitleNode
 } from "../../resolver/ir.js";
 
+const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
+
+const PAGE_GROUP_KEYS = new Set([
+  "size",
+  "orientation",
+  "margin",
+  "marginTop",
+  "marginRight",
+  "marginBottom",
+  "marginLeft",
+  "columns",
+  "columnGap"
+]);
+
 function collectUsedFontFamilies(node: ResolvedPageNode | ResolvedChild): Set<string> {
   const families = new Set<string>();
 
@@ -89,21 +103,60 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
-function pageSizeToCss(size: unknown): string | null {
-  switch (size) {
-    case "a4":
-      return "width:210mm;min-height:297mm;";
-    case "letter":
-      return "width:8.5in;min-height:11in;";
-    default:
-      return null;
+function normalizePageSize(size: unknown): string | null {
+  if (typeof size !== "string") return null;
+  const lower = size.trim().toLowerCase();
+  if (lower === "a4" || lower === "letter" || lower === "a5" || lower === "a3" || lower === "legal") {
+    return lower.toUpperCase();
   }
+  return size.trim();
 }
 
-export function styleToCss(
-  style: TemplateStyle | undefined,
-  kind?: "page" | "region" | "stack"
-): string {
+function buildAtPageRule(style: TemplateStyle | undefined, name?: string): string | null {
+  if (style == null) return null;
+  const declarations: string[] = [];
+
+  const size = normalizePageSize(style.size);
+  if (size != null) {
+    const orientation =
+      style.orientation === "landscape" ? " landscape" : style.orientation === "portrait" ? " portrait" : "";
+    declarations.push(`size:${size}${orientation};`);
+  }
+
+  if (style.margin != null) {
+    declarations.push(`margin:${String(style.margin)};`);
+  }
+  if (style.marginTop != null) declarations.push(`margin-top:${String(style.marginTop)};`);
+  if (style.marginRight != null) declarations.push(`margin-right:${String(style.marginRight)};`);
+  if (style.marginBottom != null) declarations.push(`margin-bottom:${String(style.marginBottom)};`);
+  if (style.marginLeft != null) declarations.push(`margin-left:${String(style.marginLeft)};`);
+
+  if (declarations.length === 0) return null;
+
+  const selector = name != null ? `@page ${name}` : "@page";
+  return `${selector}{${declarations.join("")}}`;
+}
+
+function buildBodyTextRule(style: TemplateStyle | undefined): string | null {
+  if (style == null) return null;
+  const declarations: string[] = [];
+
+  if (style.fontFamily != null) declarations.push(`font-family:${String(style.fontFamily)};`);
+  if (style.fontSize != null) declarations.push(`font-size:${String(style.fontSize)};`);
+  if (style.fontWeight != null) declarations.push(`font-weight:${String(style.fontWeight)};`);
+  if (style.fontStyle != null) declarations.push(`font-style:${String(style.fontStyle)};`);
+  if (style.color != null) declarations.push(`color:${String(style.color)};`);
+  if (style.lineHeight != null) declarations.push(`line-height:${String(style.lineHeight)};`);
+  if (style.letterSpacing != null) declarations.push(`letter-spacing:${String(style.letterSpacing)};`);
+  if (style.textAlign != null) declarations.push(`text-align:${String(style.textAlign)};`);
+  if (style.columns != null) declarations.push(`column-count:${String(style.columns)};`);
+  if (style.columnGap != null) declarations.push(`column-gap:${String(style.columnGap)};`);
+
+  if (declarations.length === 0) return null;
+  return `.reactdoc-flow{${declarations.join("")}}`;
+}
+
+function styleToInlineCss(style: TemplateStyle | undefined, kind?: "stack" | "region"): string {
   if (style == null && kind !== "stack") {
     return "";
   }
@@ -112,17 +165,6 @@ export function styleToCss(
 
   if (kind === "stack") {
     declarations.push("display:flex;", "flex-direction:column;");
-  }
-
-  if (style?.size != null && kind === "page") {
-    const pageSizeCss = pageSizeToCss(style.size);
-    if (pageSizeCss != null) {
-      declarations.push(pageSizeCss);
-    }
-  }
-
-  if (style?.margin != null && kind === "page") {
-    declarations.push(`padding:${String(style.margin)};`);
   }
 
   const directMap: Record<string, string> = {
@@ -156,6 +198,7 @@ export function styleToCss(
   };
 
   for (const [key, cssName] of Object.entries(directMap)) {
+    if (PAGE_GROUP_KEYS.has(key)) continue;
     const value = style?.[key];
     if (value != null) {
       declarations.push(`${cssName}:${String(value)};`);
@@ -166,11 +209,16 @@ export function styleToCss(
     declarations.push(`gap:${String(style.gap)};`);
   }
 
-  if (style?.columns != null) {
-    declarations.push(`column-count:${String(style.columns)};`);
-  }
-
   return declarations.join("");
+}
+
+// Public alias preserved for custom-intrinsic compatibility.
+export function styleToCss(
+  style: TemplateStyle | undefined,
+  kind?: "page" | "region" | "stack"
+): string {
+  if (kind === "page") return "";
+  return styleToInlineCss(style, kind === "region" ? "region" : kind);
 }
 
 function renderTextNode(node: ResolvedTextNode): string {
@@ -345,7 +393,7 @@ function renderContentNode(node: ResolvedContentNode): string {
 }
 
 function renderRegionNode(node: ResolvedRegionNode): string {
-  const style = styleToCss(node.style, "region");
+  const style = styleToInlineCss(node.style, "region");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
   return `<div data-node="region"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
 }
@@ -373,7 +421,7 @@ function renderStackNode(node: ResolvedStackNode): string {
     ...(node.style ?? {}),
     ...(node.gap != null ? { gap: node.gap } : {})
   };
-  const style = styleToCss(mergedStyle, "stack");
+  const style = styleToInlineCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
   return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
 }
@@ -383,7 +431,7 @@ function renderFixedNode(node: ResolvedFixedNode): string {
     "position:absolute;",
     "z-index:2;",
     anchorToCss(node.anchor),
-    styleToCss(node.style, "region")
+    styleToInlineCss(node.style, "region")
   ].join("");
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
   return `<div data-node="fixed"${whenAttr} style="${escapeHtml(style)}">${node.children
@@ -391,31 +439,10 @@ function renderFixedNode(node: ResolvedFixedNode): string {
     .join("")}</div>`;
 }
 
-function renderPageNode(node: ResolvedPageNode): string {
-  const overlays = node.children
-    .filter((child): child is ResolvedFixedNode => child.kind === "fixed")
-    .map((child) => renderFixedNode(child))
-    .join("");
-  const flowChildren = node.children.filter((child) => child.kind !== "fixed");
-  const style = [
-    "position:relative;",
-    "box-sizing:border-box;",
-    "background:white;",
-    "margin:24px auto;",
-    "box-shadow:0 12px 32px rgba(15, 23, 42, 0.14);",
-    styleToCss(node.style, "page")
-  ].join("");
-  const styleAttr = ` style="${escapeHtml(style)}"`;
-
-  return `<main data-node="page"${styleAttr}>${overlays}${flowChildren
-    .map((child) => renderResolvedChild(child))
-    .join("")}</main>`;
-}
-
 function renderResolvedChild(node: ResolvedChild): string {
   switch (node.kind) {
     case "page":
-      return renderPageNode(node);
+      throw new Error("Nested page nodes are not supported in the resolved tree.");
     case "region":
       return renderRegionNode(node);
     case "stack":
@@ -450,8 +477,39 @@ function renderResolvedChild(node: ResolvedChild): string {
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
-  const body = renderPageNode(page);
+  const atPageRule = buildAtPageRule(page.style);
+  const bodyTextRule = buildBodyTextRule(page.style);
+
+  const overlays = page.children
+    .filter((child): child is ResolvedFixedNode => child.kind === "fixed")
+    .map((child) => renderFixedNode(child))
+    .join("");
+  const flowChildren = page.children.filter((child) => child.kind !== "fixed");
+  const flowBody = flowChildren.map((child) => renderResolvedChild(child)).join("");
+
   const fontTags = buildFontHeadTags(page);
+
+  const styleRules = [
+    atPageRule ?? "",
+    bodyTextRule ?? "",
+    "body{margin:0;}",
+    ".reactdoc-flow{box-sizing:border-box;}",
+    ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
+    "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
+    "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
+    "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
+    "p + p{margin-top:0.6em;}",
+    "section + section{margin-top:1em;}",
+    "blockquote{padding-left:1.5em;border-left:2px solid #cbd5e1;}",
+    "ul,ol{padding-left:1.5em;}",
+    "li + li{margin-top:0.25em;}",
+    "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;background:#f1f5f9;padding:0.1em 0.25em;border-radius:0.2em;}",
+    "table{border-collapse:collapse;width:100%;}",
+    "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
+    "figure img{max-width:100%;height:auto;}"
+  ]
+    .filter((s) => s.length > 0)
+    .join("");
 
   return [
     "<!DOCTYPE html>",
@@ -461,22 +519,15 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     "<title>ReactDoc Preview</title>",
     ...fontTags,
-    "<style>",
-    "body{margin:0;padding:32px;background:#e7ebf0;color:#111827;font-family:Georgia,'Times New Roman',serif;}",
-    "h1,h2,p{margin:0;}",
-    "h1{font-size:inherit;font-weight:bold;line-height:inherit;margin-bottom:0.4em;}",
-    "h2{font-size:inherit;font-weight:bold;line-height:inherit;margin-top:1em;margin-bottom:0.25em;}",
-    "p + p{margin-top:0.75em;}",
-    "section + section{margin-top:1em;}",
-    "blockquote{margin:0;padding-left:2em;}",
-    "ul,ol{margin:0;padding-left:1.5rem;}",
-    "li + li{margin-top:0.5rem;}",
-    "code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:#f1f5f9;padding:0.1rem 0.25rem;border-radius:0.2rem;}",
-    "</style>",
+    `<style>${styleRules}</style>`,
+    `<script src="${PAGED_JS_SCRIPT}"></script>`,
     "</head>",
     "<body>",
-    body,
+    overlays.length > 0 ? `<div class="reactdoc-overlay">${overlays}</div>` : "",
+    `<div class="reactdoc-flow">${flowBody}</div>`,
     "</body>",
     "</html>"
-  ].join("");
+  ]
+    .filter((s) => s.length > 0)
+    .join("");
 }
