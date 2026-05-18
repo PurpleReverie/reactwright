@@ -16,6 +16,7 @@ import type {
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedHeaderNode,
+  ResolvedImageNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
@@ -303,6 +304,22 @@ function renderRunningNode(node: ResolvedRunningNode): string {
   return `<span data-node="running" data-running-name="${escapeHtml(node.name)}"${policyAttr} class="${runningClassFor(node.name)}"></span>`;
 }
 
+function renderImageNode(node: ResolvedImageNode): string {
+  const declarations: string[] = [];
+  if (node.fill === true) {
+    declarations.push("position:absolute;", "inset:0;", "width:100%;", "height:100%;");
+  } else if (node.width != null) {
+    declarations.push(`width:${node.width};`);
+  }
+  if (node.cover === true) declarations.push("object-fit:cover;");
+  if (node.contain === true) declarations.push("object-fit:contain;");
+  const inline = styleToInlineCss(node.style, "region");
+  const combined = declarations.join("") + inline;
+  const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
+  const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
+  return `<img data-node="image" src="${escapeHtml(node.src)}"${altAttr}${styleAttr} />`;
+}
+
 function renderSetRunningNode(node: ResolvedSetRunningNode): string {
   return `<span data-node="set-running" data-running-name="${escapeHtml(node.name)}" class="reactdoc-set ${runningClassFor(node.name)}-source" hidden>${escapeHtml(node.value)}</span>`;
 }
@@ -566,6 +583,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderPageCountNode(node);
     case "running":
       return renderRunningNode(node);
+    case "image":
+      return renderImageNode(node);
     case "fixed":
       return renderFixedNode(node);
     case "header":

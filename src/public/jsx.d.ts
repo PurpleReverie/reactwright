@@ -97,6 +97,15 @@ type RunningProps = Omit<TemplateStyleBag, "children"> & {
   policy?: "start" | "first" | "last" | "first-except";
 };
 
+type ImageElementProps = Omit<TemplateStyleBag, "children"> & {
+  src: string;
+  alt?: string;
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  width?: string;
+};
+
 type TemplatePageStyleProps = {
   size?: string;
   orientation?: "portrait" | "landscape";
@@ -311,6 +320,7 @@ declare module "react" {
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
+      image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -350,6 +360,7 @@ declare module "react/jsx-runtime" {
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
+      image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -389,6 +400,7 @@ declare module "react/jsx-dev-runtime" {
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
+      image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -428,6 +440,7 @@ declare global {
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
+      image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;

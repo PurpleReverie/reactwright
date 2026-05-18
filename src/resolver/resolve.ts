@@ -43,6 +43,7 @@ import type {
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedHeaderNode,
+  ResolvedImageNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
@@ -568,6 +569,19 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedRunningNode
       ];
+    case "image":
+      return [
+        {
+          kind: "image",
+          src: child.src,
+          ...(child.alt != null ? { alt: child.alt } : {}),
+          ...(child.fill === true ? { fill: true } : {}),
+          ...(child.cover === true ? { cover: true } : {}),
+          ...(child.contain === true ? { contain: true } : {}),
+          ...(child.width != null ? { width: child.width } : {}),
+          style: child.style
+        } satisfies ResolvedImageNode
+      ];
   }
 }
 
@@ -638,6 +652,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "page-number":
     case "page-count":
     case "running":
+    case "image":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");

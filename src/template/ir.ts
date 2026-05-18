@@ -203,6 +203,17 @@ export type RunningNode = {
   style?: TemplateStyle;
 };
 
+export type ImageNode = {
+  kind: "image";
+  src: string;
+  alt?: string;
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  width?: string;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -269,6 +280,7 @@ export type TemplateNode =
   | PageNumberNode
   | PageCountNode
   | RunningNode
+  | ImageNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -292,5 +304,6 @@ export type TemplateChild =
   | PageNumberNode
   | PageCountNode
   | RunningNode
+  | ImageNode
   | SlotNode
   | TemplateTextNode;

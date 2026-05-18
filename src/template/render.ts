@@ -10,6 +10,7 @@ import type {
   FixedWhen,
   FooterNode,
   HeaderNode,
+  ImageNode,
   LayerNode,
   LayerWhen,
   MarginAnchor,
@@ -338,6 +339,25 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         kind: "page-count",
         style: mergeTemplateStyleGroups(props)
       } satisfies PageCountNode;
+    case "image": {
+      const src = typeof props.src === "string" ? props.src.trim() : "";
+      if (src.length === 0) {
+        throw new Error("`image` requires a non-empty `src`.");
+      }
+      const style = mergeTemplateStyleGroups(props);
+      const alt = typeof (props as Record<string, unknown>).alt === "string" ? ((props as Record<string, unknown>).alt as string) : undefined;
+      const width = typeof (props as Record<string, unknown>).width === "string" ? ((props as Record<string, unknown>).width as string) : undefined;
+      return {
+        kind: "image",
+        src,
+        ...(alt != null ? { alt } : {}),
+        ...(props.fill === true ? { fill: true } : {}),
+        ...(props.cover === true ? { cover: true } : {}),
+        ...(props.contain === true ? { contain: true } : {}),
+        ...(width != null ? { width } : {}),
+        style
+      } satisfies ImageNode;
+    }
     case "running": {
       const name = typeof props.name === "string" ? props.name.trim() : "";
       if (name.length === 0) {

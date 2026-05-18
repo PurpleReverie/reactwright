@@ -111,6 +111,17 @@ export type ResolvedSetRunningNode = {
   value: string;
 };
 
+export type ResolvedImageNode = {
+  kind: "image";
+  src: string;
+  alt?: string;
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  width?: string;
+  style?: TemplateStyle;
+};
+
 export type ResolvedRunningNode = {
   kind: "running";
   name: string;
@@ -271,6 +282,7 @@ export type ResolvedTemplateNode =
   | ResolvedPageNumberNode
   | ResolvedPageCountNode
   | ResolvedRunningNode
+  | ResolvedImageNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;
