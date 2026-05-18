@@ -8,11 +8,14 @@ import type {
   FixedAnchor,
   FixedNode,
   FixedWhen,
+  LayerNode,
+  LayerWhen,
   PageNode,
   PageNumberNode,
   PageRuleNode,
   PageSetNode,
   RegionNode,
+  RegionPositioning,
   RoleRuleNode,
   RulesNode,
   SlotName,
@@ -51,6 +54,10 @@ type TemplateProps = Record<string, unknown> & {
   use?: string;
   anchor?: unknown;
   when?: unknown;
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  center?: boolean;
 };
 
 type TemplateContainer = {
@@ -138,6 +145,27 @@ function readFixedAnchor(props: TemplateProps): FixedAnchor {
   }
 }
 
+function readLayerWhen(props: TemplateProps): LayerWhen | undefined {
+  if (props.when == null) {
+    return undefined;
+  }
+
+  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
+    return props.when;
+  }
+
+  throw new Error("`layer` `when` must be `all`, `first-page`, or `not-first-page`.");
+}
+
+function readRegionPositioning(props: TemplateProps): RegionPositioning | undefined {
+  const positioning: RegionPositioning = {};
+  if (props.fill === true) positioning.fill = true;
+  if (props.cover === true) positioning.cover = true;
+  if (props.contain === true) positioning.contain = true;
+  if (props.center === true) positioning.center = true;
+  return Object.keys(positioning).length > 0 ? positioning : undefined;
+}
+
 function readFixedWhen(props: TemplateProps): FixedWhen | undefined {
   if (props.when == null) {
     return undefined;
@@ -182,11 +210,24 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
     }
     case "region": {
       const style = mergeTemplateStyleGroups(props);
+      const positioning = readRegionPositioning(props);
       return {
         kind: "region",
         style,
+        ...(positioning != null ? { positioning } : {}),
         children: []
       } satisfies RegionNode;
+    }
+    case "layer": {
+      const style = mergeTemplateStyleGroups(props);
+      const name = typeof props.name === "string" && props.name.trim().length > 0 ? props.name.trim() : undefined;
+      return {
+        kind: "layer",
+        ...(name != null ? { name } : {}),
+        when: readLayerWhen(props),
+        style,
+        children: []
+      } satisfies LayerNode;
     }
     case "stack": {
       const style = mergeTemplateStyleGroups(props);
@@ -403,6 +444,7 @@ const templateHostConfig = {
       | PageSetNode
       | RegionNode
       | StackNode
+      | LayerNode
       | FixedNode
       | CustomTemplateNode
       | RulesNode

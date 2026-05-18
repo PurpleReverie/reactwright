@@ -136,8 +136,24 @@ export type ResolvedPageNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedRegionPositioning = {
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  center?: boolean;
+};
+
 export type ResolvedRegionNode = {
   kind: "region";
+  style?: TemplateStyle;
+  positioning?: ResolvedRegionPositioning;
+  children: ResolvedChild[];
+};
+
+export type ResolvedLayerNode = {
+  kind: "layer";
+  name?: string;
+  when?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -205,6 +221,7 @@ export type ResolvedTemplateNode =
   | ResolvedPageNode
   | ResolvedRegionNode
   | ResolvedStackNode
+  | ResolvedLayerNode
   | ResolvedFixedNode
   | ResolvedPageNumberNode
   | ResolvedCustomTemplateNode;

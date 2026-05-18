@@ -119,8 +119,26 @@ export type PageSetNode = {
   children: TemplateChild[];
 };
 
+export type RegionPositioning = {
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  center?: boolean;
+};
+
 export type RegionNode = {
   kind: "region";
+  style?: TemplateStyle;
+  positioning?: RegionPositioning;
+  children: TemplateChild[];
+};
+
+export type LayerWhen = "all" | "first-page" | "not-first-page";
+
+export type LayerNode = {
+  kind: "layer";
+  name?: string;
+  when?: LayerWhen;
   style?: TemplateStyle;
   children: TemplateChild[];
 };
@@ -182,6 +200,7 @@ export type TemplateNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | LayerNode
   | FixedNode
   | PageNumberNode
   | SlotNode
@@ -195,6 +214,7 @@ export type TemplateContainerNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | LayerNode
   | FixedNode
   | CustomTemplateNode
   | RulesNode;

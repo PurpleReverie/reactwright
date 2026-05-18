@@ -15,6 +15,7 @@ import type {
   ResolvedFigureNode,
   ResolvedFixedNode,
   ResolvedInlineNode,
+  ResolvedLayerNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -392,10 +393,34 @@ function renderContentNode(node: ResolvedContentNode): string {
   throw new Error("Unsupported resolved content node.");
 }
 
+function regionPositioningCss(node: ResolvedRegionNode): string {
+  const p = node.positioning;
+  if (p == null) return "";
+  const declarations: string[] = [];
+  if (p.fill === true) declarations.push("position:absolute;", "inset:0;");
+  if (p.center === true) {
+    declarations.push("display:flex;", "align-items:center;", "justify-content:center;");
+  }
+  return declarations.join("");
+}
+
 function renderRegionNode(node: ResolvedRegionNode): string {
-  const style = styleToInlineCss(node.style, "region");
-  const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
+  const positioning = regionPositioningCss(node);
+  const inline = styleToInlineCss(node.style, "region");
+  const combined = positioning + inline;
+  const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
   return `<div data-node="region"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
+}
+
+function renderLayerNode(node: ResolvedLayerNode, zIndex: number): string {
+  const nameAttr = node.name != null ? ` data-name="${escapeHtml(node.name)}"` : "";
+  const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
+  const inline = styleToInlineCss(node.style, "region");
+  const positioning = `position:absolute;inset:0;z-index:${zIndex};`;
+  const combined = positioning + inline;
+  return `<div data-node="layer"${nameAttr}${whenAttr} style="${escapeHtml(combined)}">${node.children
+    .map((child) => renderResolvedChild(child))
+    .join("")}</div>`;
 }
 
 function renderCustomNode(node: ResolvedCustomTemplateNode): string {
@@ -447,6 +472,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderRegionNode(node);
     case "stack":
       return renderStackNode(node);
+    case "layer":
+      return renderLayerNode(node, 0);
     case "page-number":
       return renderPageNumberNode(node);
     case "fixed":
@@ -485,7 +512,18 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     .map((child) => renderFixedNode(child))
     .join("");
   const flowChildren = page.children.filter((child) => child.kind !== "fixed");
-  const flowBody = flowChildren.map((child) => renderResolvedChild(child)).join("");
+
+  let layerIndex = 0;
+  const flowBody = flowChildren
+    .map((child) => {
+      if (child.kind === "layer") {
+        const rendered = renderLayerNode(child, layerIndex);
+        layerIndex += 1;
+        return rendered;
+      }
+      return renderResolvedChild(child);
+    })
+    .join("");
 
   const fontTags = buildFontHeadTags(page);
 

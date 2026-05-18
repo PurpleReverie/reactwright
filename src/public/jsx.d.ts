@@ -191,7 +191,17 @@ type PageSetProps = TemplateStyleBag & {
   name: string;
 };
 
-type RegionProps = TemplateStyleBag;
+type RegionProps = TemplateStyleBag & {
+  fill?: boolean;
+  cover?: boolean;
+  contain?: boolean;
+  center?: boolean;
+};
+
+type LayerProps = TemplateStyleBag & {
+  name?: string;
+  when?: "all" | "first-page" | "not-first-page";
+};
 
 type StackProps = TemplateStyleBag & {
   gap?: string;
@@ -252,6 +262,7 @@ declare module "react" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      layer: LayerProps;
       fixed: FixedProps;
       "page-number": PageNumberProps;
       slot: SlotProps;
@@ -285,6 +296,7 @@ declare module "react/jsx-runtime" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      layer: LayerProps;
       fixed: FixedProps;
       "page-number": PageNumberProps;
       slot: SlotProps;
@@ -318,6 +330,7 @@ declare module "react/jsx-dev-runtime" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      layer: LayerProps;
       fixed: FixedProps;
       "page-number": PageNumberProps;
       slot: SlotProps;
@@ -351,6 +364,7 @@ declare global {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      layer: LayerProps;
       fixed: FixedProps;
       "page-number": PageNumberProps;
       slot: SlotProps;

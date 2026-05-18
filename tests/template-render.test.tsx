@@ -97,6 +97,31 @@ test("template renderer flattens typed template prop groups into style IR", () =
   });
 });
 
+test("template renderer supports layer primitive with z-order and when", () => {
+  const result = renderTemplateToIR(
+    <page>
+      <layer name="paper">
+        <region fill style={{ backgroundColor: "#fbf7ee" }} />
+      </layer>
+      <layer name="content">
+        <slot name="body" />
+      </layer>
+      <layer name="watermark" when="not-first-page">
+        <region center style={{ opacity: 0.06 }}>DRAFT</region>
+      </layer>
+    </page>
+  );
+
+  assert.equal(result.children.length, 3);
+  assert.equal(result.children[0]?.kind, "layer");
+  assert.equal(result.children[0]?.name, "paper");
+  assert.equal(result.children[2]?.kind, "layer");
+  assert.equal(result.children[2]?.when, "not-first-page");
+  const paperRegion = (result.children[0] as { children: { kind: string; positioning?: { fill?: boolean } }[] }).children[0];
+  assert.equal(paperRegion.kind, "region");
+  assert.equal(paperRegion.positioning?.fill, true);
+});
+
 test("template renderer supports fixed as overlay primitive with conditional when", () => {
   const result = renderTemplateToIR(
     <page>

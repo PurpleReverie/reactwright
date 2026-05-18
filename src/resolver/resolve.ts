@@ -41,6 +41,7 @@ import type {
   ResolvedFigureNode,
   ResolvedFixedNode,
   ResolvedInlineNode,
+  ResolvedLayerNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
@@ -275,6 +276,7 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
       child.kind === "page-set" ||
       child.kind === "region" ||
       child.kind === "stack" ||
+      child.kind === "layer" ||
       child.kind === "fixed" ||
       child.kind === "custom"
     ) {
@@ -313,6 +315,7 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
     template.kind === "page-set" ||
     template.kind === "region" ||
     template.kind === "stack" ||
+    template.kind === "layer" ||
     template.kind === "fixed" ||
     template.kind === "custom"
   ) {
@@ -469,6 +472,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "page":
     case "region":
     case "stack":
+    case "layer":
     case "fixed":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
@@ -505,8 +509,17 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
       return {
         kind: "region",
         style: node.style,
+        ...(node.positioning != null ? { positioning: node.positioning } : {}),
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedRegionNode;
+    case "layer":
+      return {
+        kind: "layer",
+        ...(node.name != null ? { name: node.name } : {}),
+        ...(node.when != null ? { when: node.when } : {}),
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedLayerNode;
     case "stack":
       return {
         kind: "stack",
