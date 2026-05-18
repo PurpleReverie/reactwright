@@ -97,6 +97,37 @@ test("resolver fills title author abstract and body slots", () => {
   assert.equal(stack.children[2]?.kind, "region");
 });
 
+test("HTML backend emits running-string CSS for set and running primitives", () => {
+  const documentTree = renderContentToIR(
+    <document title="Runtime Test">
+      <section title="Scene Twelve">
+        <set running="scene-location" value="River bank" />
+        <p>Dialogue here.</p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <header anchor="top-right">
+        <running name="scene-location" />
+      </header>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /string-set:scene-location content\(\)/);
+  assert.match(html, /content:string\(scene-location\)/);
+  assert.match(html, /data-running-name="scene-location"/);
+  assert.match(html, /data-node="set-running"/);
+  assert.match(html, /reactdoc-document-title/);
+  assert.match(html, /reactdoc-section-title/);
+});
+
 test("HTML backend emits CSS Paged Media @page rule and Paged.js script", () => {
   const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(createTemplate()));
   const html = renderResolvedToHTML(resolved);
@@ -110,9 +141,9 @@ test("HTML backend emits expected content", () => {
   const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(createTemplate()));
   const html = renderResolvedToHTML(resolved);
 
-  assert.match(html, /<h1>Pipeline Test<\/h1>/);
+  assert.match(html, /<h1[^>]*>Pipeline Test<\/h1>/);
   assert.match(html, /<em>end-to-end<\/em>/);
-  assert.match(html, /<h2>Intro<\/h2>/);
+  assert.match(html, /<h2[^>]*>Intro<\/h2>/);
   assert.match(html, /<figure>/);
   assert.match(html, /reactdoc-swatch\.png/);
   assert.match(html, /href="https:\/\/example\.com"/);

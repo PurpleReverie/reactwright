@@ -23,6 +23,8 @@ import type {
   RegionPositioning,
   RoleRuleNode,
   RulesNode,
+  RunningNode,
+  RunningPolicy,
   SlotName,
   SlotNode,
   StackNode,
@@ -63,6 +65,7 @@ type TemplateProps = Record<string, unknown> & {
   cover?: boolean;
   contain?: boolean;
   center?: boolean;
+  policy?: unknown;
 };
 
 type TemplateContainer = {
@@ -306,6 +309,31 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         kind: "page-count",
         style: mergeTemplateStyleGroups(props)
       } satisfies PageCountNode;
+    case "running": {
+      const name = typeof props.name === "string" ? props.name.trim() : "";
+      if (name.length === 0) {
+        throw new Error("`running` requires a non-empty `name`.");
+      }
+      let policy: RunningPolicy | undefined;
+      if (props.policy != null) {
+        if (
+          props.policy === "start" ||
+          props.policy === "first" ||
+          props.policy === "last" ||
+          props.policy === "first-except"
+        ) {
+          policy = props.policy;
+        } else {
+          throw new Error("`running` `policy` must be `start`, `first`, `last`, or `first-except`.");
+        }
+      }
+      return {
+        kind: "running",
+        name,
+        ...(policy != null ? { policy } : {}),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies RunningNode;
+    }
     case "header": {
       const style = mergeTemplateStyleGroups(props);
       return {

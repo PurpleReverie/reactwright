@@ -105,6 +105,19 @@ export type ResolvedPageBreakNode = {
   kind: "page-break";
 };
 
+export type ResolvedSetRunningNode = {
+  kind: "set-running";
+  name: string;
+  value: string;
+};
+
+export type ResolvedRunningNode = {
+  kind: "running";
+  name: string;
+  policy?: string;
+  style?: TemplateStyle;
+};
+
 export type ResolvedAbstractNode = {
   kind: "abstract";
   page?: string;
@@ -213,6 +226,7 @@ export type ResolvedContentNode =
   | ResolvedListItemNode
   | ResolvedCodeBlockNode
   | ResolvedPageBreakNode
+  | ResolvedSetRunningNode
   | ResolvedParagraphNode
   | ResolvedEmNode
   | ResolvedStrongNode
@@ -228,6 +242,7 @@ export type ResolvedContentChild =
   | ResolvedListNode
   | ResolvedCodeBlockNode
   | ResolvedPageBreakNode
+  | ResolvedSetRunningNode
   | ResolvedParagraphNode
   | ResolvedTextNode;
 
@@ -248,6 +263,7 @@ export type ResolvedTemplateNode =
   | ResolvedFooterNode
   | ResolvedPageNumberNode
   | ResolvedPageCountNode
+  | ResolvedRunningNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

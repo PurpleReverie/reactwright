@@ -16,6 +16,7 @@ import type {
   RowNode,
   SectionNode,
   SemanticBlockChild,
+  SetRunningNode,
   StrongNode,
   TableNode,
   TextNode
@@ -54,7 +55,9 @@ import type {
   ResolvedParagraphNode,
   ResolvedRegionNode,
   ResolvedRowNode,
+  ResolvedRunningNode,
   ResolvedSectionNode,
+  ResolvedSetRunningNode,
   ResolvedStackNode,
   ResolvedStrongNode,
   ResolvedTableNode,
@@ -235,6 +238,14 @@ function resolvePageBreakNode(_node: PageBreakNode): ResolvedPageBreakNode {
   };
 }
 
+function resolveSetRunningNode(node: SetRunningNode): ResolvedSetRunningNode {
+  return {
+    kind: "set-running",
+    name: node.name,
+    value: node.value
+  };
+}
+
 function resolveAbstractNode(node: AbstractNode): ResolvedAbstractNode {
   return {
     kind: "abstract",
@@ -262,6 +273,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveCodeBlockNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
+    case "set-running":
+      return resolveSetRunningNode(node);
   }
 }
 
@@ -419,6 +432,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "link":
     case "text":
     case "page-break":
+    case "set-running":
       return node;
   }
   return node;
@@ -510,6 +524,15 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedPageCountNode
       ];
+    case "running":
+      return [
+        {
+          kind: "running",
+          name: child.name,
+          ...(child.policy != null ? { policy: child.policy } : {}),
+          style: child.style
+        } satisfies ResolvedRunningNode
+      ];
   }
 }
 
@@ -579,6 +602,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "rules":
     case "page-number":
     case "page-count":
+    case "running":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");

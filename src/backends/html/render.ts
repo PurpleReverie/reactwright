@@ -28,7 +28,9 @@ import type {
   ResolvedParagraphNode,
   ResolvedRegionNode,
   ResolvedRowNode,
+  ResolvedRunningNode,
   ResolvedSectionNode,
+  ResolvedSetRunningNode,
   ResolvedStackNode,
   ResolvedStrongNode,
   ResolvedTableNode,
@@ -292,6 +294,19 @@ function renderPageCountNode(_node: ResolvedPageCountNode): string {
   return '<span data-node="page-count" class="reactdoc-page-count"></span>';
 }
 
+function runningClassFor(name: string): string {
+  return `reactdoc-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+}
+
+function renderRunningNode(node: ResolvedRunningNode): string {
+  const policyAttr = node.policy != null ? ` data-policy="${escapeHtml(node.policy)}"` : "";
+  return `<span data-node="running" data-running-name="${escapeHtml(node.name)}"${policyAttr} class="${runningClassFor(node.name)}"></span>`;
+}
+
+function renderSetRunningNode(node: ResolvedSetRunningNode): string {
+  return `<span data-node="set-running" data-running-name="${escapeHtml(node.name)}" class="reactdoc-set ${runningClassFor(node.name)}-source" hidden>${escapeHtml(node.value)}</span>`;
+}
+
 function marginAnchorToCssBox(anchor: string): string {
   // Maps the spec's anchor names to CSS Paged Media margin-box selectors.
   switch (anchor) {
@@ -355,12 +370,19 @@ function anchorToCss(anchor: string): string {
   }
 }
 
-function renderSectionNode(node: ResolvedSectionNode): string {
+function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  const classes = ["reactdoc-section-title"];
+  if (depth === 1) classes.push("reactdoc-chapter-title");
+  const classAttr = ` class="${classes.join(" ")}"`;
   return [
     "<section>",
-    `<h2${variantAttr}>${escapeHtml(node.title)}</h2>`,
-    ...node.children.map((child) => renderContentNode(child)),
+    `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`,
+    ...node.children.map((child) =>
+      child.kind === "section"
+        ? renderSectionNode(child, depth + 1)
+        : renderContentNode(child)
+    ),
     "</section>"
   ].join("");
 }
@@ -395,7 +417,7 @@ function renderAbstractNode(node: ResolvedAbstractNode): string {
 }
 
 function renderTitleNode(node: ResolvedTitleNode): string {
-  return `<h1>${escapeHtml(node.value)}</h1>`;
+  return `<h1 class="reactdoc-document-title">${escapeHtml(node.value)}</h1>`;
 }
 
 function renderAuthorNode(node: ResolvedAuthorNode): string {
@@ -424,6 +446,8 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderListNode(node);
     case "page-break":
       return renderPageBreakNode(node);
+    case "set-running":
+      return renderSetRunningNode(node);
     case "item":
       return renderListItemNode(node);
     case "paragraph":
@@ -525,6 +549,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderPageNumberNode(node);
     case "page-count":
       return renderPageCountNode(node);
+    case "running":
+      return renderRunningNode(node);
     case "fixed":
       return renderFixedNode(node);
     case "header":
@@ -553,8 +579,41 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "link":
     case "text":
     case "page-break":
+    case "set-running":
       return renderContentNode(node as ResolvedContentNode);
   }
+}
+
+function collectRunningStringNames(node: ResolvedPageNode | ResolvedChild, names: Set<string>): void {
+  if ("kind" in node) {
+    if (node.kind === "running" || node.kind === "set-running") {
+      names.add(node.name);
+    }
+  }
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      collectRunningStringNames(child as ResolvedChild, names);
+    }
+  }
+}
+
+function buildRunningStringsCss(names: Set<string>): string {
+  if (names.size === 0) return "";
+  const rules: string[] = [];
+
+  // Auto-set rules for built-in strings derived from document/section/chapter titles.
+  rules.push("h1.reactdoc-document-title{string-set:document-title content();}");
+  rules.push("h2.reactdoc-section-title{string-set:section-title content();}");
+  rules.push("h2.reactdoc-chapter-title{string-set:chapter-title content();}");
+
+  // Per-name rules for <set> sources and <running> sinks.
+  for (const name of names) {
+    const cls = `reactdoc-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+    rules.push(`.${cls}-source{string-set:${name} content();}`);
+    rules.push(`.${cls}::before{content:string(${name});}`);
+  }
+
+  return rules.join("");
 }
 
 type MarginMatterEntry = {
@@ -647,6 +706,16 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
 
+  const runningNames = new Set<string>();
+  collectRunningStringNames(page, runningNames);
+  // Built-in auto-set strings: include even without explicit <running> references
+  // so that templates added later in the same session see the wiring.
+  runningNames.add("document-title");
+  runningNames.add("section-title");
+  runningNames.add("chapter-title");
+
+  const runningStringsCss = buildRunningStringsCss(runningNames);
+
   const marginMatter = collectMarginMatter(page);
   const marginMatterCss = buildMarginMatterCss(marginMatter);
   const marginMatterHtml = marginMatter.map((e) => e.html).join("");
@@ -678,6 +747,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     atPageRule ?? "",
     bodyTextRule ?? "",
     marginMatterCss,
+    runningStringsCss,
     "body{margin:0;}",
     ".reactdoc-flow{box-sizing:border-box;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",

@@ -87,6 +87,16 @@ type ItemProps = {
 
 type PageBreakProps = Record<string, never>;
 
+type SetProps = {
+  running: string;
+  value: string;
+};
+
+type RunningProps = Omit<TemplateStyleBag, "children"> & {
+  name: string;
+  policy?: "start" | "first" | "last" | "first-except";
+};
+
 type TemplatePageStyleProps = {
   size?: string;
   orientation?: "portrait" | "landscape";
@@ -287,6 +297,8 @@ declare module "react" {
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
+      set: SetProps;
+      running: RunningProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -324,6 +336,8 @@ declare module "react/jsx-runtime" {
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
+      set: SetProps;
+      running: RunningProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -361,6 +375,8 @@ declare module "react/jsx-dev-runtime" {
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
+      set: SetProps;
+      running: RunningProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;
@@ -398,6 +414,8 @@ declare global {
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
+      set: SetProps;
+      running: RunningProps;
       page: PageElementProps;
       "page-set": PageSetProps;
       region: RegionProps;

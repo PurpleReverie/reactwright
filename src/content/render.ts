@@ -19,6 +19,7 @@ import type {
   SemanticBlockChild,
   SemanticContainerNode,
   SemanticNode,
+  SetRunningNode,
   StrongNode,
   TableNode,
   TextNode
@@ -44,6 +45,8 @@ type ContentProps = Record<string, unknown> & {
   page?: string;
   variant?: string;
   speaker?: string;
+  running?: string;
+  value?: string;
 };
 
 type ContentContainer = {
@@ -192,6 +195,18 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       return {
         kind: "page-break"
       } satisfies PageBreakNode;
+    case "set": {
+      const name = typeof props.running === "string" ? props.running.trim() : "";
+      const value = typeof props.value === "string" ? props.value : "";
+      if (name.length === 0) {
+        throw new Error("`set` requires a non-empty `running` name.");
+      }
+      return {
+        kind: "set-running",
+        name,
+        value
+      } satisfies SetRunningNode;
+    }
     default:
       throw new Error(`Unsupported content intrinsic: ${type}`);
   }
@@ -240,7 +255,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "page-break"
+        child.kind !== "page-break" &&
+        child.kind !== "set-running"
       ) {
         throw new Error("`cell` may only contain block primitives.");
       }
@@ -286,7 +302,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "page-break"
+        child.kind !== "page-break" &&
+        child.kind !== "set-running"
       ) {
         throw new Error("`item` may only contain block primitives.");
       }
@@ -302,7 +319,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "page-break"
+        child.kind !== "page-break" &&
+        child.kind !== "set-running"
       ) {
         throw new Error("`document` may only contain document-level block primitives.");
       }
@@ -319,7 +337,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
-        child.kind !== "page-break"
+        child.kind !== "page-break" &&
+        child.kind !== "set-running"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain block primitives.`);
       }

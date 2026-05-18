@@ -103,6 +103,12 @@ export type PageBreakNode = {
   kind: "page-break";
 };
 
+export type SetRunningNode = {
+  kind: "set-running";
+  name: string;
+  value: string;
+};
+
 export type AbstractNode = {
   kind: "abstract";
   page?: string;
@@ -127,7 +133,8 @@ export type SemanticBlockChild =
   | BlockQuoteNode
   | ListNode
   | CodeBlockNode
-  | PageBreakNode;
+  | PageBreakNode
+  | SetRunningNode;
 
 export type DocumentChild = AbstractNode | SemanticBlockChild;
 
@@ -145,6 +152,7 @@ export type SemanticNode =
   | ListItemNode
   | CodeBlockNode
   | PageBreakNode
+  | SetRunningNode
   | EmNode
   | StrongNode
   | CodeNode

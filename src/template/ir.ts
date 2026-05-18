@@ -182,6 +182,15 @@ export type PageCountNode = {
   style?: TemplateStyle;
 };
 
+export type RunningPolicy = "start" | "first" | "last" | "first-except";
+
+export type RunningNode = {
+  kind: "running";
+  name: string;
+  policy?: RunningPolicy;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -247,6 +256,7 @@ export type TemplateNode =
   | FooterNode
   | PageNumberNode
   | PageCountNode
+  | RunningNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -269,5 +279,6 @@ export type TemplateChild =
   | TemplateContainerNode
   | PageNumberNode
   | PageCountNode
+  | RunningNode
   | SlotNode
   | TemplateTextNode;
