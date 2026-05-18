@@ -178,9 +178,16 @@ export type ResolvedStackNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedAnchorCoordinate = {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+};
+
 export type ResolvedFixedNode = {
   kind: "fixed";
-  anchor: string;
+  anchor: string | ResolvedAnchorCoordinate;
   when?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];

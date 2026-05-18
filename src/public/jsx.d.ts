@@ -199,6 +199,7 @@ type PageElementProps = TemplateStyleBag & {
 
 type PageSetProps = TemplateStyleBag & {
   name: string;
+  anchors?: Record<string, CoordinateAnchorProp>;
 };
 
 type RegionProps = TemplateStyleBag & {
@@ -217,6 +218,15 @@ type StackProps = TemplateStyleBag & {
   gap?: string;
 };
 
+type CoordinateAnchorProp = {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+  inside?: string;
+  outside?: string;
+};
+
 type FixedProps = TemplateStyleBag & {
   anchor:
     | "top-left"
@@ -228,7 +238,9 @@ type FixedProps = TemplateStyleBag & {
     | "page-top-left"
     | "page-top-right"
     | "page-bottom-left"
-    | "page-bottom-right";
+    | "page-bottom-right"
+    | string
+    | CoordinateAnchorProp;
   when?: "all" | "first-page" | "not-first-page";
 };
 

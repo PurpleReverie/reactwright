@@ -81,6 +81,7 @@ type RuleMaps = {
 
 type ResolveContext = {
   currentPageSet?: string;
+  currentAnchors?: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }>;
   rules: RuleMaps;
 };
 
@@ -355,6 +356,39 @@ const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
   figure: "figure"
 };
 
+function resolveFixedAnchor(
+  anchor: unknown,
+  ctx: ResolveContext
+): string | { top?: string; right?: string; bottom?: string; left?: string } {
+  if (typeof anchor === "string") {
+    // Named anchor lookup in the current page-set's anchors map.
+    const named = ctx.currentAnchors?.[anchor];
+    if (named != null) {
+      return normalizeCoordinate(named);
+    }
+    // Otherwise pass through; HTML backend treats unknown strings as built-in anchor names.
+    return anchor;
+  }
+  if (anchor != null && typeof anchor === "object" && !Array.isArray(anchor)) {
+    return normalizeCoordinate(anchor as Record<string, string>);
+  }
+  return "top-left";
+}
+
+function normalizeCoordinate(
+  coord: Record<string, string | undefined>
+): { top?: string; right?: string; bottom?: string; left?: string } {
+  // Collapse inside/outside into left/right for now (two-sided handling lives in M9-followup).
+  const result: { top?: string; right?: string; bottom?: string; left?: string } = {};
+  if (coord.top != null) result.top = coord.top;
+  if (coord.bottom != null) result.bottom = coord.bottom;
+  if (coord.left != null) result.left = coord.left;
+  if (coord.right != null) result.right = coord.right;
+  if (coord.inside != null && result.left == null) result.left = coord.inside;
+  if (coord.outside != null && result.right == null) result.right = coord.outside;
+  return result;
+}
+
 function findMatchingRole(roleValue: string, elementKind: string, rules: RuleMaps): string | undefined {
   for (const rule of rules.roles) {
     if (rule.match !== roleValue) continue;
@@ -503,7 +537,8 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       return child.children.flatMap((grandchild) =>
         resolveTemplateChild(grandchild, slots, {
           ...ctx,
-          currentPageSet: child.name
+          currentPageSet: child.name,
+          ...(child.anchors != null ? { currentAnchors: child.anchors } : {})
         })
       );
     case "rules":
@@ -569,7 +604,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "fixed":
       return {
         kind: "fixed",
-        anchor: node.anchor,
+        anchor: resolveFixedAnchor(node.anchor, ctx),
         when: node.when,
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
@@ -628,7 +663,8 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   } satisfies SlotMap;
   const resolved = resolveTemplateNode(template, slots, {
     rules,
-    currentPageSet: undefined
+    currentPageSet: undefined,
+    currentAnchors: undefined
   });
 
   if (resolved.kind !== "page") {

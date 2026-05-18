@@ -116,6 +116,7 @@ export type PageSetNode = {
   kind: "page-set";
   name: string;
   style?: TemplateStyle;
+  anchors?: Record<string, CoordinateAnchor>;
   children: TemplateChild[];
 };
 
@@ -150,7 +151,7 @@ export type StackNode = {
   children: TemplateChild[];
 };
 
-export type FixedAnchor =
+export type FixedAnchorName =
   | "top-left"
   | "top-center"
   | "top-right"
@@ -161,6 +162,17 @@ export type FixedAnchor =
   | "page-top-right"
   | "page-bottom-left"
   | "page-bottom-right";
+
+export type CoordinateAnchor = {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+  inside?: string;
+  outside?: string;
+};
+
+export type FixedAnchor = FixedAnchorName | string | CoordinateAnchor;
 
 export type FixedWhen = "all" | "first-page" | "not-first-page";
 

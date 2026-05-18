@@ -136,21 +136,48 @@ function readOptionalTemplateToken(props: TemplateProps, key: "gap" | "on"): str
 }
 
 function readFixedAnchor(props: TemplateProps): FixedAnchor {
-  switch (props.anchor) {
-    case "top-left":
-    case "top-center":
-    case "top-right":
-    case "bottom-left":
-    case "bottom-center":
-    case "bottom-right":
-    case "page-top-left":
-    case "page-top-right":
-    case "page-bottom-left":
-    case "page-bottom-right":
-      return props.anchor;
-    default:
-      throw new Error("`fixed` requires a supported page anchor like `page-top-right`.");
+  const anchor = props.anchor;
+  if (typeof anchor === "string" && anchor.trim().length > 0) {
+    return anchor.trim();
   }
+  if (anchor != null && typeof anchor === "object" && !Array.isArray(anchor)) {
+    const coord = anchor as Record<string, unknown>;
+    const result: { [k: string]: string } = {};
+    for (const key of ["top", "right", "bottom", "left", "inside", "outside"] as const) {
+      const value = coord[key];
+      if (typeof value === "string" && value.trim().length > 0) {
+        result[key] = value.trim();
+      }
+    }
+    if (Object.keys(result).length > 0) {
+      return result;
+    }
+  }
+  throw new Error("`fixed` requires a named or coordinate `anchor`.");
+}
+
+function readAnchorsMap(props: TemplateProps): Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }> | undefined {
+  const raw = (props as Record<string, unknown>).anchors;
+  if (raw == null) return undefined;
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("`anchors` must be an object map of name -> coordinate.");
+  }
+  const result: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }> = {};
+  for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (value == null || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error(`Anchor \`${name}\` must be a coordinate object.`);
+    }
+    const coord = value as Record<string, unknown>;
+    const entry: Record<string, string> = {};
+    for (const key of ["top", "right", "bottom", "left", "inside", "outside"]) {
+      const v = coord[key];
+      if (typeof v === "string" && v.trim().length > 0) {
+        entry[key] = v.trim();
+      }
+    }
+    result[name] = entry;
+  }
+  return result;
 }
 
 function readMarginAnchor(props: TemplateProps, kind: "header" | "footer"): MarginAnchor {
@@ -245,10 +272,12 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
     }
     case "page-set": {
       const style = mergeTemplateStyleGroups(props);
+      const anchors = readAnchorsMap(props);
       return {
         kind: "page-set",
         name: readRequiredTemplateToken(props, "name"),
         style,
+        ...(anchors != null ? { anchors } : {}),
         children: []
       } satisfies PageSetNode;
     }

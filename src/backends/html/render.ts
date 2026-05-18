@@ -522,15 +522,30 @@ function renderStackNode(node: ResolvedStackNode): string {
   return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
 }
 
+function coordinateAnchorToCss(
+  coord: { top?: string; right?: string; bottom?: string; left?: string }
+): string {
+  const parts: string[] = [];
+  if (coord.top != null) parts.push(`top:${coord.top};`);
+  if (coord.right != null) parts.push(`right:${coord.right};`);
+  if (coord.bottom != null) parts.push(`bottom:${coord.bottom};`);
+  if (coord.left != null) parts.push(`left:${coord.left};`);
+  return parts.join("");
+}
+
 function renderFixedNode(node: ResolvedFixedNode): string {
+  const anchorCss =
+    typeof node.anchor === "string" ? anchorToCss(node.anchor) : coordinateAnchorToCss(node.anchor);
   const style = [
     "position:absolute;",
     "z-index:2;",
-    anchorToCss(node.anchor),
+    anchorCss,
     styleToInlineCss(node.style, "region")
   ].join("");
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
-  return `<div data-node="fixed"${whenAttr} style="${escapeHtml(style)}">${node.children
+  const anchorAttr =
+    typeof node.anchor === "string" ? ` data-anchor="${escapeHtml(node.anchor)}"` : "";
+  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${node.children
     .map((child) => renderResolvedChild(child))
     .join("")}</div>`;
 }
