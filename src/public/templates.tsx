@@ -1,9 +1,22 @@
 import type { ReactNode } from "react";
 
+export { ArticleStarter } from "../templates/starter/article.js";
+export { ArticleTwoColumnStarter } from "../templates/starter/article-two-column.js";
+export { NovelStarter } from "../templates/starter/novel.js";
+export { HandbookStarter } from "../templates/starter/handbook.js";
+
+export { Callout } from "../components/Callout.js";
+export { Sidebar } from "../components/Sidebar.js";
+export { DropCap } from "../components/DropCap.js";
+export { Ornament } from "../components/Ornament.js";
+export { Epigraph } from "../components/Epigraph.js";
+export { SceneHeading } from "../components/SceneHeading.js";
+export { Dialogue } from "../components/Dialogue.js";
+
 /**
- * Minimal default template used during Phase 0. The previous LaTeX-era templates
- * (article, ieee, goofy) were removed; full starter templates will be
- * reintroduced in M12 once the Paged.js-targeted vocabulary is in place.
+ * Legacy default template; kept for backwards compatibility with the
+ * pre-spec ArticleTemplate import. Prefer the named starter templates
+ * (`ArticleStarter`, `NovelStarter`, etc.) for new work.
  */
 export function ArticleTemplate({ children }: { children?: ReactNode }) {
   return (
