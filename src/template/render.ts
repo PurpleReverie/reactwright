@@ -8,8 +8,13 @@ import type {
   FixedAnchor,
   FixedNode,
   FixedWhen,
+  FooterNode,
+  HeaderNode,
   LayerNode,
   LayerWhen,
+  MarginAnchor,
+  MarginMatterWhen,
+  PageCountNode,
   PageNode,
   PageNumberNode,
   PageRuleNode,
@@ -145,6 +150,42 @@ function readFixedAnchor(props: TemplateProps): FixedAnchor {
   }
 }
 
+function readMarginAnchor(props: TemplateProps, kind: "header" | "footer"): MarginAnchor {
+  switch (props.anchor) {
+    case "top-left":
+    case "top-center":
+    case "top-right":
+    case "bottom-left":
+    case "bottom-center":
+    case "bottom-right":
+    case "top-inside":
+    case "top-outside":
+    case "bottom-inside":
+    case "bottom-outside":
+    case "left-top":
+    case "left-middle":
+    case "left-bottom":
+    case "right-top":
+    case "right-middle":
+    case "right-bottom":
+      return props.anchor;
+    default:
+      throw new Error(`\`${kind}\` requires a valid \`anchor\` (e.g. top-left, bottom-center, top-outside).`);
+  }
+}
+
+function readMarginMatterWhen(props: TemplateProps, kind: "header" | "footer"): MarginMatterWhen | undefined {
+  if (props.when == null) {
+    return undefined;
+  }
+
+  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
+    return props.when;
+  }
+
+  throw new Error(`\`${kind}\` \`when\` must be \`all\`, \`first-page\`, or \`not-first-page\`.`);
+}
+
 function readLayerWhen(props: TemplateProps): LayerWhen | undefined {
   if (props.when == null) {
     return undefined;
@@ -260,6 +301,31 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         kind: "page-number",
         style: mergeTemplateStyleGroups(props)
       } satisfies PageNumberNode;
+    case "page-count":
+      return {
+        kind: "page-count",
+        style: mergeTemplateStyleGroups(props)
+      } satisfies PageCountNode;
+    case "header": {
+      const style = mergeTemplateStyleGroups(props);
+      return {
+        kind: "header",
+        anchor: readMarginAnchor(props, "header"),
+        when: readMarginMatterWhen(props, "header"),
+        style,
+        children: []
+      } satisfies HeaderNode;
+    }
+    case "footer": {
+      const style = mergeTemplateStyleGroups(props);
+      return {
+        kind: "footer",
+        anchor: readMarginAnchor(props, "footer"),
+        when: readMarginMatterWhen(props, "footer"),
+        style,
+        children: []
+      } satisfies FooterNode;
+    }
     case "rules":
       return {
         kind: "rules",
@@ -446,6 +512,8 @@ const templateHostConfig = {
       | StackNode
       | LayerNode
       | FixedNode
+      | HeaderNode
+      | FooterNode
       | CustomTemplateNode
       | RulesNode
   ): void {

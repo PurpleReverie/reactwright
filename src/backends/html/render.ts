@@ -14,12 +14,15 @@ import type {
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
+  ResolvedFooterNode,
+  ResolvedHeaderNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedPageBreakNode,
+  ResolvedPageCountNode,
   ResolvedPageNode,
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
@@ -282,7 +285,51 @@ function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
 }
 
 function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
-  return '<span data-node="page-number">1</span>';
+  return '<span data-node="page-number" class="reactdoc-page-number"></span>';
+}
+
+function renderPageCountNode(_node: ResolvedPageCountNode): string {
+  return '<span data-node="page-count" class="reactdoc-page-count"></span>';
+}
+
+function marginAnchorToCssBox(anchor: string): string {
+  // Maps the spec's anchor names to CSS Paged Media margin-box selectors.
+  switch (anchor) {
+    case "top-left":
+      return "@top-left";
+    case "top-center":
+      return "@top-center";
+    case "top-right":
+      return "@top-right";
+    case "bottom-left":
+      return "@bottom-left";
+    case "bottom-center":
+      return "@bottom-center";
+    case "bottom-right":
+      return "@bottom-right";
+    case "top-inside":
+    case "top-outside":
+      // Mirror-aware anchors map to top-left/top-right via @page :left/:right rules.
+      // Emitted under explicit :left/:right page selectors by the caller.
+      return anchor === "top-inside" ? "@top-left" : "@top-right";
+    case "bottom-inside":
+    case "bottom-outside":
+      return anchor === "bottom-inside" ? "@bottom-left" : "@bottom-right";
+    case "left-top":
+      return "@left-top";
+    case "left-middle":
+      return "@left-middle";
+    case "left-bottom":
+      return "@left-bottom";
+    case "right-top":
+      return "@right-top";
+    case "right-middle":
+      return "@right-middle";
+    case "right-bottom":
+      return "@right-bottom";
+    default:
+      return "@top-center";
+  }
 }
 
 function anchorToCss(anchor: string): string {
@@ -476,8 +523,15 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderLayerNode(node, 0);
     case "page-number":
       return renderPageNumberNode(node);
+    case "page-count":
+      return renderPageCountNode(node);
     case "fixed":
       return renderFixedNode(node);
+    case "header":
+    case "footer":
+      // Header/footer are extracted to CSS margin boxes by the page renderer.
+      // Reaching this case implies an unexpected nested placement.
+      return "";
     case "custom":
       return renderCustomNode(node);
     case "title":
@@ -503,15 +557,108 @@ function renderResolvedChild(node: ResolvedChild): string {
   }
 }
 
+type MarginMatterEntry = {
+  kind: "header" | "footer";
+  anchor: string;
+  when?: string;
+  flowName: string;
+  html: string;
+};
+
+function collectMarginMatter(page: ResolvedPageNode): MarginMatterEntry[] {
+  const entries: MarginMatterEntry[] = [];
+  let counter = 0;
+
+  for (const child of page.children) {
+    if (child.kind !== "header" && child.kind !== "footer") continue;
+
+    const flowName = `reactdoc-${child.kind}-${counter}`;
+    counter += 1;
+
+    const inner = child.children.map((c) => renderResolvedChild(c)).join("");
+    const html = `<div class="${flowName}" data-margin-flow="${flowName}">${inner}</div>`;
+
+    entries.push({
+      kind: child.kind,
+      anchor: child.anchor,
+      when: child.when,
+      flowName,
+      html
+    });
+  }
+
+  return entries;
+}
+
+function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
+  if (entries.length === 0) return "";
+
+  const rules: string[] = [];
+
+  // Each margin flow needs `position: running(name)` so Paged.js lifts the div
+  // out of body flow.
+  for (const e of entries) {
+    rules.push(`.${e.flowName}{position:running(${e.flowName});}`);
+  }
+
+  // Group entries by their effective @page selector based on `when` and anchor
+  // mirror semantics. For simplicity, emit one rule per entry.
+  for (const e of entries) {
+    const box = marginAnchorToCssBox(e.anchor);
+    const isInside = e.anchor.endsWith("inside");
+    const isOutside = e.anchor.endsWith("outside");
+
+    if (isInside || isOutside) {
+      // Two-sided: @page :left and @page :right invert.
+      const leftBox =
+        e.anchor.startsWith("top")
+          ? isInside
+            ? "@top-right"
+            : "@top-left"
+          : isInside
+            ? "@bottom-right"
+            : "@bottom-left";
+      const rightBox = box;
+      const whenPrefix = e.when === "first-page" ? ":first" : "";
+      const whenSuppress = e.when === "not-first-page";
+
+      rules.push(`@page :left${whenPrefix}{${leftBox}{content:element(${e.flowName});}}`);
+      rules.push(`@page :right${whenPrefix}{${rightBox}{content:element(${e.flowName});}}`);
+
+      if (whenSuppress) {
+        rules.push(`@page :first{${leftBox}{content:none;}${rightBox}{content:none;}}`);
+      }
+    } else {
+      if (e.when === "first-page") {
+        rules.push(`@page :first{${box}{content:element(${e.flowName});}}`);
+      } else if (e.when === "not-first-page") {
+        rules.push(`@page{${box}{content:element(${e.flowName});}}`);
+        rules.push(`@page :first{${box}{content:none;}}`);
+      } else {
+        rules.push(`@page{${box}{content:element(${e.flowName});}}`);
+      }
+    }
+  }
+
+  return rules.join("");
+}
+
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
+
+  const marginMatter = collectMarginMatter(page);
+  const marginMatterCss = buildMarginMatterCss(marginMatter);
+  const marginMatterHtml = marginMatter.map((e) => e.html).join("");
 
   const overlays = page.children
     .filter((child): child is ResolvedFixedNode => child.kind === "fixed")
     .map((child) => renderFixedNode(child))
     .join("");
-  const flowChildren = page.children.filter((child) => child.kind !== "fixed");
+
+  const flowChildren = page.children.filter(
+    (child) => child.kind !== "fixed" && child.kind !== "header" && child.kind !== "footer"
+  );
 
   let layerIndex = 0;
   const flowBody = flowChildren
@@ -530,9 +677,12 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const styleRules = [
     atPageRule ?? "",
     bodyTextRule ?? "",
+    marginMatterCss,
     "body{margin:0;}",
     ".reactdoc-flow{box-sizing:border-box;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
+    ".reactdoc-page-number::before{content:counter(page);}",
+    ".reactdoc-page-count::before{content:counter(pages);}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
@@ -561,6 +711,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     `<script src="${PAGED_JS_SCRIPT}"></script>`,
     "</head>",
     "<body>",
+    marginMatterHtml,
     overlays.length > 0 ? `<div class="reactdoc-overlay">${overlays}</div>` : "",
     `<div class="reactdoc-flow">${flowBody}</div>`,
     "</body>",

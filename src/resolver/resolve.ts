@@ -40,12 +40,15 @@ import type {
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
+  ResolvedFooterNode,
+  ResolvedHeaderNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedPageBreakNode,
+  ResolvedPageCountNode,
   ResolvedPageNode,
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
@@ -278,6 +281,8 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
       child.kind === "stack" ||
       child.kind === "layer" ||
       child.kind === "fixed" ||
+      child.kind === "header" ||
+      child.kind === "footer" ||
       child.kind === "custom"
     ) {
       collectRulesFromChildren(child.children, rules);
@@ -317,6 +322,8 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
     template.kind === "stack" ||
     template.kind === "layer" ||
     template.kind === "fixed" ||
+    template.kind === "header" ||
+    template.kind === "footer" ||
     template.kind === "custom"
   ) {
     collectRulesFromChildren(template.children, rules);
@@ -474,6 +481,8 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "stack":
     case "layer":
     case "fixed":
+    case "header":
+    case "footer":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
     case "page-set":
@@ -493,6 +502,13 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           kind: "page-number",
           style: child.style
         } satisfies ResolvedPageNumberNode
+      ];
+    case "page-count":
+      return [
+        {
+          kind: "page-count",
+          style: child.style
+        } satisfies ResolvedPageCountNode
       ];
   }
 }
@@ -535,6 +551,22 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedFixedNode;
+    case "header":
+      return {
+        kind: "header",
+        anchor: node.anchor,
+        when: node.when,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedHeaderNode;
+    case "footer":
+      return {
+        kind: "footer",
+        anchor: node.anchor,
+        when: node.when,
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedFooterNode;
     case "custom":
       return {
         kind: "custom",
@@ -546,6 +578,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "page-set":
     case "rules":
     case "page-number":
+    case "page-count":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");

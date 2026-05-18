@@ -177,6 +177,47 @@ export type PageNumberNode = {
   style?: TemplateStyle;
 };
 
+export type PageCountNode = {
+  kind: "page-count";
+  style?: TemplateStyle;
+};
+
+export type MarginAnchor =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "top-inside"
+  | "top-outside"
+  | "bottom-inside"
+  | "bottom-outside"
+  | "left-top"
+  | "left-middle"
+  | "left-bottom"
+  | "right-top"
+  | "right-middle"
+  | "right-bottom";
+
+export type MarginMatterWhen = "all" | "first-page" | "not-first-page";
+
+export type HeaderNode = {
+  kind: "header";
+  anchor: MarginAnchor;
+  when?: MarginMatterWhen;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
+export type FooterNode = {
+  kind: "footer";
+  anchor: MarginAnchor;
+  when?: MarginMatterWhen;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
 export type SlotNode = {
   kind: "slot";
   name: SlotName;
@@ -202,7 +243,10 @@ export type TemplateNode =
   | StackNode
   | LayerNode
   | FixedNode
+  | HeaderNode
+  | FooterNode
   | PageNumberNode
+  | PageCountNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -216,11 +260,14 @@ export type TemplateContainerNode =
   | StackNode
   | LayerNode
   | FixedNode
+  | HeaderNode
+  | FooterNode
   | CustomTemplateNode
   | RulesNode;
 
 export type TemplateChild =
   | TemplateContainerNode
   | PageNumberNode
+  | PageCountNode
   | SlotNode
   | TemplateTextNode;

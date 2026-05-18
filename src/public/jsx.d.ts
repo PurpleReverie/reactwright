@@ -222,7 +222,36 @@ type FixedProps = TemplateStyleBag & {
   when?: "all" | "first-page" | "not-first-page";
 };
 
+type MarginAnchorName =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "top-inside"
+  | "top-outside"
+  | "bottom-inside"
+  | "bottom-outside"
+  | "left-top"
+  | "left-middle"
+  | "left-bottom"
+  | "right-top"
+  | "right-middle"
+  | "right-bottom";
+
+type HeaderProps = TemplateStyleBag & {
+  anchor: MarginAnchorName;
+  when?: "all" | "first-page" | "not-first-page";
+};
+
+type FooterProps = TemplateStyleBag & {
+  anchor: MarginAnchorName;
+  when?: "all" | "first-page" | "not-first-page";
+};
+
 type PageNumberProps = Omit<TemplateStyleBag, "children">;
+type PageCountProps = Omit<TemplateStyleBag, "children">;
 
 type SlotProps = {
   name: "title" | "author" | "abstract" | "body";
@@ -264,7 +293,10 @@ declare module "react" {
       stack: StackProps;
       layer: LayerProps;
       fixed: FixedProps;
+      header: HeaderProps;
+      footer: FooterProps;
       "page-number": PageNumberProps;
+      "page-count": PageCountProps;
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
@@ -298,7 +330,10 @@ declare module "react/jsx-runtime" {
       stack: StackProps;
       layer: LayerProps;
       fixed: FixedProps;
+      header: HeaderProps;
+      footer: FooterProps;
       "page-number": PageNumberProps;
+      "page-count": PageCountProps;
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
@@ -332,7 +367,10 @@ declare module "react/jsx-dev-runtime" {
       stack: StackProps;
       layer: LayerProps;
       fixed: FixedProps;
+      header: HeaderProps;
+      footer: FooterProps;
       "page-number": PageNumberProps;
+      "page-count": PageCountProps;
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
@@ -366,7 +404,10 @@ declare global {
       stack: StackProps;
       layer: LayerProps;
       fixed: FixedProps;
+      header: HeaderProps;
+      footer: FooterProps;
       "page-number": PageNumberProps;
+      "page-count": PageCountProps;
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;

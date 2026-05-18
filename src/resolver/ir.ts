@@ -178,6 +178,27 @@ export type ResolvedPageNumberNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedPageCountNode = {
+  kind: "page-count";
+  style?: TemplateStyle;
+};
+
+export type ResolvedHeaderNode = {
+  kind: "header";
+  anchor: string;
+  when?: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
+export type ResolvedFooterNode = {
+  kind: "footer";
+  anchor: string;
+  when?: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
@@ -223,7 +244,10 @@ export type ResolvedTemplateNode =
   | ResolvedStackNode
   | ResolvedLayerNode
   | ResolvedFixedNode
+  | ResolvedHeaderNode
+  | ResolvedFooterNode
   | ResolvedPageNumberNode
+  | ResolvedPageCountNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

@@ -146,6 +146,33 @@ test("custom template intrinsic renders through HTML backend", () => {
   assert.match(html, /data-node="callout-test"/);
 });
 
+test("header/footer compile to CSS Paged Media margin boxes with running elements", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "25mm" }}>
+      <header anchor="top-center" when="not-first-page">
+        <slot name="title" />
+      </header>
+      <footer anchor="bottom-center">
+        <page-number /> of <page-count />
+      </footer>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const resolved = resolveDocument(renderContentToIR(createPaper()), renderTemplateToIR(template));
+  const html = renderResolvedToHTML(resolved);
+
+  assert.match(html, /position:running\(reactdoc-header-0\)/);
+  assert.match(html, /@page\{@bottom-center\{content:element\(reactdoc-footer-1\);\}\}/);
+  assert.match(html, /@page :first\{@top-center\{content:none;\}\}/);
+  assert.match(html, /reactdoc-page-number/);
+  assert.match(html, /reactdoc-page-count/);
+  assert.match(html, /counter\(page\)/);
+  assert.match(html, /counter\(pages\)/);
+});
+
 test("fixed overlay renders with data attributes for anchor and when", () => {
   const template = (
     <page page={{ size: "a4", margin: "25mm" }}>

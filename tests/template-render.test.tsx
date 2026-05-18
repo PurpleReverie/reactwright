@@ -203,6 +203,31 @@ test("template renderer accepts registered custom intrinsics", () => {
   });
 });
 
+test("template renderer supports header/footer/page-count primitives with anchors and when", () => {
+  const result = renderTemplateToIR(
+    <page>
+      <header anchor="top-center" when="not-first-page">
+        <slot name="title" />
+      </header>
+      <footer anchor="bottom-center">
+        <page-number /> of <page-count />
+      </footer>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  assert.equal(result.children.length, 3);
+  assert.equal(result.children[0]?.kind, "header");
+  assert.equal(result.children[0]?.anchor, "top-center");
+  assert.equal(result.children[0]?.when, "not-first-page");
+  assert.equal(result.children[1]?.kind, "footer");
+  const footer = result.children[1] as { children: { kind: string }[] };
+  assert.equal(footer.children.some((c) => c.kind === "page-number"), true);
+  assert.equal(footer.children.some((c) => c.kind === "page-count"), true);
+});
+
 test("template renderer supports unified role and page rules", () => {
   const result = renderTemplateToIR(
     <page style={{ size: "a4" }}>
