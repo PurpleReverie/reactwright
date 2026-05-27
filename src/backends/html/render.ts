@@ -1325,9 +1325,14 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-list-of ol{list-style:none;padding-left:0;}",
     ".reactdoc-list-of-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
     ".reactdoc-list-of-page::after{content:target-counter(attr(href url, '#'), page);}",
-    "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
+    "h1,h2,h3,h4,h5,h6,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
+    // Headings should never inherit text-align: justify from a parent region
+    // — that produces gigantic word-spacing in short titles. Default to left
+    // alignment unless a role rule explicitly opts in.
+    "h1,h2,h3,h4,h5,h6{text-align:left;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
+    "h3{font-size:1.05em;font-weight:bold;margin-top:0.8em;margin-bottom:0.2em;}",
     "p + p{margin-top:0.6em;}",
     "section + section{margin-top:1em;}",
     "blockquote{padding-left:1.5em;border-left:2px solid #cbd5e1;}",
@@ -1337,9 +1342,13 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "table{border-collapse:collapse;width:100%;}",
     "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
     "figure img{max-width:100%;height:auto;}",
+    // Math block centering is robust against parent text-align:justify by
+    // pinning the inner .katex-display to a centered block. The numbered-
+    // equation ::before counter floats at the right margin.
     ".reactdoc-math-block{position:relative;text-align:center;margin:0.6em 0;}",
-    ".reactdoc-math-block .katex-display{margin:0;}",
-    ".reactdoc-math-block[data-variant]::before{position:absolute;right:0;top:50%;transform:translateY(-50%);font-style:normal;}"
+    ".reactdoc-math-block .katex-display{margin:0;text-align:center;}",
+    ".reactdoc-math-block .katex-display>.katex{display:inline-block;text-align:initial;}",
+    ".reactdoc-math-block[data-variant]::before{position:absolute;right:0;top:50%;transform:translateY(-50%);font-style:normal;text-align:right;}"
   ]
     .filter((s) => s.length > 0)
     .join("");
