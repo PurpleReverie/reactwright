@@ -47,6 +47,14 @@ export type InlineImgNode = {
   height?: string;
 };
 
+export type RefShow = "number" | "page" | "title" | "number-and-page";
+
+export type RefNode = {
+  kind: "ref";
+  to: string;
+  show?: RefShow;
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -192,7 +200,8 @@ export type InlineNode =
   | BreakNode
   | SubNode
   | SupNode
-  | InlineImgNode;
+  | InlineImgNode
+  | RefNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -237,6 +246,7 @@ export type SemanticNode =
   | SubNode
   | SupNode
   | InlineImgNode
+  | RefNode
   | TextNode;
 
 export type SemanticContainerNode =

@@ -141,6 +141,31 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports ref inline primitive", () => {
+  const result = renderContentToIR(
+    <document title="Refs">
+      <p>
+        See <ref to="fig-overview" show="number-and-page" />.
+      </p>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Refs",
+    children: [
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "See " },
+          { kind: "ref", to: "fig-overview", show: "number-and-page" },
+          { kind: "text", value: "." }
+        ]
+      }
+    ]
+  });
+});
+
 test("content renderer carries id prop on block primitives", () => {
   const result = renderContentToIR(
     <document title="Refs">

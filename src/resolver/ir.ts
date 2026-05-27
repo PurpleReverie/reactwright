@@ -49,6 +49,12 @@ export type ResolvedInlineImgNode = {
   height?: string;
 };
 
+export type ResolvedRefNode = {
+  kind: "ref";
+  to: string;
+  show: "number" | "page" | "title" | "number-and-page";
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -318,6 +324,7 @@ export type ResolvedContentNode =
   | ResolvedSubNode
   | ResolvedSupNode
   | ResolvedInlineImgNode
+  | ResolvedRefNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -344,7 +351,8 @@ export type ResolvedInlineNode =
   | ResolvedBreakNode
   | ResolvedSubNode
   | ResolvedSupNode
-  | ResolvedInlineImgNode;
+  | ResolvedInlineImgNode
+  | ResolvedRefNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

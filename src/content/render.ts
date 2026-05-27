@@ -246,6 +246,28 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       };
     case "br":
       return { kind: "br" };
+    case "ref": {
+      const to = typeof (props as Record<string, unknown>).to === "string"
+        ? ((props as Record<string, unknown>).to as string).trim()
+        : "";
+      if (to.length === 0) {
+        throw new Error("`ref` requires a non-empty `to`.");
+      }
+      const showRaw = (props as Record<string, unknown>).show;
+      let show: "number" | "page" | "title" | "number-and-page" | undefined;
+      if (showRaw != null) {
+        if (showRaw === "number" || showRaw === "page" || showRaw === "title" || showRaw === "number-and-page") {
+          show = showRaw;
+        } else {
+          throw new Error("`ref` `show` must be `number`, `page`, `title`, or `number-and-page`.");
+        }
+      }
+      return {
+        kind: "ref",
+        to,
+        ...(show != null ? { show } : {})
+      };
+    }
     case "img": {
       const src = typeof props.src === "string" ? props.src.trim() : "";
       if (src.length === 0) {
@@ -324,7 +346,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "br" &&
         child.kind !== "sub" &&
         child.kind !== "sup" &&
-        child.kind !== "img"
+        child.kind !== "img" &&
+        child.kind !== "ref"
       ) {
         throw new Error("`p` may only contain inline primitives.");
       }
@@ -375,7 +398,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "br" &&
         child.kind !== "sub" &&
         child.kind !== "sup" &&
-        child.kind !== "img"
+        child.kind !== "img" &&
+        child.kind !== "ref"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }

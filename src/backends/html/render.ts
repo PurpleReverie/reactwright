@@ -32,6 +32,7 @@ import type {
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
   ResolvedPreNode,
+  ResolvedRefNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -262,6 +263,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<sup>${node.children.map(renderInlineNode).join("")}</sup>`;
     case "img":
       return renderInlineImgNode(node);
+    case "ref":
+      return renderRefNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -272,6 +275,15 @@ function renderInlineImgNode(node: ResolvedInlineImgNode): string {
   const heightAttr = node.height != null ? ` height="${escapeHtml(node.height)}"` : "";
   const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
   return `<img data-inline src="${escapeHtml(node.src)}"${altAttr}${widthAttr}${heightAttr} />`;
+}
+
+function refClassFor(show: string): string {
+  return `reactdoc-ref reactdoc-ref-${show}`;
+}
+
+function renderRefNode(node: ResolvedRefNode): string {
+  const href = `#${escapeHtml(node.to)}`;
+  return `<a data-node="ref" data-ref-to="${escapeHtml(node.to)}" data-ref-show="${escapeHtml(node.show)}" class="${refClassFor(node.show)}" href="${href}"></a>`;
 }
 
 function idAttr(id: string | undefined): string {
@@ -530,6 +542,7 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "sub":
     case "sup":
     case "img":
+    case "ref":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -676,6 +689,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "sub":
     case "sup":
     case "img":
+    case "ref":
     case "text":
     case "page-break":
     case "set-running":
@@ -852,6 +866,10 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
     ".reactdoc-page-number::before{content:counter(page);}",
     ".reactdoc-page-count::before{content:counter(pages);}",
+    ".reactdoc-ref-number::after{content:target-counter(attr(href url), reactdoc-ref);}",
+    ".reactdoc-ref-page::after{content:target-counter(attr(href url), page);}",
+    ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
+    ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' on p. ' target-counter(attr(href url), page);}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",

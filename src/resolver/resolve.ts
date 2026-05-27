@@ -19,6 +19,7 @@ import type {
   PageBreakNode,
   ParagraphNode,
   PreNode,
+  RefNode,
   RowNode,
   SectionNode,
   SemanticBlockChild,
@@ -68,6 +69,7 @@ import type {
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
   ResolvedPreNode,
+  ResolvedRefNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -167,6 +169,14 @@ function resolveInlineImgNode(node: InlineImgNode): ResolvedInlineImgNode {
   };
 }
 
+function resolveRefNode(node: RefNode): ResolvedRefNode {
+  return {
+    kind: "ref",
+    to: node.to,
+    show: node.show ?? "number"
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -178,6 +188,7 @@ function resolveInlineNode(
     | SubNode
     | SupNode
     | InlineImgNode
+    | RefNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -198,6 +209,8 @@ function resolveInlineNode(
       return resolveSupNode(node);
     case "img":
       return resolveInlineImgNode(node);
+    case "ref":
+      return resolveRefNode(node);
   }
 }
 
@@ -602,6 +615,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "sub":
     case "sup":
     case "img":
+    case "ref":
     case "text":
     case "page-break":
     case "set-running":

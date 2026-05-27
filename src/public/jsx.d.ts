@@ -90,6 +90,11 @@ type InlineImgProps = {
   height?: string;
 };
 
+type RefProps = {
+  to: string;
+  show?: "number" | "page" | "title" | "number-and-page";
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -357,6 +362,7 @@ declare module "react" {
       sub: SubProps;
       sup: SupProps;
       img: InlineImgProps;
+      ref: RefProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -405,6 +411,7 @@ declare module "react/jsx-runtime" {
       sub: SubProps;
       sup: SupProps;
       img: InlineImgProps;
+      ref: RefProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -453,6 +460,7 @@ declare module "react/jsx-dev-runtime" {
       sub: SubProps;
       sup: SupProps;
       img: InlineImgProps;
+      ref: RefProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -501,6 +509,7 @@ declare global {
       sub: SubProps;
       sup: SupProps;
       img: InlineImgProps;
+      ref: RefProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
