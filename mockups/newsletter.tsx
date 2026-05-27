@@ -6,7 +6,7 @@ const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")
 
 // Newsletter — multi-column layout.
 // Exercises: <columns widths={["2fr","1fr"]}> with <column> children,
-// inline <img> in body, <br>/<sub>/<sup>, <layer> for tinted background,
+// inline <img> in body, <br>/<sub>/<sup>, <layer> for page-wide tint,
 // <fixed> for masthead overlay.
 
 export function Template() {

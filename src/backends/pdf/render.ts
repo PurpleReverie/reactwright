@@ -81,9 +81,14 @@ export async function buildPdfFromHtml(
 
   try {
     const browserPage = await browser.newPage();
-    // Use a data URL or setContent so Paged.js can fetch its polyfill (the
-    // HTML references it via script tag).
-    await browserPage.setContent(html, { waitUntil: "networkidle0" });
+    // Prepend <base href="file:///"> so that absolute filesystem paths in
+    // <img src="/abs/path"> etc. resolve as file:// URLs. Without this,
+    // setContent uses about:blank as the document URL and absolute paths
+    // fail to load.
+    const htmlWithBase = html.includes("<base ")
+      ? html
+      : html.replace(/<head>/i, '<head><base href="file:///" />');
+    await browserPage.setContent(htmlWithBase, { waitUntil: "networkidle0" });
 
     // Wait for Paged.js to finish paginating. Passed as a source string to
     // avoid tsx/esbuild helper injection (e.g. __name) leaking into the page

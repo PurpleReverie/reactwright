@@ -184,6 +184,8 @@ function buildAtPageRule(style: TemplateStyle | undefined, name?: string): strin
   if (style.marginBottom != null) declarations.push(`margin-bottom:${String(style.marginBottom)};`);
   if (style.marginLeft != null) declarations.push(`margin-left:${String(style.marginLeft)};`);
 
+  if (style.backgroundColor != null) declarations.push(`background-color:${String(style.backgroundColor)};`);
+
   if (declarations.length === 0) return null;
 
   const selector = name != null ? `@page ${name}` : "@page";
@@ -1097,9 +1099,27 @@ function buildSidenoteAreaCss(page: ResolvedPageNode): string {
   ].join("");
 }
 
+function buildPageBackgroundLayersCss(page: ResolvedPageNode): string {
+  // A content-less <layer> with a backgroundColor (or other page-paintable
+  // style) is treated as a page-wide background: Paged.js paints @page
+  // background-color over the whole sheet, which is exactly what writers
+  // mean by "page tint". Layers with children stay as in-flow positioned
+  // divs (see flowBody below).
+  const decls: string[] = [];
+  for (const child of page.children) {
+    if (child.kind !== "layer") continue;
+    if (child.children.length > 0) continue;
+    const s = child.style;
+    if (s?.backgroundColor != null) decls.push(`background-color:${String(s.backgroundColor)};`);
+  }
+  if (decls.length === 0) return "";
+  return `@page{${decls.join("")}}`;
+}
+
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
+  const pageBackgroundLayersCss = buildPageBackgroundLayersCss(page);
   const footnoteAreaCss = buildFootnoteAreaCss(page);
   const sidenoteAreaCss = buildSidenoteAreaCss(page);
   const variantRulesCss = buildVariantRulesCss(page);
@@ -1124,13 +1144,18 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     .join("");
 
   const flowChildren = page.children.filter(
-    (child) => child.kind !== "fixed" && child.kind !== "header" && child.kind !== "footer"
+    (child) =>
+      child.kind !== "fixed" &&
+      child.kind !== "header" &&
+      child.kind !== "footer" &&
+      // Content-less layers are emitted as page-level @page background CSS,
+      // not as in-flow divs.
+      !(child.kind === "layer" && child.children.length === 0)
   );
 
-  // Layers stack by JSX position relative to non-layer content. Layers that
-  // appear before the first non-layer child sit behind it (negative z-index);
-  // layers that appear after sit in front (positive z-index). This matches the
-  // common "tinted background" vs "watermark overlay" cases.
+  // Content layers stack by JSX position relative to non-layer content. A
+  // layer that appears before the first non-layer child sits behind it
+  // (negative z-index); one that appears after sits in front (positive).
   const firstContentIdx = flowChildren.findIndex((c) => c.kind !== "layer");
   let beforeIdx = 0;
   let afterIdx = 0;
@@ -1151,6 +1176,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
 
   const styleRules = [
     atPageRule ?? "",
+    pageBackgroundLayersCss,
     bodyTextRule ?? "",
     marginMatterCss,
     runningStringsCss,
