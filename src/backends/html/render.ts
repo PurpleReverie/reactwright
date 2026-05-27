@@ -326,7 +326,7 @@ function renderInlineImgNode(node: ResolvedInlineImgNode): string {
   const widthAttr = node.width != null ? ` width="${escapeHtml(node.width)}"` : "";
   const heightAttr = node.height != null ? ` height="${escapeHtml(node.height)}"` : "";
   const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
-  return `<img data-inline src="${escapeHtml(node.src)}"${altAttr}${widthAttr}${heightAttr} />`;
+  return `<img data-inline src="${escapeHtml(normalizeImageSrc(node.src))}"${altAttr}${widthAttr}${heightAttr} />`;
 }
 
 function refClassFor(show: string): string {
@@ -408,13 +408,16 @@ function renderCiteNode(node: ResolvedCiteNode): string {
 
 function renderBibliographyNode(node: ResolvedBibliographyNode): string {
   const title = node.title != null ? `<h2 class="reactdoc-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
+  // Each entry carries an explicit reactdoc-bib counter increment so that
+  // <cite> can resolve to the right number via target-counter(url, reactdoc-bib).
+  // Implicit list-item counters do not survive Paged.js chunking reliably.
   const items = node.entries
     .map((e) => {
       const usedAttr = e.used ? ` data-used="true"` : "";
-      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${escapeHtml(e.text)}</li>`;
+      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr} style="counter-increment:reactdoc-bib;">${escapeHtml(e.text)}</li>`;
     })
     .join("");
-  return `<section data-node="bibliography" class="reactdoc-bibliography">${title}<ol>${items}</ol></section>`;
+  return `<section data-node="bibliography" class="reactdoc-bibliography" style="counter-reset:reactdoc-bib;">${title}<ol>${items}</ol></section>`;
 }
 
 function idAttr(id: string | undefined): string {
@@ -427,12 +430,23 @@ function renderParagraphNode(node: ResolvedParagraphNode): string {
   return `<p${idAttr(node.id)}${variantAttr}>${inner}</p>`;
 }
 
+function normalizeImageSrc(src: string): string {
+  // Absolute filesystem paths (POSIX) become file:// URLs so they load in
+  // headless Chromium and in browsers opened directly on the HTML. Other
+  // schemes (http, https, data, file already) and relative paths pass through.
+  if (src.startsWith("/")) return `file://${src}`;
+  return src;
+}
+
 function renderFigureNode(node: ResolvedFigureNode): string {
   const widthStyle = node.width != null ? ` style="width:${escapeHtml(node.width)};"` : "";
-  const alt = escapeHtml(node.alt ?? node.caption ?? "");
+  // Default alt to empty so a broken-image fallback doesn't double up the
+  // figcaption text in the rendered output. Callers that want an explicit
+  // accessibility description should set `alt` themselves.
+  const alt = escapeHtml(node.alt ?? "");
   const caption =
     node.caption != null ? `<figcaption>${escapeHtml(node.caption)}</figcaption>` : "";
-  return `<figure${idAttr(node.id)}><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
+  return `<figure${idAttr(node.id)}><img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
 function renderCellNode(node: ResolvedCellNode): string {
@@ -488,7 +502,7 @@ function renderImageNode(node: ResolvedImageNode): string {
   const combined = declarations.join("") + inline;
   const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
   const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
-  return `<img data-node="image" src="${escapeHtml(node.src)}"${altAttr}${styleAttr} />`;
+  return `<img data-node="image" src="${escapeHtml(normalizeImageSrc(node.src))}"${altAttr}${styleAttr} />`;
 }
 
 function renderSetRunningNode(node: ResolvedSetRunningNode): string {
@@ -1215,7 +1229,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
     ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' on p. ' target-counter(attr(href url), page);}",
     ".reactdoc-cite::before{content:'[';}",
-    ".reactdoc-cite::after{content:target-counter(attr(href url), list-item) ']';}",
+    ".reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib) ']';}",
     ".reactdoc-bibliography ol{padding-left:1.5em;}",
     ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
     ".reactdoc-index-pagerefs a + a::before{content:', ';}",
