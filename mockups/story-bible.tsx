@@ -46,7 +46,16 @@ export function Template() {
           dropCap={{ lines: 3, font: "'Lora', serif" }}
         />
         <role on="quote" match="dialogue" apply="dialogue" />
-        <role on="section" match="scene-heading" apply="sceneHeading" />
+        <role
+          on="section"
+          match="scene-heading"
+          apply="sceneHeading"
+          style={{
+            fontFamily: "'JetBrains Mono', Menlo, monospace",
+            fontSize: "9pt",
+            lineHeight: 1.4
+          }}
+        />
         <role
           on="figure"
           match="plate"
@@ -63,6 +72,14 @@ export function Template() {
         />
       </rules>
 
+      {/*
+        page-sets declare regime geometry + chrome only — NOT a body slot.
+        That way the body slot at the bottom streams all content in
+        document order, and each <section page="X"> routes itself to the
+        matching regime via CSS `page: <name>`. If the body slot lived
+        inside a page-set it would filter content to that regime, which
+        re-groups the writer's interleaving into contiguous blocks.
+      */}
       <page-set
         name="chapter"
         style={{ size: "a5", margin: "18mm" }}
@@ -76,24 +93,12 @@ export function Template() {
         <footer anchor="bottom-outside">
           <page-number />
         </footer>
-
-        <stack gap="0">
-          <region>
-            <slot name="body" />
-          </region>
-        </stack>
       </page-set>
 
       <page-set
         name="portrait"
         style={{ size: "a5", margin: "0", backgroundColor: "#0f172a" }}
-      >
-        <stack gap="0">
-          <region>
-            <slot name="body" />
-          </region>
-        </stack>
-      </page-set>
+      />
 
       <page-set
         name="script"
@@ -102,13 +107,11 @@ export function Template() {
         <footer anchor="bottom-center">
           — <page-number /> —
         </footer>
-
-        <stack gap="0" style={{ fontFamily: "'JetBrains Mono', Menlo, monospace", fontSize: "9pt", lineHeight: 1.4 }}>
-          <region>
-            <slot name="body" />
-          </region>
-        </stack>
       </page-set>
+
+      <region>
+        <slot name="body" />
+      </region>
     </page>
   );
 }

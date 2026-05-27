@@ -921,22 +921,25 @@ function renderFixedNode(node: ResolvedFixedNode): string {
 }
 
 function renderPageSetNode(node: ResolvedPageSetNode): string {
-  // Wrap the page-set's children in a regime container that routes them to
-  // the named CSS Paged Media regime via `page: <name>`. CSS Paged Media
-  // inserts an implicit page break whenever the named page changes, so we
-  // don't add an explicit break-before (which would compound with role
-  // rules and produce blank intermediate pages).
+  // A page-set with only chrome (headers, footers, background layers) and
+  // no body slot is a pure regime declaration — the chrome is already
+  // extracted to per-regime CSS, so the wrapper itself has nothing to
+  // emit. Emitting an empty <section style="page: <name>"> would force
+  // an unwanted page break to a blank page.
   //
-  // Inside, fixed overlays, regions, and stacks render inline;
-  // headers/footers and content-less background layers are extracted to
-  // per-regime CSS (see collectMarginMatter and buildPageBackgroundLayersCss)
-  // and excluded here.
+  // When the page-set DOES have inline body content (stack, region, etc.),
+  // emit a wrapper that routes those children to the named CSS Paged Media
+  // regime via `page: <name>`. CSS Paged Media inserts an implicit page
+  // break on named-page change, so no explicit break-before is needed.
   const inlineChildren = node.children.filter(
     (c) =>
       c.kind !== "header" &&
       c.kind !== "footer" &&
       !(c.kind === "layer" && c.children.length === 0)
   );
+  if (inlineChildren.length === 0) {
+    return "";
+  }
   const style = `page:${node.name};`;
   return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${inlineChildren.map((c) => renderResolvedChild(c)).join("")}</section>`;
 }
