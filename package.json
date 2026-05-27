@@ -16,6 +16,10 @@
     "./templates": {
       "types": "./src/public/templates.tsx",
       "default": "./src/public/templates.tsx"
+    },
+    "./contract": {
+      "types": "./src/public/contract.ts",
+      "default": "./src/public/contract.ts"
     }
   },
   "scripts": {
