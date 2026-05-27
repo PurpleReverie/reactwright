@@ -18,6 +18,8 @@ import type {
   SidenoteAreaNode,
   SidenoteAreaSide,
   TocNode,
+  ListOfNode,
+  ListOfKind,
   LayerNode,
   LayerWhen,
   MarginAnchor,
@@ -390,6 +392,23 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...(typeof gapRaw === "string" ? { gap: gapRaw } : {}),
         style: mergeTemplateStyleGroups(props)
       } satisfies SidenoteAreaNode;
+    }
+    case "list-of": {
+      const ofRaw = (props as Record<string, unknown>).of;
+      let of: ListOfKind;
+      if (ofRaw === "figure" || ofRaw === "table" || ofRaw === "equation") {
+        of = ofRaw;
+      } else {
+        throw new Error("`list-of` `of` must be `figure`, `table`, or `equation`.");
+      }
+      const titleProp = (props as Record<string, unknown>).title;
+      const title = typeof titleProp === "string" ? titleProp : undefined;
+      return {
+        kind: "list-of",
+        of,
+        ...(title != null ? { title } : {}),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies ListOfNode;
     }
     case "toc": {
       const titleProp = (props as Record<string, unknown>).title;

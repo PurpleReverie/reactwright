@@ -69,6 +69,8 @@ import type {
   ResolvedSidenoteNode,
   ResolvedTocEntry,
   ResolvedTocNode,
+  ResolvedListOfEntry,
+  ResolvedListOfNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -125,6 +127,11 @@ type ResolveContext = {
   citeKeys: Set<string>;
   indexEntries: Map<string, string[]>;
   tocEntries: ResolvedTocEntry[];
+  listOf: {
+    figure: ResolvedListOfEntry[];
+    table: ResolvedListOfEntry[];
+    equation: ResolvedListOfEntry[];
+  };
 };
 
 function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
@@ -229,6 +236,66 @@ function stampSectionIdsInSlotMap(slots: SlotMap, entries: ResolvedTocEntry[]): 
   for (const list of [slots.abstract, slots.body]) {
     for (const node of list) {
       stampSectionIdsAndCollectToc(node, 1, used, entries);
+    }
+  }
+}
+
+function stampListOfAndCollect(
+  node: ResolvedContentNode,
+  counts: { figure: number; table: number; equation: number },
+  used: Set<string>,
+  buckets: { figure: ResolvedListOfEntry[]; table: ResolvedListOfEntry[]; equation: ResolvedListOfEntry[] }
+): void {
+  if (node.kind === "figure") {
+    counts.figure += 1;
+    let id = node.id;
+    if (id == null || id.length === 0) {
+      let candidate = `reactdoc-fig-${counts.figure}`;
+      while (used.has(candidate)) candidate += "-x";
+      id = candidate;
+      node.id = id;
+    }
+    used.add(id);
+    buckets.figure.push({ id, caption: node.caption ?? `Figure ${counts.figure}` });
+  } else if (node.kind === "table") {
+    counts.table += 1;
+    let id = node.id;
+    if (id == null || id.length === 0) {
+      let candidate = `reactdoc-tbl-${counts.table}`;
+      while (used.has(candidate)) candidate += "-x";
+      id = candidate;
+      node.id = id;
+    }
+    used.add(id);
+    buckets.table.push({ id, caption: node.caption ?? `Table ${counts.table}` });
+  } else if (node.kind === "math") {
+    counts.equation += 1;
+    let id = node.id;
+    if (id == null || id.length === 0) {
+      let candidate = `reactdoc-eq-${counts.equation}`;
+      while (used.has(candidate)) candidate += "-x";
+      id = candidate;
+      node.id = id;
+    }
+    used.add(id);
+    buckets.equation.push({ id, caption: `Equation ${counts.equation}` });
+  }
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      stampListOfAndCollect(child as ResolvedContentNode, counts, used, buckets);
+    }
+  }
+}
+
+function stampListOfInSlotMap(
+  slots: SlotMap,
+  buckets: { figure: ResolvedListOfEntry[]; table: ResolvedListOfEntry[]; equation: ResolvedListOfEntry[] }
+): void {
+  const counts = { figure: 0, table: 0, equation: 0 };
+  const used = new Set<string>();
+  for (const list of [slots.abstract, slots.body]) {
+    for (const node of list) {
+      stampListOfAndCollect(node, counts, used, buckets);
     }
   }
 }
@@ -957,6 +1024,18 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedSidenoteAreaNode
       ];
+    case "list-of": {
+      const entries = ctx.listOf[child.of];
+      return [
+        {
+          kind: "list-of",
+          of: child.of,
+          ...(child.title != null ? { title: child.title } : {}),
+          entries,
+          style: child.style
+        } satisfies ResolvedListOfNode
+      ];
+    }
     case "toc": {
       const maxDepth = child.depth ?? Number.POSITIVE_INFINITY;
       const entries = ctx.tocEntries.filter((e) => e.depth <= maxDepth);
@@ -1083,6 +1162,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "bibliography":
     case "index-template":
     case "toc":
+    case "list-of":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
@@ -1112,13 +1192,16 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   stampIndexAnchorsInSlotMap(slots, indexEntries);
   const tocEntries: ResolvedTocEntry[] = [];
   stampSectionIdsInSlotMap(slots, tocEntries);
+  const listOf = { figure: [] as ResolvedListOfEntry[], table: [] as ResolvedListOfEntry[], equation: [] as ResolvedListOfEntry[] };
+  stampListOfInSlotMap(slots, listOf);
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
     currentAnchors: undefined,
     citeKeys,
     indexEntries,
-    tocEntries
+    tocEntries,
+    listOf
   });
 
   if (resolved.kind !== "page") {

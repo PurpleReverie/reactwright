@@ -144,13 +144,13 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<h1[^>]*>Pipeline Test<\/h1>/);
   assert.match(html, /<em>end-to-end<\/em>/);
   assert.match(html, /<h2[^>]*>Intro<\/h2>/);
-  assert.match(html, /<figure>/);
+  assert.match(html, /<figure[^>]*>/);
   assert.match(html, /reactdoc-swatch\.png/);
   assert.match(html, /href="https:\/\/example\.com"/);
-  assert.match(html, /<pre data-language="txt"><code>plain-text block<\/code><\/pre>/);
-  assert.match(html, /<blockquote>/);
-  assert.match(html, /<ul>/);
-  assert.match(html, /<table>/);
+  assert.match(html, /<pre[^>]*data-language="txt"><code>plain-text block<\/code><\/pre>/);
+  assert.match(html, /<blockquote[^>]*>/);
+  assert.match(html, /<ul[^>]*>/);
+  assert.match(html, /<table[^>]*>/);
   assert.match(html, /<caption>House seats<\/caption>/);
   assert.match(html, /<th><p>House<\/p><\/th>/);
 });
@@ -221,6 +221,42 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
 
   assert.match(html, /data-node="fixed" data-when="first-page"/);
   assert.match(html, /data-node="page-number"/);
+});
+
+test("list-of template primitive collects figures with auto-generated ids", () => {
+  const documentTree = renderContentToIR(
+    <document title="ListOf Test">
+      <section title="Body">
+        <figure
+          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          caption="Tiny swatch one"
+          width="20mm"
+        />
+        <figure
+          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          caption="Tiny swatch two"
+          width="20mm"
+          id="fig-named"
+        />
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <list-of of="figure" title="List of Figures" />
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /data-node="list-of" data-of="figure"/);
+  assert.match(html, /href="#reactdoc-fig-1"/);
+  assert.match(html, /href="#fig-named"/);
+  assert.match(html, /Tiny swatch one/);
 });
 
 test("toc template primitive collects sections with auto-generated ids", () => {

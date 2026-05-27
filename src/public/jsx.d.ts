@@ -139,6 +139,11 @@ type TocProps = Omit<TemplateStyleBag, "children"> & {
   numbered?: boolean;
 };
 
+type ListOfProps = Omit<TemplateStyleBag, "children"> & {
+  of: "figure" | "table" | "equation";
+  title?: string;
+};
+
 type BibliographyEntryProp = {
   key: string;
   text: string;
@@ -427,6 +432,7 @@ declare module "react" {
       bibliography: BibliographyProps;
       index: IndexProps;
       toc: TocProps;
+      "list-of": ListOfProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -486,6 +492,7 @@ declare module "react/jsx-runtime" {
       bibliography: BibliographyProps;
       index: IndexProps;
       toc: TocProps;
+      "list-of": ListOfProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -545,6 +552,7 @@ declare module "react/jsx-dev-runtime" {
       bibliography: BibliographyProps;
       index: IndexProps;
       toc: TocProps;
+      "list-of": ListOfProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -604,6 +612,7 @@ declare global {
       bibliography: BibliographyProps;
       index: IndexProps;
       toc: TocProps;
+      "list-of": ListOfProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

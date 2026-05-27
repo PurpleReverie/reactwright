@@ -256,6 +256,15 @@ export type TocNode = {
   style?: TemplateStyle;
 };
 
+export type ListOfKind = "figure" | "table" | "equation";
+
+export type ListOfNode = {
+  kind: "list-of";
+  of: ListOfKind;
+  title?: string;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -328,6 +337,7 @@ export type TemplateNode =
   | IndexTemplateNode
   | SidenoteAreaNode
   | TocNode
+  | ListOfNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -357,5 +367,6 @@ export type TemplateChild =
   | IndexTemplateNode
   | SidenoteAreaNode
   | TocNode
+  | ListOfNode
   | SlotNode
   | TemplateTextNode;

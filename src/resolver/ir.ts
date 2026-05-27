@@ -265,6 +265,19 @@ export type ResolvedTocNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedListOfEntry = {
+  id: string;
+  caption: string;
+};
+
+export type ResolvedListOfNode = {
+  kind: "list-of";
+  of: "figure" | "table" | "equation";
+  title?: string;
+  entries: ResolvedListOfEntry[];
+  style?: TemplateStyle;
+};
+
 export type ResolvedBibliographyEntry = {
   key: string;
   text: string;
@@ -473,6 +486,7 @@ export type ResolvedTemplateNode =
   | ResolvedIndexTemplateNode
   | ResolvedSidenoteAreaNode
   | ResolvedTocNode
+  | ResolvedListOfNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

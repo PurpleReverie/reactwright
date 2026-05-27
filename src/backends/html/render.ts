@@ -38,6 +38,7 @@ import type {
   ResolvedIndexEntryNode,
   ResolvedIndexTemplateNode,
   ResolvedTocNode,
+  ResolvedListOfNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedSidenoteAreaNode,
@@ -329,6 +330,17 @@ function renderMathNode(node: ResolvedMathNode): string {
 
 function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
   return `<span data-node="index-entry" data-index-term="${escapeHtml(node.term)}" id="${escapeHtml(node.anchorId)}" hidden></span>`;
+}
+
+function renderListOfNode(node: ResolvedListOfNode): string {
+  const title = node.title != null ? `<h2 class="reactdoc-list-of-title">${escapeHtml(node.title)}</h2>` : "";
+  const items = node.entries
+    .map(
+      (e) =>
+        `<li class="reactdoc-list-of-entry"><a class="reactdoc-list-of-link" href="#${escapeHtml(e.id)}"><span class="reactdoc-list-of-text">${escapeHtml(e.caption)}</span><span class="reactdoc-list-of-page"></span></a></li>`
+    )
+    .join("");
+  return `<nav data-node="list-of" data-of="${escapeHtml(node.of)}" class="reactdoc-list-of">${title}<ol>${items}</ol></nav>`;
 }
 
 function renderTocNode(node: ResolvedTocNode): string {
@@ -762,6 +774,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderIndexTemplateNode(node);
     case "toc":
       return renderTocNode(node);
+    case "list-of":
+      return renderListOfNode(node);
     case "sidenote-area":
       // sidenote-area is extracted to absolute-positioned margin CSS at the page level.
       return "";
@@ -1035,6 +1049,9 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-toc-depth-2{padding-left:1.5em;}",
     ".reactdoc-toc-depth-3{padding-left:3em;}",
     ".reactdoc-toc-depth-4{padding-left:4.5em;}",
+    ".reactdoc-list-of ol{list-style:none;padding-left:0;}",
+    ".reactdoc-list-of-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
+    ".reactdoc-list-of-page::after{content:target-counter(attr(href url, '#'), page);}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
