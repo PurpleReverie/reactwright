@@ -332,9 +332,31 @@ export type ResolvedCustomTemplateNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedRoleVariantRule = {
+  apply: string;
+  breakBefore?: string;
+  breakAfter?: string;
+  breakInside?: string;
+  numbering?: ResolvedRoleNumbering;
+  dropCap?: ResolvedRoleDropCap;
+};
+
+export type ResolvedRoleNumbering = {
+  counter: string;
+  scope?: string;
+  format?: string;
+};
+
+export type ResolvedRoleDropCap = {
+  lines?: number;
+  font?: string;
+  position?: string;
+};
+
 export type ResolvedPageNode = {
   kind: "page";
   style?: TemplateStyle;
+  variantRules?: ResolvedRoleVariantRule[];
   children: ResolvedChild[];
 };
 

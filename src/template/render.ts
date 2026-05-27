@@ -30,6 +30,7 @@ import type {
   PageCountNode,
   PageNode,
   PageNumberNode,
+  BreakValue,
   PageRuleNode,
   PageSetNode,
   RegionNode,
@@ -563,15 +564,42 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         kind: "rules",
         children: []
       } satisfies RulesNode;
-    case "role":
+    case "role": {
+      const readBreak = (key: string): BreakValue | undefined => {
+        const v = (props as Record<string, unknown>)[key];
+        if (v == null) return undefined;
+        if (
+          v === "auto" ||
+          v === "always" ||
+          v === "avoid" ||
+          v === "page" ||
+          v === "left" ||
+          v === "right" ||
+          v === "recto" ||
+          v === "verso"
+        ) {
+          return v;
+        }
+        throw new Error(`\`role\` \`${key}\` must be a valid CSS break value.`);
+      };
+      const readBreakInside = (): "auto" | "avoid" | undefined => {
+        const v = (props as Record<string, unknown>).breakInside;
+        if (v == null) return undefined;
+        if (v === "auto" || v === "avoid") return v;
+        throw new Error("`role` `breakInside` must be `auto` or `avoid`.");
+      };
       return {
         kind: "role-rule",
         match: readRequiredTemplateToken(props, "match"),
         apply: readRequiredTemplateToken(props, "apply"),
         ...(readOptionalTemplateToken(props, "on") != null
           ? { on: readOptionalTemplateToken(props, "on") }
-          : {})
+          : {}),
+        ...(readBreak("breakBefore") != null ? { breakBefore: readBreak("breakBefore") } : {}),
+        ...(readBreak("breakAfter") != null ? { breakAfter: readBreak("breakAfter") } : {}),
+        ...(readBreakInside() != null ? { breakInside: readBreakInside() } : {})
       } satisfies RoleRuleNode;
+    }
     default:
       if (getTemplateIntrinsic(type) != null) {
         const style = mergeTemplateStyleGroups(props);

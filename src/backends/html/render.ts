@@ -1018,6 +1018,21 @@ function buildFootnoteAreaCss(page: ResolvedPageNode): string {
   return rules.join("");
 }
 
+function buildVariantRulesCss(page: ResolvedPageNode): string {
+  const rules = page.variantRules ?? [];
+  if (rules.length === 0) return "";
+  const out: string[] = [];
+  for (const r of rules) {
+    const selector = `[data-variant="${r.apply}"]`;
+    const decls: string[] = [];
+    if (r.breakBefore != null) decls.push(`break-before:${r.breakBefore};`);
+    if (r.breakAfter != null) decls.push(`break-after:${r.breakAfter};`);
+    if (r.breakInside != null) decls.push(`break-inside:${r.breakInside};`);
+    if (decls.length > 0) out.push(`${selector}{${decls.join("")}}`);
+  }
+  return out.join("");
+}
+
 function buildSidenoteAreaCss(page: ResolvedPageNode): string {
   const area = page.children.find(
     (child): child is ResolvedSidenoteAreaNode => child.kind === "sidenote-area"
@@ -1045,6 +1060,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const bodyTextRule = buildBodyTextRule(page.style);
   const footnoteAreaCss = buildFootnoteAreaCss(page);
   const sidenoteAreaCss = buildSidenoteAreaCss(page);
+  const variantRulesCss = buildVariantRulesCss(page);
 
   const runningNames = new Set<string>();
   collectRunningStringNames(page, runningNames);
@@ -1090,6 +1106,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     runningStringsCss,
     footnoteAreaCss,
     sidenoteAreaCss,
+    variantRulesCss,
     "body{margin:0;}",
     ".reactdoc-flow{box-sizing:border-box;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",

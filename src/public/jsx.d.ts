@@ -416,6 +416,9 @@ type RoleRuleProps = {
   match: string;
   apply: string;
   on?: string;
+  breakBefore?: "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
+  breakAfter?: "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
+  breakInside?: "auto" | "avoid";
 };
 
 declare module "react" {

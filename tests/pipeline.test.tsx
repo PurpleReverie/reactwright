@@ -223,6 +223,32 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("role rules emit break-* CSS keyed by variant", () => {
+  const documentTree = renderContentToIR(
+    <document title="Breaks">
+      <section title="Chapter" role="chapter">
+        <p>Body.</p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <rules>
+        <role on="section" match="chapter" apply="chapter" breakBefore="page" breakInside="avoid" />
+      </rules>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /\[data-variant="chapter"\]\{break-before:page;break-inside:avoid;\}/);
+  assert.match(html, /data-variant="chapter"/);
+});
+
 test("font template primitive emits @font-face declarations", () => {
   const template = (
     <page page={{ size: "a4", margin: "20mm" }}>

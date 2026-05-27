@@ -116,6 +116,9 @@ type RoleRule = {
   match: string;
   apply: string;
   on?: string;
+  breakBefore?: string;
+  breakAfter?: string;
+  breakInside?: string;
 };
 
 type RuleMaps = {
@@ -704,7 +707,10 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
         rules.roles.push({
           match: rule.match,
           apply: rule.apply,
-          ...(rule.on != null ? { on: rule.on } : {})
+          ...(rule.on != null ? { on: rule.on } : {}),
+          ...(rule.breakBefore != null ? { breakBefore: rule.breakBefore } : {}),
+          ...(rule.breakAfter != null ? { breakAfter: rule.breakAfter } : {}),
+          ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {})
         });
       }
       return;
@@ -1111,12 +1117,22 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
 
 function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveContext): ResolvedTemplateNode {
   switch (node.kind) {
-    case "page":
+    case "page": {
+      const variantRules = ctx.rules.roles
+        .filter((r) => r.breakBefore != null || r.breakAfter != null || r.breakInside != null)
+        .map((r) => ({
+          apply: r.apply,
+          ...(r.breakBefore != null ? { breakBefore: r.breakBefore } : {}),
+          ...(r.breakAfter != null ? { breakAfter: r.breakAfter } : {}),
+          ...(r.breakInside != null ? { breakInside: r.breakInside } : {})
+        }));
       return {
         kind: "page",
         style: node.style,
+        ...(variantRules.length > 0 ? { variantRules } : {}),
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       };
+    }
     case "region":
       return {
         kind: "region",

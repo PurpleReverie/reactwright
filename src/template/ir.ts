@@ -86,11 +86,16 @@ export type TemplateBreaksProps = {
 
 export type SlotName = "title" | "author" | "abstract" | "body";
 
+export type BreakValue = "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
+
 export type RoleRuleNode = {
   kind: "role-rule";
   match: string;
   apply: string;
   on?: string;
+  breakBefore?: BreakValue;
+  breakAfter?: BreakValue;
+  breakInside?: "auto" | "avoid";
 };
 
 export type PageRuleNode = {
