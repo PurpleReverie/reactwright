@@ -247,7 +247,7 @@ export default function IEEEPaper() {
         <math
           id="eq-capacity"
           role="numbered"
-          src="C = W \\log_2 (1 + S/N)"
+          src={"C = W \\log_2 (1 + S/N)"}
         />
 
         <p>

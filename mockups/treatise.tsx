@@ -105,7 +105,7 @@ export default function Treatise() {
           lineage <cite cite="knuth1984" />. Earlier approaches relied on multi-pass
           compilation; we follow that tradition but lift the second pass into the
           browser, where CSS Generated Content for Paged Media exposes
-          <m src="\\text{target-counter}(\\text{url}, n)" /> as a first-class primitive.
+          <m src={"\\text{target-counter}(\\text{url}, n)"} /> as a first-class primitive.
         </p>
 
         <p>
@@ -144,7 +144,7 @@ export default function Treatise() {
         <math
           id="eq-capacity"
           role="numbered"
-          src="C = W \\log_2 \\left( 1 + \\frac{S}{N} \\right)"
+          src={"C = W \\log_2 \\left( 1 + \\frac{S}{N} \\right)"}
         />
 
         <p>
@@ -166,7 +166,7 @@ export default function Treatise() {
           Critically, references are not resolved at compile time. The compiler emits
           an anchor pair: the source carries a stable <code>id</code>, the reference
           carries a <code>href</code>. The browser fills in counters via
-          <m src="\\text{target-counter}" /> at render time. This decouples the order
+          <m src={"\\text{target-counter}"} /> at render time. This decouples the order
           of authorship from the order of resolution.
         </p>
       </section>
