@@ -51,6 +51,7 @@ export type ResolvedInlineImgNode = {
 
 export type ResolvedParagraphNode = {
   kind: "paragraph";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -59,12 +60,14 @@ export type ResolvedParagraphNode = {
 
 export type ResolvedCodeBlockNode = {
   kind: "code-block";
+  id?: string;
   language?: string;
   children: ResolvedTextNode[];
 };
 
 export type ResolvedPreNode = {
   kind: "pre";
+  id?: string;
   children: ResolvedTextNode[];
 };
 
@@ -76,6 +79,7 @@ export type ResolvedDefNode = {
 
 export type ResolvedDefsNode = {
   kind: "defs";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -84,6 +88,7 @@ export type ResolvedDefsNode = {
 
 export type ResolvedFigureNode = {
   kind: "figure";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -106,12 +111,14 @@ export type ResolvedRowNode = {
 
 export type ResolvedTableNode = {
   kind: "table";
+  id?: string;
   caption?: string;
   children: ResolvedRowNode[];
 };
 
 export type ResolvedBlockQuoteNode = {
   kind: "blockquote";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -126,6 +133,7 @@ export type ResolvedListItemNode = {
 
 export type ResolvedListNode = {
   kind: "list";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -135,6 +143,7 @@ export type ResolvedListNode = {
 
 export type ResolvedSectionNode = {
   kind: "section";
+  id?: string;
   title: string;
   role?: string;
   page?: string;
@@ -144,6 +153,7 @@ export type ResolvedSectionNode = {
 
 export type ResolvedHeadingNode = {
   kind: "heading";
+  id?: string;
   level: 1 | 2 | 3 | 4 | 5 | 6;
   title: string;
   role?: string;

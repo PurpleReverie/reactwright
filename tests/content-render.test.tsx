@@ -141,6 +141,31 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer carries id prop on block primitives", () => {
+  const result = renderContentToIR(
+    <document title="Refs">
+      <section id="intro" title="Introduction">
+        <p id="opening">Opening line.</p>
+      </section>
+      <heading id="part-two" level={1} title="Part Two" />
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Refs",
+    children: [
+      {
+        kind: "section",
+        id: "intro",
+        title: "Introduction",
+        children: [{ kind: "paragraph", id: "opening", children: [{ kind: "text", value: "Opening line." }] }]
+      },
+      { kind: "heading", id: "part-two", level: 1, title: "Part Two" }
+    ]
+  });
+});
+
 test("content renderer supports standalone heading primitive", () => {
   const result = renderContentToIR(
     <document title="Headings">

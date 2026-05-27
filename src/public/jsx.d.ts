@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 type ContentMetadataProps = {
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -34,6 +35,7 @@ type FigureProps = ContentMetadataProps & {
 };
 
 type TableProps = {
+  id?: string;
   caption?: string;
   children?: ReactNode;
 };
@@ -94,11 +96,13 @@ type QuoteProps = ContentMetadataProps & {
 };
 
 type CodeBlockProps = {
+  id?: string;
   language?: string;
   children?: ReactNode;
 };
 
 type PreProps = {
+  id?: string;
   children?: ReactNode;
 };
 

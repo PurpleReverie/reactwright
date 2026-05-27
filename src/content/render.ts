@@ -69,11 +69,21 @@ function readOptionalTokenProp(props: ContentProps, key: "role" | "page" | "vari
   return value.trim();
 }
 
+function readOptionalIdProp(props: ContentProps): string | undefined {
+  const value = (props as Record<string, unknown>).id;
+  if (value == null) return undefined;
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error("`id` must be a non-empty string when provided.");
+  }
+  return value.trim();
+}
+
 function createContentNode(type: string, props: ContentProps): SemanticNode {
   const role = readOptionalTokenProp(props, "role");
   const page = readOptionalTokenProp(props, "page");
   const variant = readOptionalTokenProp(props, "variant");
   const speaker = readOptionalTokenProp(props, "speaker");
+  const id = readOptionalIdProp(props);
 
   switch (type) {
     case "document":
@@ -94,6 +104,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       return {
         kind: "section",
         title: String(props.title ?? ""),
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),
@@ -113,6 +124,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "heading",
         level: level as 1 | 2 | 3 | 4 | 5 | 6,
         title,
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {})
@@ -121,6 +133,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "p":
       return {
         kind: "paragraph",
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),
@@ -129,6 +142,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "figure":
       return {
         kind: "figure",
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),
@@ -140,6 +154,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "table":
       return {
         kind: "table",
+        ...(id != null ? { id } : {}),
         caption: typeof props.caption === "string" ? props.caption : undefined,
         children: []
       } satisfies TableNode;
@@ -157,6 +172,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "quote":
       return {
         kind: "blockquote",
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),
@@ -166,6 +182,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "code-block":
       return {
         kind: "code-block",
+        ...(id != null ? { id } : {}),
         ...(typeof props.language === "string" && props.language.trim().length > 0
           ? { language: props.language.trim() }
           : {}),
@@ -174,11 +191,13 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "pre":
       return {
         kind: "pre",
+        ...(id != null ? { id } : {}),
         children: []
       };
     case "list":
       return {
         kind: "list",
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),
@@ -193,6 +212,7 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
     case "defs":
       return {
         kind: "defs",
+        ...(id != null ? { id } : {}),
         ...(role != null ? { role } : {}),
         ...(page != null ? { page } : {}),
         ...(variant != null ? { variant } : {}),

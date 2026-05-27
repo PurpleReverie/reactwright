@@ -49,6 +49,7 @@ export type InlineImgNode = {
 
 export type ParagraphNode = {
   kind: "paragraph";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -57,17 +58,20 @@ export type ParagraphNode = {
 
 export type CodeBlockNode = {
   kind: "code-block";
+  id?: string;
   language?: string;
   children: TextNode[];
 };
 
 export type PreNode = {
   kind: "pre";
+  id?: string;
   children: TextNode[];
 };
 
 export type FigureNode = {
   kind: "figure";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -90,12 +94,14 @@ export type RowNode = {
 
 export type TableNode = {
   kind: "table";
+  id?: string;
   caption?: string;
   children: RowNode[];
 };
 
 export type BlockQuoteNode = {
   kind: "blockquote";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -110,6 +116,7 @@ export type ListItemNode = {
 
 export type ListNode = {
   kind: "list";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -125,6 +132,7 @@ export type DefNode = {
 
 export type DefsNode = {
   kind: "defs";
+  id?: string;
   role?: string;
   page?: string;
   variant?: string;
@@ -133,6 +141,7 @@ export type DefsNode = {
 
 export type SectionNode = {
   kind: "section";
+  id?: string;
   title: string;
   role?: string;
   page?: string;
@@ -142,6 +151,7 @@ export type SectionNode = {
 
 export type HeadingNode = {
   kind: "heading";
+  id?: string;
   level: 1 | 2 | 3 | 4 | 5 | 6;
   title: string;
   role?: string;

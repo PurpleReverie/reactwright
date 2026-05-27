@@ -204,6 +204,7 @@ function resolveInlineNode(
 function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode {
   return {
     kind: "paragraph",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
@@ -214,6 +215,7 @@ function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode {
 function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
   return {
     kind: "figure",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
@@ -242,6 +244,7 @@ function resolveRowNode(node: RowNode): ResolvedRowNode {
 function resolveTableNode(node: TableNode): ResolvedTableNode {
   return {
     kind: "table",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.caption != null ? { caption: node.caption } : {}),
     children: node.children.map(resolveRowNode)
   };
@@ -250,6 +253,7 @@ function resolveTableNode(node: TableNode): ResolvedTableNode {
 function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
   return {
     kind: "code-block",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.language != null ? { language: node.language } : {}),
     children: node.children.map(resolveTextNode)
   };
@@ -258,6 +262,7 @@ function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
 function resolvePreNode(node: PreNode): ResolvedPreNode {
   return {
     kind: "pre",
+    ...(node.id != null ? { id: node.id } : {}),
     children: node.children.map(resolveTextNode)
   };
 }
@@ -275,6 +280,7 @@ function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
     kind: "heading",
     level: node.level,
     title: node.title,
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {})
@@ -284,6 +290,7 @@ function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
 function resolveDefsNode(node: DefsNode): ResolvedDefsNode {
   return {
     kind: "defs",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
@@ -294,6 +301,7 @@ function resolveDefsNode(node: DefsNode): ResolvedDefsNode {
 function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
   return {
     kind: "blockquote",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
@@ -312,6 +320,7 @@ function resolveListItemNode(node: ListItemNode): ResolvedListItemNode {
 function resolveListNode(node: ListNode): ResolvedListNode {
   return {
     kind: "list",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
@@ -324,6 +333,7 @@ function resolveSectionNode(node: SectionNode): ResolvedSectionNode {
   return {
     kind: "section",
     title: node.title,
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),

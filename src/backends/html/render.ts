@@ -274,10 +274,14 @@ function renderInlineImgNode(node: ResolvedInlineImgNode): string {
   return `<img data-inline src="${escapeHtml(node.src)}"${altAttr}${widthAttr}${heightAttr} />`;
 }
 
+function idAttr(id: string | undefined): string {
+  return id != null ? ` id="${escapeHtml(id)}"` : "";
+}
+
 function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<p${variantAttr}>${inner}</p>`;
+  return `<p${idAttr(node.id)}${variantAttr}>${inner}</p>`;
 }
 
 function renderFigureNode(node: ResolvedFigureNode): string {
@@ -285,7 +289,7 @@ function renderFigureNode(node: ResolvedFigureNode): string {
   const alt = escapeHtml(node.alt ?? node.caption ?? "");
   const caption =
     node.caption != null ? `<figcaption>${escapeHtml(node.caption)}</figcaption>` : "";
-  return `<figure><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
+  return `<figure${idAttr(node.id)}><img src="${escapeHtml(node.src)}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
 function renderCellNode(node: ResolvedCellNode): string {
@@ -299,16 +303,16 @@ function renderRowNode(node: ResolvedRowNode): string {
 
 function renderTableNode(node: ResolvedTableNode): string {
   const caption = node.caption != null ? `<caption>${escapeHtml(node.caption)}</caption>` : "";
-  return `<table>${caption}<tbody>${node.children.map((child) => renderRowNode(child)).join("")}</tbody></table>`;
+  return `<table${idAttr(node.id)}>${caption}<tbody>${node.children.map((child) => renderRowNode(child)).join("")}</tbody></table>`;
 }
 
 function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   const dataAttr = node.language != null ? ` data-language="${escapeHtml(node.language)}"` : "";
-  return `<pre${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
+  return `<pre${idAttr(node.id)}${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
 }
 
 function renderPreNode(node: ResolvedPreNode): string {
-  return `<pre data-node="pre">${node.children.map(renderTextNode).join("")}</pre>`;
+  return `<pre${idAttr(node.id)} data-node="pre">${node.children.map(renderTextNode).join("")}</pre>`;
 }
 
 function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
@@ -417,7 +421,7 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   if (depth === 1) classes.push("reactdoc-chapter-title");
   const classAttr = ` class="${classes.join(" ")}"`;
   return [
-    "<section>",
+    `<section${idAttr(node.id)}>`,
     `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`,
     ...node.children.map((child) =>
       child.kind === "section"
@@ -431,7 +435,7 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
 function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
   const children = node.children.map((child) => renderContentNode(child)).join("");
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<blockquote${variantAttr}>${children}</blockquote>`;
+  return `<blockquote${idAttr(node.id)}${variantAttr}>${children}</blockquote>`;
 }
 
 function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
@@ -445,7 +449,7 @@ function renderListItemNode(node: ResolvedListItemNode): string {
 function renderListNode(node: ResolvedListNode): string {
   const tag = node.ordered ? "ol" : "ul";
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<${tag}${variantAttr}>${node.children.map((child) => renderListItemNode(child)).join("")}</${tag}>`;
+  return `<${tag}${idAttr(node.id)}${variantAttr}>${node.children.map((child) => renderListItemNode(child)).join("")}</${tag}>`;
 }
 
 function renderDefNode(node: ResolvedDefNode): string {
@@ -456,7 +460,7 @@ function renderDefNode(node: ResolvedDefNode): string {
 
 function renderDefsNode(node: ResolvedDefsNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<dl${variantAttr}>${node.children.map((child) => renderDefNode(child)).join("")}</dl>`;
+  return `<dl${idAttr(node.id)}${variantAttr}>${node.children.map((child) => renderDefNode(child)).join("")}</dl>`;
 }
 
 function renderAbstractNode(node: ResolvedAbstractNode): string {
@@ -475,7 +479,7 @@ function renderTitleNode(node: ResolvedTitleNode): string {
 function renderHeadingNode(node: ResolvedHeadingNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   const tag = `h${node.level}`;
-  return `<${tag}${variantAttr}>${escapeHtml(node.title)}</${tag}>`;
+  return `<${tag}${idAttr(node.id)}${variantAttr}>${escapeHtml(node.title)}</${tag}>`;
 }
 
 function renderAuthorNode(node: ResolvedAuthorNode): string {
