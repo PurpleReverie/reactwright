@@ -120,6 +120,7 @@ type RoleRule = {
   breakAfter?: string;
   breakInside?: string;
   numbering?: { counter: string; scope?: string; format?: string };
+  dropCap?: { lines?: number; font?: string; position?: string };
 };
 
 type RuleMaps = {
@@ -712,7 +713,8 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
           ...(rule.breakBefore != null ? { breakBefore: rule.breakBefore } : {}),
           ...(rule.breakAfter != null ? { breakAfter: rule.breakAfter } : {}),
           ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {}),
-          ...(rule.numbering != null ? { numbering: rule.numbering } : {})
+          ...(rule.numbering != null ? { numbering: rule.numbering } : {}),
+          ...(rule.dropCap != null ? { dropCap: rule.dropCap } : {})
         });
       }
       return;
@@ -1126,14 +1128,16 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
             r.breakBefore != null ||
             r.breakAfter != null ||
             r.breakInside != null ||
-            r.numbering != null
+            r.numbering != null ||
+            r.dropCap != null
         )
         .map((r) => ({
           apply: r.apply,
           ...(r.breakBefore != null ? { breakBefore: r.breakBefore } : {}),
           ...(r.breakAfter != null ? { breakAfter: r.breakAfter } : {}),
           ...(r.breakInside != null ? { breakInside: r.breakInside } : {}),
-          ...(r.numbering != null ? { numbering: r.numbering } : {})
+          ...(r.numbering != null ? { numbering: r.numbering } : {}),
+          ...(r.dropCap != null ? { dropCap: r.dropCap } : {})
         }));
       return {
         kind: "page",

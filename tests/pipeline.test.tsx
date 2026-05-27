@@ -223,6 +223,32 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("role rules emit dropCap CSS via ::first-letter and initial-letter", () => {
+  const documentTree = renderContentToIR(
+    <document title="DropCaps">
+      <section title="Body">
+        <p role="opener">Once upon a time.</p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <rules>
+        <role on="paragraph" match="opener" apply="opener" dropCap={{ lines: 3, font: "'Bookerly'" }} />
+      </rules>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /\[data-variant="opener"\]::first-letter\{initial-letter:3;font-family:'Bookerly';\}/);
+  assert.match(html, /data-variant="opener"/);
+});
+
 test("role rules emit numbering CSS via counters and format string", () => {
   const documentTree = renderContentToIR(
     <document title="Numbered">

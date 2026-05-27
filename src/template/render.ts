@@ -33,6 +33,7 @@ import type {
   BreakValue,
   PageRuleNode,
   RoleNumbering,
+  RoleDropCap,
   PageSetNode,
   RegionNode,
   RegionPositioning,
@@ -589,6 +590,19 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         if (v === "auto" || v === "avoid") return v;
         throw new Error("`role` `breakInside` must be `auto` or `avoid`.");
       };
+      const readDropCap = (): RoleDropCap | undefined => {
+        const v = (props as Record<string, unknown>).dropCap;
+        if (v == null) return undefined;
+        if (typeof v !== "object" || Array.isArray(v)) {
+          throw new Error("`role` `dropCap` must be an object.");
+        }
+        const obj = v as Record<string, unknown>;
+        return {
+          ...(typeof obj.lines === "number" ? { lines: obj.lines } : {}),
+          ...(typeof obj.font === "string" ? { font: obj.font } : {}),
+          ...(typeof obj.position === "string" ? { position: obj.position } : {})
+        };
+      };
       const readNumbering = (): RoleNumbering | undefined => {
         const v = (props as Record<string, unknown>).numbering;
         if (v == null) return undefined;
@@ -615,7 +629,8 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...(readBreak("breakBefore") != null ? { breakBefore: readBreak("breakBefore") } : {}),
         ...(readBreak("breakAfter") != null ? { breakAfter: readBreak("breakAfter") } : {}),
         ...(readBreakInside() != null ? { breakInside: readBreakInside() } : {}),
-        ...(readNumbering() != null ? { numbering: readNumbering() } : {})
+        ...(readNumbering() != null ? { numbering: readNumbering() } : {}),
+        ...(readDropCap() != null ? { dropCap: readDropCap() } : {})
       } satisfies RoleRuleNode;
     }
     default:

@@ -1065,6 +1065,12 @@ function buildVariantRulesCss(page: ResolvedPageNode): string {
         out.push(`${selector}::before{content:${content};}`);
       }
     }
+    if (r.dropCap != null) {
+      const dc = r.dropCap;
+      const lines = dc.lines ?? 3;
+      const fontPart = dc.font != null ? `font-family:${dc.font};` : "";
+      out.push(`${selector}::first-letter{initial-letter:${lines};${fontPart}}`);
+    }
   }
   return out.join("");
 }

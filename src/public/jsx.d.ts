@@ -418,6 +418,12 @@ type RoleNumberingProp = {
   format?: string;
 };
 
+type RoleDropCapProp = {
+  lines?: number;
+  font?: string;
+  position?: string;
+};
+
 type RoleRuleProps = {
   match: string;
   apply: string;
@@ -426,6 +432,7 @@ type RoleRuleProps = {
   breakAfter?: "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
   breakInside?: "auto" | "avoid";
   numbering?: RoleNumberingProp;
+  dropCap?: RoleDropCapProp;
 };
 
 declare module "react" {

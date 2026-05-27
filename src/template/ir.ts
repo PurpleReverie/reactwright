@@ -94,6 +94,12 @@ export type RoleNumbering = {
   format?: string;
 };
 
+export type RoleDropCap = {
+  lines?: number;
+  font?: string;
+  position?: string;
+};
+
 export type RoleRuleNode = {
   kind: "role-rule";
   match: string;
@@ -103,6 +109,7 @@ export type RoleRuleNode = {
   breakAfter?: BreakValue;
   breakInside?: "auto" | "avoid";
   numbering?: RoleNumbering;
+  dropCap?: RoleDropCap;
 };
 
 export type PageRuleNode = {
