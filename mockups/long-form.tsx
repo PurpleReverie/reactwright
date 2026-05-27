@@ -18,8 +18,13 @@ export function Template() {
   return (
     <page
       page={{ size: "a4", margin: "20mm", marginTop: "16mm" }}
-      typography={{ fontFamily: "'Charter', Georgia, serif", fontSize: "10pt", lineHeight: 1.4 }}
+      typography={{ fontFamily: "'Source Serif Pro', Georgia, serif", fontSize: "10pt", lineHeight: 1.4 }}
     >
+      <font
+        family="Source Serif Pro"
+        src="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+      />
+
       <rules>
         <role
           on="figure"
@@ -37,7 +42,7 @@ export function Template() {
           on="paragraph"
           match="opener"
           apply="opener"
-          dropCap={{ lines: 3, font: "'Charter', Georgia, serif" }}
+          dropCap={{ lines: 3, font: "'Source Serif Pro', Georgia, serif" }}
         />
         <role on="section" match="sidebar" apply="sidebar" breakInside="avoid" />
       </rules>

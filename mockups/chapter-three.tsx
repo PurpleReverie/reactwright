@@ -14,15 +14,7 @@ export function Template() {
     >
       <font
         family="Lora"
-        src="https://fonts.gstatic.com/s/lora/v32/lora-regular.woff2"
-        format="woff2"
-        weight="400"
-      />
-      <font
-        family="Lora"
-        src="https://fonts.gstatic.com/s/lora/v32/lora-italic.woff2"
-        format="woff2"
-        fontStyle="italic"
+        src="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap"
       />
 
       <rules>

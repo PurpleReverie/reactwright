@@ -185,8 +185,21 @@ function buildFontHeadTags(page: ResolvedPageNode): string[] {
     }
   }
 
-  // Append declarative <font/> @font-face rules from the template tree.
+  // Append declarative <font/> rules from the template tree. A CSS-stylesheet
+  // URL (Google Fonts, Fontsource, etc.) gets emitted as a <link>; a direct
+  // font-file URL gets emitted as an @font-face rule.
+  const seenStylesheet = new Set<string>();
   for (const f of collectTemplateFonts(page)) {
+    const looksLikeStylesheet =
+      f.src.includes("/css") ||
+      f.src.endsWith(".css") ||
+      f.src.includes("fonts.googleapis.com");
+    if (looksLikeStylesheet) {
+      if (seenStylesheet.has(f.src)) continue;
+      seenStylesheet.add(f.src);
+      links.push(`<link rel="stylesheet" href="${escapeHtml(f.src)}" />`);
+      continue;
+    }
     const formatPart = f.format != null ? ` format('${escapeHtml(f.format)}')` : "";
     const weightPart = f.weight != null ? `font-weight:${escapeHtml(f.weight)};` : "";
     const stylePart = f.fontStyle != null ? `font-style:${escapeHtml(f.fontStyle)};` : "";

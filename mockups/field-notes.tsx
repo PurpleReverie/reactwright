@@ -8,13 +8,11 @@ export function Template() {
   return (
     <page
       page={{ size: "a4", margin: "30mm", marginRight: "60mm" }}
-      typography={{ fontFamily: "'Charter', Georgia, serif", fontSize: "11pt", lineHeight: 1.5 }}
+      typography={{ fontFamily: "'Source Serif Pro', Georgia, serif", fontSize: "11pt", lineHeight: 1.5 }}
     >
       <font
-        family="Charter"
-        src="https://fonts.gstatic.com/s/charter/v1/charter-regular.woff2"
-        format="woff2"
-        weight="400"
+        family="Source Serif Pro"
+        src="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap"
       />
 
       <rules>
