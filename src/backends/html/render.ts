@@ -563,9 +563,21 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const classes = ["reactdoc-section-title"];
   if (depth === 1) classes.push("reactdoc-chapter-title");
   const classAttr = ` class="${classes.join(" ")}"`;
+  // Route the section to a named CSS Paged Media regime when `page=<name>`
+  // was set. Paged.js honours `page: <name>` to put the element on a page
+  // of that type, and inserts the appropriate page-break between adjacent
+  // sections targeting different regimes.
+  const regimeStyle =
+    depth === 1 && typeof node.page === "string" && node.page.length > 0
+      ? ` style="page:${escapeHtml(node.page)};"`
+      : "";
+  const titleHeading =
+    node.title.length > 0
+      ? `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`
+      : "";
   return [
-    `<section${idAttr(node.id)}>`,
-    `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`,
+    `<section${idAttr(node.id)}${regimeStyle}>`,
+    titleHeading,
     ...node.children.map((child) =>
       child.kind === "section"
         ? renderSectionNode(child, depth + 1)
@@ -1116,10 +1128,19 @@ function buildPageBackgroundLayersCss(page: ResolvedPageNode): string {
   return `@page{${decls.join("")}}`;
 }
 
+function buildPageRegimesCss(page: ResolvedPageNode): string {
+  const regimes = page.regimes ?? [];
+  if (regimes.length === 0) return "";
+  return regimes
+    .map((r) => buildAtPageRule(r.style, r.name) ?? `@page ${r.name}{}`)
+    .join("");
+}
+
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
   const pageBackgroundLayersCss = buildPageBackgroundLayersCss(page);
+  const pageRegimesCss = buildPageRegimesCss(page);
   const footnoteAreaCss = buildFootnoteAreaCss(page);
   const sidenoteAreaCss = buildSidenoteAreaCss(page);
   const variantRulesCss = buildVariantRulesCss(page);
@@ -1176,6 +1197,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
 
   const styleRules = [
     atPageRule ?? "",
+    pageRegimesCss,
     pageBackgroundLayersCss,
     bodyTextRule ?? "",
     marginMatterCss,

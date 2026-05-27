@@ -74,6 +74,7 @@ import type {
   ResolvedListOfEntry,
   ResolvedListOfNode,
   ResolvedFontNode,
+  ResolvedPageRegime,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -140,6 +141,7 @@ type ResolveContext = {
     table: ResolvedListOfEntry[];
     equation: ResolvedListOfEntry[];
   };
+  pageRegimes: ResolvedPageRegime[];
 };
 
 function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
@@ -978,6 +980,16 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
     case "page-set":
+      // Record the page-set as a regime so the HTML emitter can produce an
+      // @page <name> rule with the page-set's geometry/style. Children still
+      // flatten into the page flow, but content sections tagged page=<name>
+      // route to this regime via CSS `page: <name>`.
+      if (!ctx.pageRegimes.some((r) => r.name === child.name)) {
+        ctx.pageRegimes.push({
+          name: child.name,
+          ...(child.style != null ? { style: child.style } : {})
+        });
+      }
       return child.children.flatMap((grandchild) =>
         resolveTemplateChild(grandchild, slots, {
           ...ctx,
@@ -1139,11 +1151,13 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
           ...(r.numbering != null ? { numbering: r.numbering } : {}),
           ...(r.dropCap != null ? { dropCap: r.dropCap } : {})
         }));
+      const children = node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx));
       return {
         kind: "page",
         style: node.style,
         ...(variantRules.length > 0 ? { variantRules } : {}),
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        ...(ctx.pageRegimes.length > 0 ? { regimes: ctx.pageRegimes.slice() } : {}),
+        children
       };
     }
     case "region":
@@ -1259,6 +1273,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   stampSectionIdsInSlotMap(slots, tocEntries);
   const listOf = { figure: [] as ResolvedListOfEntry[], table: [] as ResolvedListOfEntry[], equation: [] as ResolvedListOfEntry[] };
   stampListOfInSlotMap(slots, listOf);
+  const pageRegimes: ResolvedPageRegime[] = [];
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
@@ -1266,7 +1281,8 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
     citeKeys,
     indexEntries,
     tocEntries,
-    listOf
+    listOf,
+    pageRegimes
   });
 
   if (resolved.kind !== "page") {

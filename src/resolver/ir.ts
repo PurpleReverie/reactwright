@@ -353,10 +353,16 @@ export type ResolvedRoleDropCap = {
   position?: string;
 };
 
+export type ResolvedPageRegime = {
+  name: string;
+  style?: TemplateStyle;
+};
+
 export type ResolvedPageNode = {
   kind: "page";
   style?: TemplateStyle;
   variantRules?: ResolvedRoleVariantRule[];
+  regimes?: ResolvedPageRegime[];
   children: ResolvedChild[];
 };
 

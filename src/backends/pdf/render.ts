@@ -12,7 +12,7 @@ type BrowserLike = {
 
 type PageLike = {
   setContent(html: string, options?: { waitUntil?: string }): Promise<void>;
-  evaluate<T>(fn: () => T): Promise<T>;
+  evaluate<T>(fn: (() => T) | string): Promise<T>;
   pdf(options: { path?: string; format?: string; printBackground?: boolean }): Promise<Uint8Array>;
   close(): Promise<void>;
 };
@@ -46,7 +46,6 @@ async function loadPuppeteer(): Promise<PuppeteerLike> {
     /* fall through */
   }
   try {
-    // @ts-expect-error optional runtime dependency, may not be installed
     const mod = (await import("puppeteer-core")) as { default?: PuppeteerLike } & PuppeteerLike;
     return (mod.default ?? mod) as PuppeteerLike;
   } catch {

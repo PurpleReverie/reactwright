@@ -36,7 +36,7 @@ export function Template() {
         }}
       >
         <layer name="cover-bg" style={{ backgroundColor: "#1e293b" }} />
-        <region positioning={{ fill: true }}>
+        <region fill>
           <image src={SWATCH_PATH} fill cover style={{ opacity: 0.2 }} />
         </region>
         <fixed anchor="ornament" style={{ transform: "translateX(-50%)" }}>
