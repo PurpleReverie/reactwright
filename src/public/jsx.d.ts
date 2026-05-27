@@ -86,6 +86,10 @@ type CodeBlockProps = {
   children?: ReactNode;
 };
 
+type PreProps = {
+  children?: ReactNode;
+};
+
 type ListProps = ContentMetadataProps & {
   ordered?: boolean;
   children?: ReactNode;
@@ -328,6 +332,7 @@ declare module "react" {
       sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
+      pre: PreProps;
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
@@ -371,6 +376,7 @@ declare module "react/jsx-runtime" {
       sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
+      pre: PreProps;
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
@@ -414,6 +420,7 @@ declare module "react/jsx-dev-runtime" {
       sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
+      pre: PreProps;
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;
@@ -457,6 +464,7 @@ declare global {
       sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
+      pre: PreProps;
       list: ListProps;
       item: ItemProps;
       "page-break": PageBreakProps;

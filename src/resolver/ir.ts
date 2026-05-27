@@ -55,6 +55,11 @@ export type ResolvedCodeBlockNode = {
   children: ResolvedTextNode[];
 };
 
+export type ResolvedPreNode = {
+  kind: "pre";
+  children: ResolvedTextNode[];
+};
+
 export type ResolvedFigureNode = {
   kind: "figure";
   role?: string;
@@ -257,6 +262,7 @@ export type ResolvedContentNode =
   | ResolvedListNode
   | ResolvedListItemNode
   | ResolvedCodeBlockNode
+  | ResolvedPreNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode
@@ -276,6 +282,7 @@ export type ResolvedContentChild =
   | ResolvedBlockQuoteNode
   | ResolvedListNode
   | ResolvedCodeBlockNode
+  | ResolvedPreNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode

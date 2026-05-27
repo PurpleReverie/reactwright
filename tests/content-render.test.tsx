@@ -141,6 +141,25 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports pre verbatim block", () => {
+  const result = renderContentToIR(
+    <document title="Pre">
+      <pre>{"  indented\nlines preserved"}</pre>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Pre",
+    children: [
+      {
+        kind: "pre",
+        children: [{ kind: "text", value: "  indented\nlines preserved" }]
+      }
+    ]
+  });
+});
+
 test("content renderer supports br, sub, sup inline primitives", () => {
   const result = renderContentToIR(
     <document title="Inline finishes">

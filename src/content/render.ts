@@ -150,6 +150,11 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
           : {}),
         children: []
       } satisfies CodeBlockNode;
+    case "pre":
+      return {
+        kind: "pre",
+        children: []
+      };
     case "list":
       return {
         kind: "list",
@@ -270,6 +275,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
+        child.kind !== "pre" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -308,6 +314,12 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       }
       parent.children.push(child);
       return;
+    case "pre":
+      if (child.kind !== "text") {
+        throw new Error("`pre` may only contain text.");
+      }
+      parent.children.push(child);
+      return;
     case "list":
       if (child.kind !== "item") {
         throw new Error("`list` may only contain `item` children.");
@@ -322,6 +334,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
+        child.kind !== "pre" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -339,6 +352,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
+        child.kind !== "pre" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -357,6 +371,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "blockquote" &&
         child.kind !== "list" &&
         child.kind !== "code-block" &&
+        child.kind !== "pre" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {

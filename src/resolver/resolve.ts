@@ -14,6 +14,7 @@ import type {
   ListNode,
   PageBreakNode,
   ParagraphNode,
+  PreNode,
   RowNode,
   SectionNode,
   SemanticBlockChild,
@@ -58,6 +59,7 @@ import type {
   ResolvedPageNode,
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
+  ResolvedPreNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -224,6 +226,13 @@ function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode {
   };
 }
 
+function resolvePreNode(node: PreNode): ResolvedPreNode {
+  return {
+    kind: "pre",
+    children: node.children.map(resolveTextNode)
+  };
+}
+
 function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
   return {
     kind: "blockquote",
@@ -303,6 +312,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveListNode(node);
     case "code-block":
       return resolveCodeBlockNode(node);
+    case "pre":
+      return resolvePreNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
     case "set-running":
@@ -488,6 +499,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "row":
     case "cell":
     case "code-block":
+    case "pre":
     case "item":
     case "title":
     case "author":

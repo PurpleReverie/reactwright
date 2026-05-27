@@ -53,6 +53,11 @@ export type CodeBlockNode = {
   children: TextNode[];
 };
 
+export type PreNode = {
+  kind: "pre";
+  children: TextNode[];
+};
+
 export type FigureNode = {
   kind: "figure";
   role?: string;
@@ -155,6 +160,7 @@ export type SemanticBlockChild =
   | BlockQuoteNode
   | ListNode
   | CodeBlockNode
+  | PreNode
   | PageBreakNode
   | SetRunningNode;
 
@@ -173,6 +179,7 @@ export type SemanticNode =
   | ListNode
   | ListItemNode
   | CodeBlockNode
+  | PreNode
   | PageBreakNode
   | SetRunningNode
   | EmNode
@@ -197,6 +204,7 @@ export type SemanticContainerNode =
   | ListNode
   | ListItemNode
   | CodeBlockNode
+  | PreNode
   | EmNode
   | StrongNode
   | CodeNode

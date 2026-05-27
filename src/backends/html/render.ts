@@ -27,6 +27,7 @@ import type {
   ResolvedPageNode,
   ResolvedPageNumberNode,
   ResolvedParagraphNode,
+  ResolvedPreNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -293,6 +294,10 @@ function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   return `<pre${dataAttr}><code>${node.children.map(renderTextNode).join("")}</code></pre>`;
 }
 
+function renderPreNode(node: ResolvedPreNode): string {
+  return `<pre data-node="pre">${node.children.map(renderTextNode).join("")}</pre>`;
+}
+
 function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
   return '<span data-node="page-number" class="reactdoc-page-number"></span>';
 }
@@ -463,6 +468,8 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderTableNode(node);
     case "code-block":
       return renderCodeBlockNode(node);
+    case "pre":
+      return renderPreNode(node);
     case "blockquote":
       return renderBlockQuoteNode(node);
     case "list":
@@ -612,6 +619,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "row":
     case "cell":
     case "code-block":
+    case "pre":
     case "paragraph":
     case "blockquote":
     case "list":
