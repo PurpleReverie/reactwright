@@ -75,6 +75,7 @@ import type {
   ResolvedListOfNode,
   ResolvedFontNode,
   ResolvedPageRegime,
+  ResolvedPageSetNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -979,24 +980,36 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "footer":
     case "custom":
       return [resolveTemplateNode(child, slots, ctx)];
-    case "page-set":
+    case "page-set": {
       // Record the page-set as a regime so the HTML emitter can produce an
-      // @page <name> rule with the page-set's geometry/style. Children still
-      // flatten into the page flow, but content sections tagged page=<name>
-      // route to this regime via CSS `page: <name>`.
+      // @page <name> rule with the page-set's geometry/style.
       if (!ctx.pageRegimes.some((r) => r.name === child.name)) {
         ctx.pageRegimes.push({
           name: child.name,
           ...(child.style != null ? { style: child.style } : {})
         });
       }
-      return child.children.flatMap((grandchild) =>
+      // Keep the page-set as a node in the resolved tree (rather than
+      // flattening) so the HTML emitter can wrap its chrome in a regime
+      // container with CSS `page: <name>` and break-before. This routes
+      // the page-set's content to a named CSS Paged Media regime, instead
+      // of overlaying every page-set's chrome on every page.
+      const setChildren = child.children.flatMap((grandchild) =>
         resolveTemplateChild(grandchild, slots, {
           ...ctx,
           currentPageSet: child.name,
           ...(child.anchors != null ? { currentAnchors: child.anchors } : {})
         })
       );
+      return [
+        {
+          kind: "page-set",
+          name: child.name,
+          ...(child.style != null ? { style: child.style } : {}),
+          children: setChildren
+        } satisfies ResolvedPageSetNode
+      ];
+    }
     case "rules":
       return [];
     case "text":
@@ -1230,6 +1243,8 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       };
     case "page-set":
+      // page-set nodes are returned as ResolvedPageSetNode wrappers by
+      // resolveTemplateChild; never reached here.
     case "rules":
     case "page-number":
     case "page-count":

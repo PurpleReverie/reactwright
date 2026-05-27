@@ -49,6 +49,7 @@ import type {
   ResolvedSidenoteNode,
   ResolvedInlineMathNode,
   ResolvedMathNode,
+  ResolvedPageSetNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -879,10 +880,22 @@ function renderFixedNode(node: ResolvedFixedNode): string {
     .join("")}</div>`;
 }
 
+function renderPageSetNode(node: ResolvedPageSetNode): string {
+  // Wrap the page-set's children in a regime container that routes them to
+  // the named CSS Paged Media regime via `page: <name>` and forces a page
+  // break before the regime begins. Inside, content-less layers, fixed
+  // overlays, regions, and stacks all live; they appear only on pages of
+  // this regime.
+  const style = `page:${node.name};break-before:page;`;
+  return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${node.children.map((c) => renderResolvedChild(c)).join("")}</section>`;
+}
+
 function renderResolvedChild(node: ResolvedChild): string {
   switch (node.kind) {
     case "page":
       throw new Error("Nested page nodes are not supported in the resolved tree.");
+    case "page-set":
+      return renderPageSetNode(node);
     case "region":
       return renderRegionNode(node);
     case "stack":

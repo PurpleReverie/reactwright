@@ -358,6 +358,13 @@ export type ResolvedPageRegime = {
   style?: TemplateStyle;
 };
 
+export type ResolvedPageSetNode = {
+  kind: "page-set";
+  name: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedPageNode = {
   kind: "page";
   style?: TemplateStyle;
@@ -523,6 +530,7 @@ export type ResolvedInlineNode =
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
+  | ResolvedPageSetNode
   | ResolvedRegionNode
   | ResolvedStackNode
   | ResolvedColumnsNode

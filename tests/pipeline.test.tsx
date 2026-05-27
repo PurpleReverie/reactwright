@@ -589,7 +589,9 @@ test("resolver applies unified role rules and page-set filtering", () => {
   assert.equal(stack?.kind, "stack");
   assert.equal(stack.children.length, 2);
 
-  const worldRegion = stack.children[0];
+  const worldSet = stack.children[0];
+  assert.equal(worldSet?.kind, "page-set");
+  const worldRegion = worldSet.children[0];
   assert.equal(worldRegion?.kind, "region");
   assert.equal(worldRegion.children[0]?.kind, "section");
   assert.equal(worldRegion.children[0]?.title, "World");
@@ -600,7 +602,9 @@ test("resolver applies unified role rules and page-set filtering", () => {
   assert.equal(worldRegion.children[0]?.children[2]?.kind, "list");
   assert.equal(worldRegion.children[0]?.children[2]?.variant, "compactChecklist");
 
-  const scriptRegion = stack.children[1];
+  const scriptSet = stack.children[1];
+  assert.equal(scriptSet?.kind, "page-set");
+  const scriptRegion = scriptSet.children[0];
   assert.equal(scriptRegion?.kind, "region");
   assert.equal(scriptRegion.children[0]?.kind, "section");
   assert.equal(scriptRegion.children[0]?.variant, "sceneHeading");
