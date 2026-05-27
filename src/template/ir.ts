@@ -110,6 +110,7 @@ export type RoleRuleNode = {
   breakInside?: "auto" | "avoid";
   numbering?: RoleNumbering;
   dropCap?: RoleDropCap;
+  style?: TemplateStyle;
 };
 
 export type PageRuleNode = {

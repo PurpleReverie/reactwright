@@ -351,6 +351,7 @@ export type ResolvedRoleVariantRule = {
   breakInside?: string;
   numbering?: ResolvedRoleNumbering;
   dropCap?: ResolvedRoleDropCap;
+  style?: TemplateStyle;
 };
 
 export type ResolvedRoleNumbering = {

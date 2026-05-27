@@ -47,7 +47,20 @@ export function Template() {
         />
         <role on="quote" match="dialogue" apply="dialogue" />
         <role on="section" match="scene-heading" apply="sceneHeading" />
-        <role on="figure" match="plate" apply="plate" />
+        <role
+          on="figure"
+          match="plate"
+          apply="plate"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            minHeight: "calc(100vh - 1px)",
+            margin: 0,
+            padding: 0
+          }}
+        />
       </rules>
 
       <page-set

@@ -443,6 +443,7 @@ type RoleRuleProps = {
   breakInside?: "auto" | "avoid";
   numbering?: RoleNumberingProp;
   dropCap?: RoleDropCapProp;
+  style?: Record<string, unknown>;
 };
 
 declare module "react" {

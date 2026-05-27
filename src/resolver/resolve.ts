@@ -42,7 +42,8 @@ import type {
   RulesChild,
   SlotName,
   TemplateChild,
-  TemplateNode
+  TemplateNode,
+  TemplateStyle
 } from "../template/ir.js";
 
 import type {
@@ -127,6 +128,7 @@ type RoleRule = {
   breakInside?: string;
   numbering?: { counter: string; scope?: string; format?: string };
   dropCap?: { lines?: number; font?: string; position?: string };
+  style?: Record<string, unknown>;
 };
 
 type RuleMaps = {
@@ -765,7 +767,8 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
           ...(rule.breakAfter != null ? { breakAfter: rule.breakAfter } : {}),
           ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {}),
           ...(rule.numbering != null ? { numbering: rule.numbering } : {}),
-          ...(rule.dropCap != null ? { dropCap: rule.dropCap } : {})
+          ...(rule.dropCap != null ? { dropCap: rule.dropCap } : {}),
+          ...(rule.style != null ? { style: rule.style } : {})
         });
       }
       return;
@@ -1224,7 +1227,8 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
             r.breakAfter != null ||
             r.breakInside != null ||
             r.numbering != null ||
-            r.dropCap != null
+            r.dropCap != null ||
+            r.style != null
         )
         .map((r) => ({
           apply: r.apply,
@@ -1232,7 +1236,8 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
           ...(r.breakAfter != null ? { breakAfter: r.breakAfter } : {}),
           ...(r.breakInside != null ? { breakInside: r.breakInside } : {}),
           ...(r.numbering != null ? { numbering: r.numbering } : {}),
-          ...(r.dropCap != null ? { dropCap: r.dropCap } : {})
+          ...(r.dropCap != null ? { dropCap: r.dropCap } : {}),
+          ...(r.style != null ? { style: r.style as TemplateStyle } : {})
         }));
       const children = node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx));
       return {

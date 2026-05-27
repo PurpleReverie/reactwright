@@ -630,7 +630,10 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...(readBreak("breakAfter") != null ? { breakAfter: readBreak("breakAfter") } : {}),
         ...(readBreakInside() != null ? { breakInside: readBreakInside() } : {}),
         ...(readNumbering() != null ? { numbering: readNumbering() } : {}),
-        ...(readDropCap() != null ? { dropCap: readDropCap() } : {})
+        ...(readDropCap() != null ? { dropCap: readDropCap() } : {}),
+        ...(mergeTemplateStyleGroups(props) != null
+          ? { style: mergeTemplateStyleGroups(props) }
+          : {})
       } satisfies RoleRuleNode;
     }
     default:

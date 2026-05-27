@@ -291,12 +291,27 @@ function styleToInlineCss(style: TemplateStyle | undefined, kind?: "stack" | "re
   }
 
   const directMap: Record<string, string> = {
+    margin: "margin",
     marginTop: "margin-top",
     marginRight: "margin-right",
     marginBottom: "margin-bottom",
     marginLeft: "margin-left",
     maxWidth: "max-width",
+    minWidth: "min-width",
     width: "width",
+    minHeight: "min-height",
+    maxHeight: "max-height",
+    height: "height",
+    display: "display",
+    alignItems: "align-items",
+    justifyContent: "justify-content",
+    flexDirection: "flex-direction",
+    flexWrap: "flex-wrap",
+    gap: "gap",
+    rowGap: "row-gap",
+    opacity: "opacity",
+    transform: "transform",
+    objectFit: "object-fit",
     padding: "padding",
     paddingTop: "padding-top",
     paddingRight: "padding-right",
@@ -1206,6 +1221,14 @@ function buildVariantRulesCss(page: ResolvedPageNode): string {
     if (r.numbering != null) {
       decls.push(`counter-increment:${r.numbering.counter};`);
     }
+    // Arbitrary template-defined style for the variant (e.g. width, display,
+    // alignItems). This is how a template declares what a vocabulary role
+    // like "plate" or "callout" actually looks like, without the engine
+    // baking in specific role names.
+    if (r.style != null) {
+      const styleCss = styleToInlineCss(r.style, "region");
+      if (styleCss.length > 0) decls.push(styleCss);
+    }
     if (decls.length > 0) out.push(`${selector}{${decls.join("")}}`);
     if (r.numbering != null) {
       if (r.numbering.scope != null) {
@@ -1411,13 +1434,6 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "table{border-collapse:collapse;width:100%;}",
     "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
     "figure img{max-width:100%;height:auto;}",
-    // Plate figures: a figure tagged role="plate" via a template role rule
-    // (variant="plate") fills its containing page and centers — useful for
-    // portrait/plate regimes where the writer wants a full-bleed image
-    // without relying on absolute positioning (which escapes Paged.js's
-    // chunker and overlays subsequent pages).
-    "figure[data-variant=\"plate\"]{margin:0;width:100%;display:flex;align-items:center;justify-content:center;}",
-    "figure[data-variant=\"plate\"]>img{width:100%;height:auto;display:block;}",
     // Math block centering is robust against parent text-align:justify by
     // pinning the inner .katex-display to a centered block. The numbered-
     // equation ::before counter floats at the right margin.
