@@ -33,6 +33,8 @@ import type {
   ResolvedParagraphNode,
   ResolvedPreNode,
   ResolvedRefNode,
+  ResolvedBibliographyNode,
+  ResolvedCiteNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedInlineMathNode,
@@ -273,6 +275,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return renderFootnoteNode(node);
     case "m":
       return renderInlineMathNode(node);
+    case "cite":
+      return renderCiteNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -307,6 +311,22 @@ function renderInlineMathNode(node: ResolvedInlineMathNode): string {
 function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${escapeHtml(node.src)}</div>`;
+}
+
+function renderCiteNode(node: ResolvedCiteNode): string {
+  const href = `#${escapeHtml("reactdoc-bib-" + node.cite)}`;
+  return `<a data-node="cite" data-cite-key="${escapeHtml(node.cite)}" class="reactdoc-cite" href="${href}"></a>`;
+}
+
+function renderBibliographyNode(node: ResolvedBibliographyNode): string {
+  const title = node.title != null ? `<h2 class="reactdoc-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
+  const items = node.entries
+    .map((e) => {
+      const usedAttr = e.used ? ` data-used="true"` : "";
+      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${escapeHtml(e.text)}</li>`;
+    })
+    .join("");
+  return `<section data-node="bibliography" class="reactdoc-bibliography">${title}<ol>${items}</ol></section>`;
 }
 
 function idAttr(id: string | undefined): string {
@@ -569,6 +589,8 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "img":
     case "ref":
     case "footnote":
+    case "m":
+    case "cite":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -686,6 +708,8 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "footnote-area":
       // footnote-area is extracted to @footnote margin-box CSS at the page level.
       return "";
+    case "bibliography":
+      return renderBibliographyNode(node);
     case "header":
     case "footer":
       // Header/footer are extracted to CSS margin boxes by the page renderer.
@@ -722,6 +746,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "ref":
     case "footnote":
     case "m":
+    case "cite":
     case "text":
     case "page-break":
     case "set-running":
@@ -918,6 +943,9 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-ref-page::after{content:target-counter(attr(href url), page);}",
     ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
     ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' on p. ' target-counter(attr(href url), page);}",
+    ".reactdoc-cite::before{content:'[';}",
+    ".reactdoc-cite::after{content:target-counter(attr(href url), list-item) ']';}",
+    ".reactdoc-bibliography ol{padding-left:1.5em;}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",

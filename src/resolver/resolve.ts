@@ -3,6 +3,7 @@ import type {
   BlockQuoteNode,
   BreakNode,
   CellNode,
+  CiteNode,
   CodeBlockNode,
   CodeNode,
   DefNode,
@@ -56,6 +57,9 @@ import type {
   ResolvedHeadingNode,
   ResolvedEmNode,
   ResolvedFigureNode,
+  ResolvedBibliographyEntry,
+  ResolvedBibliographyNode,
+  ResolvedCiteNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -109,7 +113,27 @@ type ResolveContext = {
   currentPageSet?: string;
   currentAnchors?: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }>;
   rules: RuleMaps;
+  citeKeys: Set<string>;
 };
+
+function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
+  if ("kind" in node && node.kind === "cite") {
+    keys.add(node.cite);
+  }
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      collectCiteKeysFromNode(child as ResolvedContentNode, keys);
+    }
+  }
+}
+
+function collectCiteKeysFromSlotMap(slots: SlotMap, keys: Set<string>): void {
+  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
+    for (const node of list) {
+      collectCiteKeysFromNode(node, keys);
+    }
+  }
+}
 
 function resolveTextNode(node: TextNode): ResolvedTextNode {
   return {
@@ -210,6 +234,13 @@ function resolveInlineMathNode(node: InlineMathNode): ResolvedInlineMathNode {
   };
 }
 
+function resolveCiteNode(node: CiteNode): ResolvedCiteNode {
+  return {
+    kind: "cite",
+    cite: node.cite
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -224,6 +255,7 @@ function resolveInlineNode(
     | RefNode
     | FootnoteNode
     | InlineMathNode
+    | CiteNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -250,6 +282,8 @@ function resolveInlineNode(
       return resolveFootnoteNode(node);
     case "m":
       return resolveInlineMathNode(node);
+    case "cite":
+      return resolveCiteNode(node);
   }
 }
 
@@ -666,6 +700,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "ref":
     case "footnote":
     case "m":
+    case "cite":
     case "text":
     case "page-break":
     case "set-running":
@@ -791,6 +826,29 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedFootnoteAreaNode
       ];
+    case "bibliography": {
+      const provided = child.entries ?? [];
+      const providedKeys = new Set(provided.map((e) => e.key));
+      const entries: ResolvedBibliographyEntry[] = provided.map((e) => ({
+        key: e.key,
+        text: e.text,
+        used: ctx.citeKeys.has(e.key)
+      }));
+      // Append cited keys that have no explicit entry as placeholders.
+      for (const key of ctx.citeKeys) {
+        if (!providedKeys.has(key)) {
+          entries.push({ key, text: key, used: true });
+        }
+      }
+      return [
+        {
+          kind: "bibliography",
+          ...(child.title != null ? { title: child.title } : {}),
+          entries,
+          style: child.style
+        } satisfies ResolvedBibliographyNode
+      ];
+    }
   }
 }
 
@@ -863,6 +921,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "running":
     case "image":
     case "footnote-area":
+    case "bibliography":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
@@ -886,10 +945,13 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
     abstract: rawSlots.abstract.map((node) => applyResolvedRules(node, rules)) as ResolvedAbstractNode[],
     body: rawSlots.body.map((node) => applyResolvedRules(node, rules))
   } satisfies SlotMap;
+  const citeKeys = new Set<string>();
+  collectCiteKeysFromSlotMap(slots, citeKeys);
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
-    currentAnchors: undefined
+    currentAnchors: undefined,
+    citeKeys
   });
 
   if (resolved.kind !== "page") {

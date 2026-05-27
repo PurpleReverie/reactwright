@@ -9,6 +9,8 @@ import type {
   FixedNode,
   FixedWhen,
   FooterNode,
+  BibliographyEntry,
+  BibliographyNode,
   FootnoteAreaNode,
   HeaderNode,
   ImageNode,
@@ -365,6 +367,29 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...((props as Record<string, unknown>).separator === false ? {} : { separator: true }),
         style: mergeTemplateStyleGroups(props)
       } satisfies FootnoteAreaNode;
+    case "bibliography": {
+      const rawEntries = (props as Record<string, unknown>).entries;
+      let entries: BibliographyEntry[] | undefined;
+      if (Array.isArray(rawEntries)) {
+        entries = rawEntries
+          .filter(
+            (entry): entry is BibliographyEntry =>
+              entry != null &&
+              typeof entry === "object" &&
+              typeof (entry as BibliographyEntry).key === "string" &&
+              typeof (entry as BibliographyEntry).text === "string"
+          )
+          .map((e) => ({ key: e.key, text: e.text }));
+      }
+      const titleProp = (props as Record<string, unknown>).title;
+      const title = typeof titleProp === "string" ? titleProp : undefined;
+      return {
+        kind: "bibliography",
+        ...(title != null ? { title } : {}),
+        ...(entries != null ? { entries } : {}),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies BibliographyNode;
+    }
     case "running": {
       const name = typeof props.name === "string" ? props.name.trim() : "";
       if (name.length === 0) {

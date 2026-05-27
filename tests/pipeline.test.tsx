@@ -223,6 +223,42 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("cite + bibliography collect cited keys and emit a bibliography section", () => {
+  const documentTree = renderContentToIR(
+    <document title="Cited">
+      <section title="Body">
+        <p>
+          Per <cite cite="smith-2024" />, the result is robust.
+        </p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <slot name="body" />
+        <bibliography
+          title="References"
+          entries={[
+            { key: "smith-2024", text: "Smith, A. (2024). Robust Results." },
+            { key: "unused", text: "Unused." }
+          ]}
+        />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /data-node="cite"/);
+  assert.match(html, /data-node="bibliography"/);
+  assert.match(html, /id="reactdoc-bib-smith-2024"/);
+  assert.match(html, /data-bib-key="smith-2024" data-used="true"/);
+  assert.match(html, /data-bib-key="unused"/);
+  assert.ok(!/data-bib-key="unused" data-used/.test(html));
+});
+
 test("footnote primitive + footnote-area emit float:footnote and @footnote CSS", () => {
   const documentTree = renderContentToIR(
     <document title="Footnoted">

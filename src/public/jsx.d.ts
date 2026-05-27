@@ -112,6 +112,20 @@ type InlineMathProps = {
   src: string;
 };
 
+type CiteProps = {
+  cite: string;
+};
+
+type BibliographyEntryProp = {
+  key: string;
+  text: string;
+};
+
+type BibliographyProps = Omit<TemplateStyleBag, "children"> & {
+  title?: string;
+  entries?: BibliographyEntryProp[];
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -384,6 +398,8 @@ declare module "react" {
       "footnote-area": FootnoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
+      cite: CiteProps;
+      bibliography: BibliographyProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -437,6 +453,8 @@ declare module "react/jsx-runtime" {
       "footnote-area": FootnoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
+      cite: CiteProps;
+      bibliography: BibliographyProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -490,6 +508,8 @@ declare module "react/jsx-dev-runtime" {
       "footnote-area": FootnoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
+      cite: CiteProps;
+      bibliography: BibliographyProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -543,6 +563,8 @@ declare global {
       "footnote-area": FootnoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
+      cite: CiteProps;
+      bibliography: BibliographyProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

@@ -220,6 +220,18 @@ export type FootnoteAreaNode = {
   style?: TemplateStyle;
 };
 
+export type BibliographyEntry = {
+  key: string;
+  text: string;
+};
+
+export type BibliographyNode = {
+  kind: "bibliography";
+  title?: string;
+  entries?: BibliographyEntry[];
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -288,6 +300,7 @@ export type TemplateNode =
   | RunningNode
   | ImageNode
   | FootnoteAreaNode
+  | BibliographyNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -313,5 +326,6 @@ export type TemplateChild =
   | RunningNode
   | ImageNode
   | FootnoteAreaNode
+  | BibliographyNode
   | SlotNode
   | TemplateTextNode;

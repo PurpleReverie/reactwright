@@ -75,6 +75,11 @@ export type InlineMathNode = {
   src: string;
 };
 
+export type CiteNode = {
+  kind: "cite";
+  cite: string;
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -223,7 +228,8 @@ export type InlineNode =
   | InlineImgNode
   | RefNode
   | FootnoteNode
-  | InlineMathNode;
+  | InlineMathNode
+  | CiteNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -273,6 +279,7 @@ export type SemanticNode =
   | RefNode
   | FootnoteNode
   | InlineMathNode
+  | CiteNode
   | TextNode;
 
 export type SemanticContainerNode =

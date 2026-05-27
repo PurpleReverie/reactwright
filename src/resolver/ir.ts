@@ -214,6 +214,24 @@ export type ResolvedFootnoteAreaNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedCiteNode = {
+  kind: "cite";
+  cite: string;
+};
+
+export type ResolvedBibliographyEntry = {
+  key: string;
+  text: string;
+  used: boolean;
+};
+
+export type ResolvedBibliographyNode = {
+  kind: "bibliography";
+  title?: string;
+  entries: ResolvedBibliographyEntry[];
+  style?: TemplateStyle;
+};
+
 export type ResolvedRunningNode = {
   kind: "running";
   name: string;
@@ -354,6 +372,7 @@ export type ResolvedContentNode =
   | ResolvedFootnoteNode
   | ResolvedInlineMathNode
   | ResolvedMathNode
+  | ResolvedCiteNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -384,7 +403,8 @@ export type ResolvedInlineNode =
   | ResolvedInlineImgNode
   | ResolvedRefNode
   | ResolvedFootnoteNode
-  | ResolvedInlineMathNode;
+  | ResolvedInlineMathNode
+  | ResolvedCiteNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
@@ -399,6 +419,7 @@ export type ResolvedTemplateNode =
   | ResolvedRunningNode
   | ResolvedImageNode
   | ResolvedFootnoteAreaNode
+  | ResolvedBibliographyNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;
