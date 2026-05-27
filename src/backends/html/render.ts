@@ -37,6 +37,7 @@ import type {
   ResolvedCiteNode,
   ResolvedIndexEntryNode,
   ResolvedIndexTemplateNode,
+  ResolvedTocNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedSidenoteAreaNode,
@@ -328,6 +329,18 @@ function renderMathNode(node: ResolvedMathNode): string {
 
 function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
   return `<span data-node="index-entry" data-index-term="${escapeHtml(node.term)}" id="${escapeHtml(node.anchorId)}" hidden></span>`;
+}
+
+function renderTocNode(node: ResolvedTocNode): string {
+  const title = node.title != null ? `<h2 class="reactdoc-toc-title">${escapeHtml(node.title)}</h2>` : "";
+  const items = node.entries
+    .map((e) => {
+      const depthClass = ` class="reactdoc-toc-entry reactdoc-toc-depth-${e.depth}"`;
+      const numberedAttr = node.numbered === true ? ` data-numbered="true"` : "";
+      return `<li${depthClass}${numberedAttr}><a class="reactdoc-toc-link" href="#${escapeHtml(e.id)}"><span class="reactdoc-toc-text">${escapeHtml(e.title)}</span><span class="reactdoc-toc-page"></span></a></li>`;
+    })
+    .join("");
+  return `<nav data-node="toc" class="reactdoc-toc">${title}<ol>${items}</ol></nav>`;
 }
 
 function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string {
@@ -747,6 +760,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderBibliographyNode(node);
     case "index-template":
       return renderIndexTemplateNode(node);
+    case "toc":
+      return renderTocNode(node);
     case "sidenote-area":
       // sidenote-area is extracted to absolute-positioned margin CSS at the page level.
       return "";
@@ -1014,6 +1029,12 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-bibliography ol{padding-left:1.5em;}",
     ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
     ".reactdoc-index-pagerefs a + a::before{content:', ';}",
+    ".reactdoc-toc ol{list-style:none;padding-left:0;}",
+    ".reactdoc-toc-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
+    ".reactdoc-toc-page::after{content:target-counter(attr(href url, '#'), page);}",
+    ".reactdoc-toc-depth-2{padding-left:1.5em;}",
+    ".reactdoc-toc-depth-3{padding-left:3em;}",
+    ".reactdoc-toc-depth-4{padding-left:4.5em;}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",

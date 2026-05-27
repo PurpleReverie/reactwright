@@ -223,6 +223,39 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("toc template primitive collects sections with auto-generated ids", () => {
+  const documentTree = renderContentToIR(
+    <document title="Toc Test">
+      <section title="Introduction">
+        <p>Hi.</p>
+      </section>
+      <section title="Body" id="body">
+        <p>Yo.</p>
+        <section title="Subsection">
+          <p>Sub.</p>
+        </section>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <toc title="Contents" depth={2} />
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /data-node="toc"/);
+  assert.match(html, /href="#reactdoc-sec-introduction"/);
+  assert.match(html, /href="#body"/);
+  assert.match(html, /Subsection/);
+  assert.match(html, /reactdoc-toc-page::after\{content:target-counter/);
+});
+
 test("index entries collect to back-matter index with anchor refs", () => {
   const documentTree = renderContentToIR(
     <document title="Indexed">

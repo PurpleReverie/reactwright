@@ -248,6 +248,14 @@ export type IndexTemplateNode = {
   style?: TemplateStyle;
 };
 
+export type TocNode = {
+  kind: "toc";
+  title?: string;
+  depth?: number;
+  numbered?: boolean;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -319,6 +327,7 @@ export type TemplateNode =
   | BibliographyNode
   | IndexTemplateNode
   | SidenoteAreaNode
+  | TocNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -347,5 +356,6 @@ export type TemplateChild =
   | BibliographyNode
   | IndexTemplateNode
   | SidenoteAreaNode
+  | TocNode
   | SlotNode
   | TemplateTextNode;

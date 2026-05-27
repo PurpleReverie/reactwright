@@ -67,6 +67,8 @@ import type {
   ResolvedIndexTemplateNode,
   ResolvedSidenoteAreaNode,
   ResolvedSidenoteNode,
+  ResolvedTocEntry,
+  ResolvedTocNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -122,6 +124,7 @@ type ResolveContext = {
   rules: RuleMaps;
   citeKeys: Set<string>;
   indexEntries: Map<string, string[]>;
+  tocEntries: ResolvedTocEntry[];
 };
 
 function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
@@ -177,6 +180,55 @@ function stampIndexAnchorsInSlotMap(slots: SlotMap, indexEntries: Map<string, st
   for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
     for (const node of list) {
       stampIndexAnchorsAndCollect(node, counts, indexEntries);
+    }
+  }
+}
+
+function titleToSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function stampSectionIdsAndCollectToc(
+  node: ResolvedContentNode,
+  depth: number,
+  used: Set<string>,
+  entries: ResolvedTocEntry[]
+): void {
+  if (node.kind === "section") {
+    let id = node.id;
+    if (id == null || id.length === 0) {
+      const base = titleToSlug(node.title) || "section";
+      let candidate = `reactdoc-sec-${base}`;
+      let n = 1;
+      while (used.has(candidate)) {
+        n += 1;
+        candidate = `reactdoc-sec-${base}-${n}`;
+      }
+      id = candidate;
+      node.id = id;
+    }
+    used.add(id);
+    entries.push({ id, title: node.title, depth });
+    for (const child of node.children) {
+      stampSectionIdsAndCollectToc(child as ResolvedContentNode, depth + 1, used, entries);
+    }
+    return;
+  }
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      stampSectionIdsAndCollectToc(child as ResolvedContentNode, depth, used, entries);
+    }
+  }
+}
+
+function stampSectionIdsInSlotMap(slots: SlotMap, entries: ResolvedTocEntry[]): void {
+  const used = new Set<string>();
+  for (const list of [slots.abstract, slots.body]) {
+    for (const node of list) {
+      stampSectionIdsAndCollectToc(node, 1, used, entries);
     }
   }
 }
@@ -905,6 +957,20 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedSidenoteAreaNode
       ];
+    case "toc": {
+      const maxDepth = child.depth ?? Number.POSITIVE_INFINITY;
+      const entries = ctx.tocEntries.filter((e) => e.depth <= maxDepth);
+      return [
+        {
+          kind: "toc",
+          ...(child.title != null ? { title: child.title } : {}),
+          ...(child.depth != null ? { depth: child.depth } : {}),
+          ...(child.numbered === true ? { numbered: true } : {}),
+          entries,
+          style: child.style
+        } satisfies ResolvedTocNode
+      ];
+    }
     case "index-template": {
       const entries: ResolvedIndexEntry[] = [...ctx.indexEntries.entries()]
         .map(([term, anchorIds]) => ({ term, anchorIds }))
@@ -1016,6 +1082,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "sidenote-area":
     case "bibliography":
     case "index-template":
+    case "toc":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
@@ -1043,12 +1110,15 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   collectCiteKeysFromSlotMap(slots, citeKeys);
   const indexEntries = new Map<string, string[]>();
   stampIndexAnchorsInSlotMap(slots, indexEntries);
+  const tocEntries: ResolvedTocEntry[] = [];
+  stampSectionIdsInSlotMap(slots, tocEntries);
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
     currentAnchors: undefined,
     citeKeys,
-    indexEntries
+    indexEntries,
+    tocEntries
   });
 
   if (resolved.kind !== "page") {

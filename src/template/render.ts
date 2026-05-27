@@ -17,6 +17,7 @@ import type {
   IndexTemplateNode,
   SidenoteAreaNode,
   SidenoteAreaSide,
+  TocNode,
   LayerNode,
   LayerWhen,
   MarginAnchor,
@@ -389,6 +390,20 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...(typeof gapRaw === "string" ? { gap: gapRaw } : {}),
         style: mergeTemplateStyleGroups(props)
       } satisfies SidenoteAreaNode;
+    }
+    case "toc": {
+      const titleProp = (props as Record<string, unknown>).title;
+      const title = typeof titleProp === "string" ? titleProp : undefined;
+      const depthRaw = (props as Record<string, unknown>).depth;
+      const depth = typeof depthRaw === "number" && depthRaw > 0 ? depthRaw : undefined;
+      const numbered = (props as Record<string, unknown>).numbered === true ? true : undefined;
+      return {
+        kind: "toc",
+        ...(title != null ? { title } : {}),
+        ...(depth != null ? { depth } : {}),
+        ...(numbered != null ? { numbered } : {}),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies TocNode;
     }
     case "index": {
       const titleProp = (props as Record<string, unknown>).title;

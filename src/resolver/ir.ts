@@ -250,6 +250,21 @@ export type ResolvedIndexTemplateNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedTocEntry = {
+  id: string;
+  title: string;
+  depth: number;
+};
+
+export type ResolvedTocNode = {
+  kind: "toc";
+  title?: string;
+  depth?: number;
+  numbered?: boolean;
+  entries: ResolvedTocEntry[];
+  style?: TemplateStyle;
+};
+
 export type ResolvedBibliographyEntry = {
   key: string;
   text: string;
@@ -457,6 +472,7 @@ export type ResolvedTemplateNode =
   | ResolvedBibliographyNode
   | ResolvedIndexTemplateNode
   | ResolvedSidenoteAreaNode
+  | ResolvedTocNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

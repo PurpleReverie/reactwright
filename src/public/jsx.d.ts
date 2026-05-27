@@ -133,6 +133,12 @@ type IndexProps = Omit<TemplateStyleBag, "children"> & {
   title?: string;
 };
 
+type TocProps = Omit<TemplateStyleBag, "children"> & {
+  title?: string;
+  depth?: number;
+  numbered?: boolean;
+};
+
 type BibliographyEntryProp = {
   key: string;
   text: string;
@@ -420,6 +426,7 @@ declare module "react" {
       cite: CiteProps;
       bibliography: BibliographyProps;
       index: IndexProps;
+      toc: TocProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -478,6 +485,7 @@ declare module "react/jsx-runtime" {
       cite: CiteProps;
       bibliography: BibliographyProps;
       index: IndexProps;
+      toc: TocProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -536,6 +544,7 @@ declare module "react/jsx-dev-runtime" {
       cite: CiteProps;
       bibliography: BibliographyProps;
       index: IndexProps;
+      toc: TocProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -594,6 +603,7 @@ declare global {
       cite: CiteProps;
       bibliography: BibliographyProps;
       index: IndexProps;
+      toc: TocProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
