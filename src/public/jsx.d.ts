@@ -162,6 +162,16 @@ type BibliographyProps = Omit<TemplateStyleBag, "children"> & {
   entries?: BibliographyEntryProp[];
 };
 
+type RefsProps = {
+  children?: ReactNode;
+};
+
+type RefEntryProps = {
+  refKey?: string;
+  key?: string;
+  children?: ReactNode;
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -464,6 +474,8 @@ declare module "react" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      refs: RefsProps;
+      "ref-entry": RefEntryProps;
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
@@ -527,6 +539,8 @@ declare module "react/jsx-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      refs: RefsProps;
+      "ref-entry": RefEntryProps;
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
@@ -590,6 +604,8 @@ declare module "react/jsx-dev-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      refs: RefsProps;
+      "ref-entry": RefEntryProps;
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
@@ -653,6 +669,8 @@ declare global {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      refs: RefsProps;
+      "ref-entry": RefEntryProps;
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;

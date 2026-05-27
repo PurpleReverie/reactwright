@@ -467,7 +467,11 @@ function renderBibliographyNode(node: ResolvedBibliographyNode): string {
   const items = node.entries
     .map((e) => {
       const usedAttr = e.used ? ` data-used="true"` : "";
-      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr} style="counter-increment:reactdoc-bib;">${escapeHtml(e.text)}</li>`;
+      const body =
+        e.inline != null && e.inline.length > 0
+          ? e.inline.map((c) => renderInlineNode(c)).join("")
+          : escapeHtml(e.text ?? e.key);
+      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr} style="counter-increment:reactdoc-bib;">${body}</li>`;
     })
     .join("");
   return `<section data-node="bibliography" class="reactdoc-bibliography" style="counter-reset:reactdoc-bib;">${title}<ol>${items}</ol></section>`;
@@ -738,6 +742,11 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderHeadingNode(node);
     case "math":
       return renderMathNode(node);
+    case "refs":
+    case "ref-entry":
+      // Reference entries are zero-render carriers; the bibliography
+      // template node pulls their content via the resolver.
+      return "";
     case "page-break":
       return renderPageBreakNode(node);
     case "set-running":
@@ -972,6 +981,8 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "cite":
     case "index":
     case "sidenote":
+    case "refs":
+    case "ref-entry":
     case "text":
     case "page-break":
     case "set-running":

@@ -23,7 +23,9 @@ import type {
   PageBreakNode,
   ParagraphNode,
   PreNode,
+  RefEntryNode,
   RefNode,
+  RefsNode,
   FootnoteNode,
   RowNode,
   SidenoteNode,
@@ -67,6 +69,8 @@ import type {
   ResolvedIndexEntry,
   ResolvedIndexEntryNode,
   ResolvedIndexTemplateNode,
+  ResolvedRefEntryNode,
+  ResolvedRefsNode,
   ResolvedSidenoteAreaNode,
   ResolvedSidenoteNode,
   ResolvedTocEntry,
@@ -143,6 +147,7 @@ type ResolveContext = {
     equation: ResolvedListOfEntry[];
   };
   pageRegimes: ResolvedPageRegime[];
+  refEntries: Map<string, ResolvedInlineNode[]>;
 };
 
 function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
@@ -298,6 +303,32 @@ function stampListOfAndCollect(
   }
 }
 
+function collectRefEntriesFromNode(
+  node: ResolvedContentNode | ResolvedInlineNode,
+  out: Map<string, ResolvedInlineNode[]>
+): void {
+  if ("kind" in node && (node as { kind: string }).kind === "ref-entry") {
+    const entry = node as unknown as { refKey: string; children: ResolvedInlineNode[] };
+    if (!out.has(entry.refKey)) out.set(entry.refKey, entry.children);
+  }
+  if ("children" in node && Array.isArray((node as { children: unknown[] }).children)) {
+    for (const c of (node as { children: ResolvedContentNode[] }).children) {
+      collectRefEntriesFromNode(c, out);
+    }
+  }
+}
+
+function collectRefEntriesFromSlotMap(
+  slots: SlotMap,
+  out: Map<string, ResolvedInlineNode[]>
+): void {
+  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
+    for (const node of list) {
+      collectRefEntriesFromNode(node, out);
+    }
+  }
+}
+
 function stampListOfInSlotMap(
   slots: SlotMap,
   buckets: { figure: ResolvedListOfEntry[]; table: ResolvedListOfEntry[]; equation: ResolvedListOfEntry[] }
@@ -429,6 +460,21 @@ function resolveSidenoteNode(node: SidenoteNode): ResolvedSidenoteNode {
   return {
     kind: "sidenote",
     children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveRefEntryNode(node: RefEntryNode): ResolvedRefEntryNode {
+  return {
+    kind: "ref-entry",
+    refKey: node.refKey,
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveRefsNode(node: RefsNode): ResolvedRefsNode {
+  return {
+    kind: "refs",
+    children: node.children.map(resolveRefEntryNode)
   };
 }
 
@@ -671,6 +717,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveHeadingNode(node);
     case "math":
       return resolveMathNode(node);
+    case "refs":
+      return resolveRefsNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
     case "set-running":
@@ -892,6 +940,8 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "code-block":
     case "pre":
     case "def":
+    case "refs":
+    case "ref-entry":
     case "item":
     case "title":
     case "author":
@@ -909,6 +959,8 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "cite":
     case "index":
     case "sidenote":
+    case "refs":
+    case "ref-entry":
     case "text":
     case "page-break":
     case "set-running":
@@ -1119,16 +1171,34 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       ];
     }
     case "bibliography": {
+      // Bibliography entries come from two places:
+      //  1. Content-side <refs><ref-entry key=... >...</ref-entry></refs>
+      //     blocks. Authors write entries as content with full inline
+      //     formatting (em, strong, link, etc).
+      //  2. Optional template-prop `entries` for when the bibliography is
+      //     known at template time (legacy / for boilerplate templates).
+      // Content-side entries take precedence when a key appears in both.
       const provided = child.entries ?? [];
-      const providedKeys = new Set(provided.map((e) => e.key));
-      const entries: ResolvedBibliographyEntry[] = provided.map((e) => ({
-        key: e.key,
-        text: e.text,
-        used: ctx.citeKeys.has(e.key)
-      }));
-      // Append cited keys that have no explicit entry as placeholders.
+      const seen = new Set<string>();
+      const entries: ResolvedBibliographyEntry[] = [];
+      // Content-side entries first.
+      for (const [key, inline] of ctx.refEntries) {
+        seen.add(key);
+        entries.push({
+          key,
+          inline,
+          used: ctx.citeKeys.has(key)
+        } as ResolvedBibliographyEntry);
+      }
+      // Template-prop entries that don't conflict.
+      for (const e of provided) {
+        if (seen.has(e.key)) continue;
+        seen.add(e.key);
+        entries.push({ key: e.key, text: e.text, used: ctx.citeKeys.has(e.key) });
+      }
+      // Cited keys with no entry at all get placeholder text.
       for (const key of ctx.citeKeys) {
-        if (!providedKeys.has(key)) {
+        if (!seen.has(key)) {
           entries.push({ key, text: key, used: true });
         }
       }
@@ -1289,6 +1359,8 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const listOf = { figure: [] as ResolvedListOfEntry[], table: [] as ResolvedListOfEntry[], equation: [] as ResolvedListOfEntry[] };
   stampListOfInSlotMap(slots, listOf);
   const pageRegimes: ResolvedPageRegime[] = [];
+  const refEntries = new Map<string, ResolvedInlineNode[]>();
+  collectRefEntriesFromSlotMap(slots, refEntries);
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
@@ -1297,7 +1369,8 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
     indexEntries,
     tocEntries,
     listOf,
-    pageRegimes
+    pageRegimes,
+    refEntries
   });
 
   if (resolved.kind !== "page") {

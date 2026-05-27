@@ -261,6 +261,26 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "sidenote",
         children: []
       };
+    case "refs":
+      return {
+        kind: "refs",
+        children: []
+      };
+    case "ref-entry": {
+      const refKey = typeof (props as Record<string, unknown>).refKey === "string"
+        ? ((props as Record<string, unknown>).refKey as string).trim()
+        : (typeof (props as Record<string, unknown>)["key"] === "string"
+            ? ((props as Record<string, unknown>)["key"] as string).trim()
+            : "");
+      if (refKey.length === 0) {
+        throw new Error("`ref-entry` requires a non-empty `refKey` (or `key`).");
+      }
+      return {
+        kind: "ref-entry",
+        refKey,
+        children: []
+      };
+    }
     case "ref": {
       const to = typeof (props as Record<string, unknown>).to === "string"
         ? ((props as Record<string, unknown>).to as string).trim()
@@ -500,6 +520,27 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       }
       parent.children.push(child);
       return;
+    case "refs":
+      if (child.kind !== "ref-entry") {
+        throw new Error("`refs` may only contain `ref-entry` children.");
+      }
+      parent.children.push(child);
+      return;
+    case "ref-entry":
+      if (
+        child.kind !== "text" &&
+        child.kind !== "em" &&
+        child.kind !== "strong" &&
+        child.kind !== "code" &&
+        child.kind !== "link" &&
+        child.kind !== "br" &&
+        child.kind !== "sub" &&
+        child.kind !== "sup"
+      ) {
+        throw new Error("`ref-entry` may only contain inline primitives.");
+      }
+      parent.children.push(child);
+      return;
     case "defs":
       if (child.kind !== "def") {
         throw new Error("`defs` may only contain `def` children.");
@@ -558,6 +599,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "defs" &&
         child.kind !== "heading" &&
         child.kind !== "math" &&
+        child.kind !== "refs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -580,6 +622,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "defs" &&
         child.kind !== "heading" &&
         child.kind !== "math" &&
+        child.kind !== "refs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {

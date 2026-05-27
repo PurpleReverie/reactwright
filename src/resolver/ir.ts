@@ -219,6 +219,17 @@ export type ResolvedSidenoteNode = {
   children: ResolvedInlineNode[];
 };
 
+export type ResolvedRefEntryNode = {
+  kind: "ref-entry";
+  refKey: string;
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedRefsNode = {
+  kind: "refs";
+  children: ResolvedRefEntryNode[];
+};
+
 export type ResolvedSidenoteAreaNode = {
   kind: "sidenote-area";
   side?: "outside" | "inside" | "left" | "right";
@@ -289,7 +300,8 @@ export type ResolvedFontNode = {
 
 export type ResolvedBibliographyEntry = {
   key: string;
-  text: string;
+  text?: string;
+  inline?: ResolvedInlineNode[];
   used: boolean;
 };
 
@@ -490,6 +502,8 @@ export type ResolvedContentNode =
   | ResolvedFootnoteNode
   | ResolvedInlineMathNode
   | ResolvedMathNode
+  | ResolvedRefsNode
+  | ResolvedRefEntryNode
   | ResolvedCiteNode
   | ResolvedIndexEntryNode
   | ResolvedSidenoteNode
@@ -506,6 +520,7 @@ export type ResolvedContentChild =
   | ResolvedDefsNode
   | ResolvedHeadingNode
   | ResolvedMathNode
+  | ResolvedRefsNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode

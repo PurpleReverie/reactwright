@@ -31,6 +31,7 @@
     "mockup:cover": "npm run -s run:file -- ./mockups/cover.tsx --format html,pdf --out ./build/mockups",
     "mockup:ieee": "npm run -s run:file -- ./mockups/ieee.tsx --format html,pdf --out ./build/mockups",
     "mockup:long-form": "npm run -s run:file -- ./mockups/long-form.tsx --format html,pdf --out ./build/mockups",
+    "mockup:ieee-long": "npm run -s run:file -- ./mockups/ieee-long.tsx --format html,pdf --out ./build/mockups",
     "mockup:all": "npm run -s mockup:treatise && npm run -s mockup:field-notes && npm run -s mockup:chapter-three && npm run -s mockup:newsletter && npm run -s mockup:cover && npm run -s mockup:ieee && npm run -s mockup:long-form",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",

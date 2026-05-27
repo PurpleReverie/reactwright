@@ -90,6 +90,17 @@ export type SidenoteNode = {
   children: InlineNode[];
 };
 
+export type RefEntryNode = {
+  kind: "ref-entry";
+  refKey: string;
+  children: InlineNode[];
+};
+
+export type RefsNode = {
+  kind: "refs";
+  children: RefEntryNode[];
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -255,6 +266,7 @@ export type SemanticBlockChild =
   | DefsNode
   | HeadingNode
   | MathNode
+  | RefsNode
   | PageBreakNode
   | SetRunningNode;
 
@@ -278,6 +290,8 @@ export type SemanticNode =
   | DefNode
   | HeadingNode
   | MathNode
+  | RefsNode
+  | RefEntryNode
   | PageBreakNode
   | SetRunningNode
   | EmNode
@@ -320,4 +334,6 @@ export type SemanticContainerNode =
   | SubNode
   | SupNode
   | FootnoteNode
-  | SidenoteNode;
+  | SidenoteNode
+  | RefsNode
+  | RefEntryNode;
