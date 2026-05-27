@@ -115,3 +115,59 @@ These are noted for when we expand M2–M12 to this level of detail:
 - Within a milestone, finish utility layer before starting state layer; finish state before composition.
 - One PR per milestone (or per dev story, if a milestone is large).
 - Each atomic story is one test + one implementation. Squash within a dev story; don't squash across dev stories.
+
+---
+
+# Phase 2 — Vocabulary expansion (N1–N20)
+
+The M1–M12 milestones produced a working pipeline but the vocabulary is still too narrow for "any document, any layout." Phase 2 closes that gap by adding primitives that paginated-HTML documents need in practice. Each milestone follows the same framework — user story → dev stories → atomic TDD stories (utility / state / composition).
+
+## Milestone table
+
+| # | User story | Primitive(s) added |
+|---|---|---|
+| **N1** | As a writer, I want to break lines inside a paragraph and write subscripts/superscripts. | content inline: `br`, `sub`, `sup` |
+| **N2** | As a writer, I want a verbatim block that preserves whitespace without being marked as code. | content block: `pre` |
+| **N3** | As a writer, I want to drop an inline image inside a paragraph without forcing figure semantics. | content inline: `img` |
+| **N4** | As a writer, I want definition lists for glossaries and term/definition pairs. | content block: `defs`, `def` |
+| **N5** | As a writer, I want standalone headings that aren't tied to a section wrapper. | content block: `heading` (level/title) |
+| **N6** | As a writer, I want to label any block so I can cross-reference it later. | `id` prop on every block primitive |
+| **N7** | As a writer, I want to write "see Figure 3 on p. 42" and have the number and page filled in. | content inline: `ref` (to/show) |
+| **N8** | As a writer, I want to write footnotes inline and have them rendered at the bottom of the page. | content inline: `footnote`; template: `footnote-area` |
+| **N9** | As a writer, I want to embed equations. | content: `math` (block), `m` (inline) |
+| **N10** | As a writer, I want to cite sources and have a bibliography collected automatically. | content inline: `cite`; template: `bibliography` |
+| **N11** | As a writer, I want to mark index entries and get an auto-generated index. | content inline: `index`; template: `index` |
+| **N12** | As a writer, I want Tufte-style sidenotes anchored in the outside margin. | content inline: `sidenote`; template: `sidenote-area` |
+| **N13** | As a template designer, I want to drop a `<toc>` and get an auto-generated table of contents. | template: `toc` |
+| **N14** | As a template designer, I want to auto-generate lists of figures, tables, or equations. | template: `list-of` |
+| **N15** | As a template designer, I want asymmetric multi-column layouts. | template: `columns`, `column` |
+| **N16** | As a template designer, I want to register custom fonts. | template: `font` |
+| **N17** | As a template designer, I want to control break-before/after/inside on matched roles. | role-rule props: `breakBefore`, `breakAfter`, `breakInside` |
+| **N18** | As a template designer, I want to attach counters and numbered captions to matched roles. | role-rule prop: `numbering` |
+| **N19** | As a template designer, I want first-line drop-caps via a single declaration. | role-rule prop: `dropCap` + `position="first-in-section"` |
+| **N20** | As a template designer, I want my supported roles to be typed so writers can't typo a role string. | `Template<TRoles>` generic + `page-set roles` registry |
+
+## TDD layer pattern (recurring)
+
+For each Nx milestone, the atomic stories fall into the same three layers. The shape repeats per primitive — only the names change.
+
+### Utility layer
+- IR-shape constructors (`createFootnoteNode({...}) → FootnoteNode`)
+- Parsers / validators (`readMathSrc(props) → string`)
+- HTML emitters (`renderFootnoteCallHTML(node) → string`)
+- CSS generators (`buildFootnoteAreaCss({...}) → string`)
+
+### State/store layer
+- Reconciler `createInstance` accepts the new intrinsic type and yields the right IR shape
+- Child-append rules accept the primitive in valid parents and reject in invalid ones
+- Resolver passes new IR through the resolved tree (or extracts and aggregates, for back-matter primitives)
+
+### Composition layer
+- React tree → IR → resolved → HTML round-trip for a small fixture containing the new primitive
+- Co-existence with adjacent primitives (footnote inside a paragraph inside a list item, etc.)
+
+## Per-milestone execution order
+
+Implementation order **per primitive**: utility → state → composition. Implementation order **across milestones**: simple structural primitives first (N1–N6), then primitives requiring resolver-side aggregation (N7–N12), then template-only additions (N13–N19), then the role-typing pass (N20). The ordering minimizes IR/resolver churn — each round of resolver changes happens against a stable content IR.
+
+Each Nx ships as one micro-commit (or a small stack of micro-commits if utility/state/composition are individually meaningful). Tests + tsc + intellisense fixture stay green at every commit.
