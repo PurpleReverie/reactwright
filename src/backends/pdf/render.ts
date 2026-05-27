@@ -85,23 +85,23 @@ export async function buildPdfFromHtml(
     // HTML references it via script tag).
     await browserPage.setContent(html, { waitUntil: "networkidle0" });
 
-    // Wait for Paged.js to finish paginating. The Paged.js polyfill exposes
-    // a `pagedjs_render` ready signal; for robustness we poll for a class.
+    // Wait for Paged.js to finish paginating. Passed as a source string to
+    // avoid tsx/esbuild helper injection (e.g. __name) leaking into the page
+    // context where they would be undefined.
     await browserPage.evaluate(
-      () =>
-        new Promise<void>((resolve) => {
-          const start = Date.now();
-          const timeout = 15000;
-          const check = () => {
-            const ready = document.querySelector(".pagedjs_pages, .pagedjs_page") != null;
-            if (ready || Date.now() - start > timeout) {
-              resolve();
-            } else {
-              setTimeout(check, 100);
-            }
-          };
-          check();
-        })
+      `new Promise(function (resolve) {
+        var start = Date.now();
+        var timeout = 15000;
+        function check() {
+          var ready = document.querySelector('.pagedjs_pages, .pagedjs_page') != null;
+          if (ready || Date.now() - start > timeout) {
+            resolve();
+          } else {
+            setTimeout(check, 100);
+          }
+        }
+        check();
+      })`
     );
 
     await mkdir(dirname(options.outputPath), { recursive: true });

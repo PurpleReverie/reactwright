@@ -23,12 +23,13 @@
     "check": "tsc --noEmit",
     "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
     "test": "node --import tsx --test tests/**/*.test.tsx",
-    "run:file": "node --import tsx ./src/cli/run-file.tsx",
-    "mockup:treatise": "node --import tsx ./src/cli/run-file.tsx ./mockups/treatise.tsx --format html --out ./build/mockups",
-    "mockup:field-notes": "node --import tsx ./src/cli/run-file.tsx ./mockups/field-notes.tsx --format html --out ./build/mockups",
-    "mockup:chapter-three": "node --import tsx ./src/cli/run-file.tsx ./mockups/chapter-three.tsx --format html --out ./build/mockups",
-    "mockup:newsletter": "node --import tsx ./src/cli/run-file.tsx ./mockups/newsletter.tsx --format html --out ./build/mockups",
-    "mockup:cover": "node --import tsx ./src/cli/run-file.tsx ./mockups/cover.tsx --format html --out ./build/mockups",
+    "run:file": "PUPPETEER_EXECUTABLE_PATH=\"${PUPPETEER_EXECUTABLE_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node --import tsx ./src/cli/run-file.tsx",
+    "mockup:treatise": "npm run -s run:file -- ./mockups/treatise.tsx --format html,pdf --out ./build/mockups",
+    "mockup:field-notes": "npm run -s run:file -- ./mockups/field-notes.tsx --format html,pdf --out ./build/mockups",
+    "mockup:chapter-three": "npm run -s run:file -- ./mockups/chapter-three.tsx --format html,pdf --out ./build/mockups",
+    "mockup:newsletter": "npm run -s run:file -- ./mockups/newsletter.tsx --format html,pdf --out ./build/mockups",
+    "mockup:cover": "npm run -s run:file -- ./mockups/cover.tsx --format html,pdf --out ./build/mockups",
+    "mockup:all": "npm run -s mockup:treatise && npm run -s mockup:field-notes && npm run -s mockup:chapter-three && npm run -s mockup:newsletter && npm run -s mockup:cover",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",
     "example:resolve": "node --import tsx ./src/examples/resolve.tsx",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@types/node": "^22.15.18",
     "@types/react": "^19.1.2",
+    "puppeteer-core": "^25.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3"
   }
