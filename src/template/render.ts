@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { getTemplateIntrinsic } from "./registry.js";
 
 import type {
+  ColumnNode,
+  ColumnsNode,
   CustomTemplateNode,
   FixedAnchor,
   FixedNode,
@@ -322,6 +324,34 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         style,
         children: []
       } satisfies StackNode;
+    }
+    case "columns": {
+      const style = mergeTemplateStyleGroups(props);
+      const gap = readOptionalTemplateToken(props, "gap");
+      const widthsRaw = (props as Record<string, unknown>).widths;
+      let widths: string[] | undefined;
+      if (Array.isArray(widthsRaw)) {
+        widths = widthsRaw.filter((w): w is string => typeof w === "string" && w.length > 0);
+        if (widths.length === 0) widths = undefined;
+      }
+      return {
+        kind: "columns",
+        ...(gap != null ? { gap } : {}),
+        ...(widths != null ? { widths } : {}),
+        style,
+        children: []
+      } satisfies ColumnsNode;
+    }
+    case "column": {
+      const style = mergeTemplateStyleGroups(props);
+      const widthRaw = (props as Record<string, unknown>).width;
+      const width = typeof widthRaw === "string" ? widthRaw : undefined;
+      return {
+        kind: "column",
+        ...(width != null ? { width } : {}),
+        style,
+        children: []
+      } satisfies ColumnNode;
     }
     case "slot":
       return {

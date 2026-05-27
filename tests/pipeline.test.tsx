@@ -223,6 +223,40 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("columns/column emits CSS grid with explicit and inferred widths", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <columns gap="6mm" widths={["2fr", "1fr"]}>
+        <column>
+          <region>
+            <slot name="body" />
+          </region>
+        </column>
+        <column width="60mm">
+          <region>
+            <slot name="abstract" />
+          </region>
+        </column>
+      </columns>
+    </page>
+  );
+
+  const documentTree = renderContentToIR(
+    <document title="Cols">
+      <abstract>
+        <p>Side note.</p>
+      </abstract>
+      <p>Main.</p>
+    </document>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /data-node="columns"/);
+  assert.match(html, /grid-template-columns:2fr 60mm/);
+  assert.match(html, /data-node="column"/);
+});
+
 test("list-of template primitive collects figures with auto-generated ids", () => {
   const documentTree = renderContentToIR(
     <document title="ListOf Test">

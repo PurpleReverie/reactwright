@@ -358,6 +358,21 @@ export type ResolvedStackNode = {
   children: ResolvedChild[];
 };
 
+export type ResolvedColumnsNode = {
+  kind: "columns";
+  gap?: string;
+  widths?: string[];
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
+export type ResolvedColumnNode = {
+  kind: "column";
+  width?: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedAnchorCoordinate = {
   top?: string;
   right?: string;
@@ -473,6 +488,8 @@ export type ResolvedTemplateNode =
   | ResolvedPageNode
   | ResolvedRegionNode
   | ResolvedStackNode
+  | ResolvedColumnsNode
+  | ResolvedColumnNode
   | ResolvedLayerNode
   | ResolvedFixedNode
   | ResolvedHeaderNode

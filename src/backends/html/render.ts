@@ -10,6 +10,8 @@ import type {
   ResolvedCodeBlockNode,
   ResolvedCodeNode,
   ResolvedContentNode,
+  ResolvedColumnNode,
+  ResolvedColumnsNode,
   ResolvedCustomTemplateNode,
   ResolvedDefNode,
   ResolvedDefsNode,
@@ -707,6 +709,32 @@ function renderCustomNode(node: ResolvedCustomTemplateNode): string {
   });
 }
 
+function renderColumnsNode(node: ResolvedColumnsNode): string {
+  const widths = node.widths;
+  const explicit = node.children.filter(
+    (c): c is ResolvedColumnNode => (c as ResolvedChild).kind === "column"
+  );
+  const gap = node.gap ?? "8mm";
+  let gridTemplate: string;
+  if (explicit.length > 0) {
+    gridTemplate = explicit
+      .map((c, i) => c.width ?? widths?.[i] ?? "1fr")
+      .join(" ");
+  } else if (widths && widths.length > 0) {
+    gridTemplate = widths.join(" ");
+  } else {
+    gridTemplate = "1fr 1fr";
+  }
+  const style = `display:grid;grid-template-columns:${gridTemplate};gap:${gap};${styleToInlineCss(node.style, "region")}`;
+  return `<div data-node="columns" style="${escapeHtml(style)}">${node.children.map((c) => renderResolvedChild(c)).join("")}</div>`;
+}
+
+function renderColumnNode(node: ResolvedColumnNode): string {
+  const style = styleToInlineCss(node.style, "region");
+  const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
+  return `<div data-node="column"${styleAttr}>${node.children.map((c) => renderResolvedChild(c)).join("")}</div>`;
+}
+
 function renderStackNode(node: ResolvedStackNode): string {
   const mergedStyle: TemplateStyle = {
     ...(node.style ?? {}),
@@ -753,6 +781,10 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderRegionNode(node);
     case "stack":
       return renderStackNode(node);
+    case "columns":
+      return renderColumnsNode(node);
+    case "column":
+      return renderColumnNode(node);
     case "layer":
       return renderLayerNode(node, 0);
     case "page-number":

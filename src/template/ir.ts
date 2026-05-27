@@ -151,6 +151,21 @@ export type StackNode = {
   children: TemplateChild[];
 };
 
+export type ColumnsNode = {
+  kind: "columns";
+  gap?: string;
+  widths?: string[];
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
+export type ColumnNode = {
+  kind: "column";
+  width?: string;
+  style?: TemplateStyle;
+  children: TemplateChild[];
+};
+
 export type FixedAnchorName =
   | "top-left"
   | "top-center"
@@ -324,6 +339,8 @@ export type TemplateNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | ColumnsNode
+  | ColumnNode
   | LayerNode
   | FixedNode
   | HeaderNode
@@ -349,6 +366,8 @@ export type TemplateContainerNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | ColumnsNode
+  | ColumnNode
   | LayerNode
   | FixedNode
   | HeaderNode

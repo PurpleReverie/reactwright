@@ -330,6 +330,15 @@ type StackProps = TemplateStyleBag & {
   gap?: string;
 };
 
+type ColumnsProps = TemplateStyleBag & {
+  gap?: string;
+  widths?: string[];
+};
+
+type ColumnProps = TemplateStyleBag & {
+  width?: string;
+};
+
 type CoordinateAnchorProp = {
   top?: string;
   right?: string;
@@ -448,6 +457,8 @@ declare module "react" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      columns: ColumnsProps;
+      column: ColumnProps;
       layer: LayerProps;
       fixed: FixedProps;
       header: HeaderProps;
@@ -508,6 +519,8 @@ declare module "react/jsx-runtime" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      columns: ColumnsProps;
+      column: ColumnProps;
       layer: LayerProps;
       fixed: FixedProps;
       header: HeaderProps;
@@ -568,6 +581,8 @@ declare module "react/jsx-dev-runtime" {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      columns: ColumnsProps;
+      column: ColumnProps;
       layer: LayerProps;
       fixed: FixedProps;
       header: HeaderProps;
@@ -628,6 +643,8 @@ declare global {
       "page-set": PageSetProps;
       region: RegionProps;
       stack: StackProps;
+      columns: ColumnsProps;
+      column: ColumnProps;
       layer: LayerProps;
       fixed: FixedProps;
       header: HeaderProps;

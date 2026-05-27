@@ -62,6 +62,8 @@ import type {
   ResolvedBibliographyEntry,
   ResolvedBibliographyNode,
   ResolvedCiteNode,
+  ResolvedColumnNode,
+  ResolvedColumnsNode,
   ResolvedIndexEntry,
   ResolvedIndexEntryNode,
   ResolvedIndexTemplateNode,
@@ -681,6 +683,8 @@ function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): v
       child.kind === "page-set" ||
       child.kind === "region" ||
       child.kind === "stack" ||
+      child.kind === "columns" ||
+      child.kind === "column" ||
       child.kind === "layer" ||
       child.kind === "fixed" ||
       child.kind === "header" ||
@@ -722,6 +726,8 @@ function buildRuleMaps(template: TemplateNode): RuleMaps {
     template.kind === "page-set" ||
     template.kind === "region" ||
     template.kind === "stack" ||
+    template.kind === "columns" ||
+    template.kind === "column" ||
     template.kind === "layer" ||
     template.kind === "fixed" ||
     template.kind === "header" ||
@@ -952,6 +958,8 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "page":
     case "region":
     case "stack":
+    case "columns":
+    case "column":
     case "layer":
     case "fixed":
     case "header":
@@ -1119,6 +1127,21 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedStackNode;
+    case "columns":
+      return {
+        kind: "columns",
+        ...(node.gap != null ? { gap: node.gap } : {}),
+        ...(node.widths != null ? { widths: node.widths } : {}),
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedColumnsNode;
+    case "column":
+      return {
+        kind: "column",
+        ...(node.width != null ? { width: node.width } : {}),
+        style: node.style,
+        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+      } satisfies ResolvedColumnNode;
     case "fixed":
       return {
         kind: "fixed",
