@@ -141,6 +141,44 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports defs/def definition lists", () => {
+  const result = renderContentToIR(
+    <document title="Glossary">
+      <defs role="glossary">
+        <def term="Aspect">
+          <p>A facet of identity.</p>
+        </def>
+        <def term="Reagent">
+          <p>A consumable token.</p>
+        </def>
+      </defs>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Glossary",
+    children: [
+      {
+        kind: "defs",
+        role: "glossary",
+        children: [
+          {
+            kind: "def",
+            term: "Aspect",
+            children: [{ kind: "paragraph", children: [{ kind: "text", value: "A facet of identity." }] }]
+          },
+          {
+            kind: "def",
+            term: "Reagent",
+            children: [{ kind: "paragraph", children: [{ kind: "text", value: "A consumable token." }] }]
+          }
+        ]
+      }
+    ]
+  });
+});
+
 test("content renderer supports inline img primitive", () => {
   const result = renderContentToIR(
     <document title="Inline img">

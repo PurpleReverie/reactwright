@@ -68,6 +68,20 @@ export type ResolvedPreNode = {
   children: ResolvedTextNode[];
 };
 
+export type ResolvedDefNode = {
+  kind: "def";
+  term: string;
+  children: ResolvedContentChild[];
+};
+
+export type ResolvedDefsNode = {
+  kind: "defs";
+  role?: string;
+  page?: string;
+  variant?: string;
+  children: ResolvedDefNode[];
+};
+
 export type ResolvedFigureNode = {
   kind: "figure";
   role?: string;
@@ -271,6 +285,8 @@ export type ResolvedContentNode =
   | ResolvedListItemNode
   | ResolvedCodeBlockNode
   | ResolvedPreNode
+  | ResolvedDefsNode
+  | ResolvedDefNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode
@@ -292,6 +308,7 @@ export type ResolvedContentChild =
   | ResolvedListNode
   | ResolvedCodeBlockNode
   | ResolvedPreNode
+  | ResolvedDefsNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode

@@ -11,6 +11,8 @@ import type {
   ResolvedCodeNode,
   ResolvedContentNode,
   ResolvedCustomTemplateNode,
+  ResolvedDefNode,
+  ResolvedDefsNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
@@ -445,6 +447,17 @@ function renderListNode(node: ResolvedListNode): string {
   return `<${tag}${variantAttr}>${node.children.map((child) => renderListItemNode(child)).join("")}</${tag}>`;
 }
 
+function renderDefNode(node: ResolvedDefNode): string {
+  const term = `<dt>${escapeHtml(node.term)}</dt>`;
+  const body = `<dd>${node.children.map((child) => renderContentNode(child)).join("")}</dd>`;
+  return `${term}${body}`;
+}
+
+function renderDefsNode(node: ResolvedDefsNode): string {
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  return `<dl${variantAttr}>${node.children.map((child) => renderDefNode(child)).join("")}</dl>`;
+}
+
 function renderAbstractNode(node: ResolvedAbstractNode): string {
   return [
     '<section data-slot="abstract">',
@@ -484,6 +497,10 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderBlockQuoteNode(node);
     case "list":
       return renderListNode(node);
+    case "defs":
+      return renderDefsNode(node);
+    case "def":
+      return renderDefNode(node);
     case "page-break":
       return renderPageBreakNode(node);
     case "set-running":
@@ -631,6 +648,8 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "cell":
     case "code-block":
     case "pre":
+    case "defs":
+    case "def":
     case "paragraph":
     case "blockquote":
     case "list":

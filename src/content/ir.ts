@@ -117,6 +117,20 @@ export type ListNode = {
   children: ListItemNode[];
 };
 
+export type DefNode = {
+  kind: "def";
+  term: string;
+  children: SemanticBlockChild[];
+};
+
+export type DefsNode = {
+  kind: "defs";
+  role?: string;
+  page?: string;
+  variant?: string;
+  children: DefNode[];
+};
+
 export type SectionNode = {
   kind: "section";
   title: string;
@@ -170,6 +184,7 @@ export type SemanticBlockChild =
   | ListNode
   | CodeBlockNode
   | PreNode
+  | DefsNode
   | PageBreakNode
   | SetRunningNode;
 
@@ -189,6 +204,8 @@ export type SemanticNode =
   | ListItemNode
   | CodeBlockNode
   | PreNode
+  | DefsNode
+  | DefNode
   | PageBreakNode
   | SetRunningNode
   | EmNode
@@ -215,6 +232,8 @@ export type SemanticContainerNode =
   | ListItemNode
   | CodeBlockNode
   | PreNode
+  | DefsNode
+  | DefNode
   | EmNode
   | StrongNode
   | CodeNode

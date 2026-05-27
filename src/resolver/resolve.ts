@@ -5,6 +5,8 @@ import type {
   CellNode,
   CodeBlockNode,
   CodeNode,
+  DefNode,
+  DefsNode,
   DocumentChild,
   DocumentNode,
   EmNode,
@@ -44,6 +46,8 @@ import type {
   ResolvedCodeNode,
   ResolvedContentChild,
   ResolvedContentNode,
+  ResolvedDefNode,
+  ResolvedDefsNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
@@ -256,6 +260,24 @@ function resolvePreNode(node: PreNode): ResolvedPreNode {
   };
 }
 
+function resolveDefNode(node: DefNode): ResolvedDefNode {
+  return {
+    kind: "def",
+    term: node.term,
+    children: node.children.map(resolveContentChild)
+  };
+}
+
+function resolveDefsNode(node: DefsNode): ResolvedDefsNode {
+  return {
+    kind: "defs",
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.page != null ? { page: node.page } : {}),
+    ...(node.variant != null ? { variant: node.variant } : {}),
+    children: node.children.map(resolveDefNode)
+  };
+}
+
 function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteNode {
   return {
     kind: "blockquote",
@@ -337,6 +359,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveCodeBlockNode(node);
     case "pre":
       return resolvePreNode(node);
+    case "defs":
+      return resolveDefsNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
     case "set-running":
@@ -418,6 +442,7 @@ const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
   quote: "blockquote",
   blockquote: "blockquote",
   list: "list",
+  defs: "defs",
   figure: "figure"
 };
 
@@ -497,6 +522,16 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
           children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
         }))
       } as T;
+    case "defs":
+      return {
+        ...node,
+        variant:
+          node.role != null ? findMatchingRole(node.role, "defs", rules) ?? node.variant : node.variant,
+        children: node.children.map((child) => ({
+          ...child,
+          children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
+        }))
+      } as T;
     case "table":
       return {
         ...node,
@@ -523,6 +558,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "cell":
     case "code-block":
     case "pre":
+    case "def":
     case "item":
     case "title":
     case "author":

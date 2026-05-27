@@ -106,6 +106,15 @@ type ItemProps = {
   children?: ReactNode;
 };
 
+type DefsProps = ContentMetadataProps & {
+  children?: ReactNode;
+};
+
+type DefProps = {
+  term: string;
+  children?: ReactNode;
+};
+
 type PageBreakProps = Record<string, never>;
 
 type SetProps = {
@@ -343,6 +352,8 @@ declare module "react" {
       pre: PreProps;
       list: ListProps;
       item: ItemProps;
+      defs: DefsProps;
+      def: DefProps;
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
@@ -388,6 +399,8 @@ declare module "react/jsx-runtime" {
       pre: PreProps;
       list: ListProps;
       item: ItemProps;
+      defs: DefsProps;
+      def: DefProps;
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
@@ -433,6 +446,8 @@ declare module "react/jsx-dev-runtime" {
       pre: PreProps;
       list: ListProps;
       item: ItemProps;
+      defs: DefsProps;
+      def: DefProps;
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;
@@ -478,6 +493,8 @@ declare global {
       pre: PreProps;
       list: ListProps;
       item: ItemProps;
+      defs: DefsProps;
+      def: DefProps;
       "page-break": PageBreakProps;
       set: SetProps;
       running: RunningProps;

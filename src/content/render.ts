@@ -47,6 +47,7 @@ type ContentProps = Record<string, unknown> & {
   speaker?: string;
   running?: string;
   value?: string;
+  term?: string;
 };
 
 type ContentContainer = {
@@ -169,6 +170,25 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         kind: "item",
         children: []
       };
+    case "defs":
+      return {
+        kind: "defs",
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {}),
+        children: []
+      };
+    case "def": {
+      const term = typeof props.term === "string" ? props.term.trim() : "";
+      if (term.length === 0) {
+        throw new Error("`def` requires a non-empty `term`.");
+      }
+      return {
+        kind: "def",
+        term,
+        children: []
+      };
+    }
     case "em":
       return {
         kind: "em",
@@ -292,6 +312,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "list" &&
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
+        child.kind !== "defs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -343,6 +364,29 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
       }
       parent.children.push(child);
       return;
+    case "defs":
+      if (child.kind !== "def") {
+        throw new Error("`defs` may only contain `def` children.");
+      }
+      parent.children.push(child);
+      return;
+    case "def":
+      if (
+        child.kind !== "paragraph" &&
+        child.kind !== "figure" &&
+        child.kind !== "table" &&
+        child.kind !== "blockquote" &&
+        child.kind !== "list" &&
+        child.kind !== "code-block" &&
+        child.kind !== "pre" &&
+        child.kind !== "defs" &&
+        child.kind !== "page-break" &&
+        child.kind !== "set-running"
+      ) {
+        throw new Error("`def` may only contain block primitives.");
+      }
+      parent.children.push(child);
+      return;
     case "item":
       if (
         child.kind !== "paragraph" &&
@@ -352,6 +396,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "list" &&
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
+        child.kind !== "defs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -370,6 +415,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "list" &&
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
+        child.kind !== "defs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -389,6 +435,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "list" &&
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
+        child.kind !== "defs" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
