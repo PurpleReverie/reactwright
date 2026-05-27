@@ -115,6 +115,10 @@ function renderTeX(src: string, displayMode: boolean): string {
   }
 }
 
+// Style keys that belong to the @page rule (page geometry) and should NOT
+// be re-emitted as inline CSS on region/stack/column elements. `columns`
+// and `columnGap` used to be in this set, but multi-column layout is per
+// element, not page-level, so they need to flow through to inline CSS.
 const PAGE_GROUP_KEYS = new Set([
   "size",
   "orientation",
@@ -122,9 +126,7 @@ const PAGE_GROUP_KEYS = new Set([
   "marginTop",
   "marginRight",
   "marginBottom",
-  "marginLeft",
-  "columns",
-  "columnGap"
+  "marginLeft"
 ]);
 
 function collectUsedFontFamilies(node: ResolvedPageNode | ResolvedChild): Set<string> {
@@ -293,6 +295,7 @@ function styleToInlineCss(style: TemplateStyle | undefined, kind?: "stack" | "re
     fontStyle: "font-style",
     lineHeight: "line-height",
     textAlign: "text-align",
+    columns: "column-count",
     columnGap: "column-gap",
     color: "color",
     backgroundColor: "background-color",
