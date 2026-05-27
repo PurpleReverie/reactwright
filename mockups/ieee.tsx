@@ -2,7 +2,7 @@ import "reactdoc/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png");
+const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
 
 // IEEE — classic two-column conference paper.
 //

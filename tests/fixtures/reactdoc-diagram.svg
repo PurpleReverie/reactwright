@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f172a"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="400" height="200" fill="#fefce8" stroke="#0f172a" stroke-width="1"/>
+  <rect x="20" y="30" width="80" height="40" fill="#fff" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="60" y="55" font-family="Georgia, serif" font-size="12" text-anchor="middle" fill="#0f172a">Content</text>
+  <rect x="20" y="120" width="80" height="40" fill="#fff" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="60" y="145" font-family="Georgia, serif" font-size="12" text-anchor="middle" fill="#0f172a">Template</text>
+  <rect x="160" y="75" width="80" height="40" fill="#0f172a"/>
+  <text x="200" y="100" font-family="Georgia, serif" font-size="12" text-anchor="middle" fill="#fefce8">Resolver</text>
+  <rect x="300" y="75" width="80" height="40" fill="#fff" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="340" y="100" font-family="Georgia, serif" font-size="12" text-anchor="middle" fill="#0f172a">HTML → PDF</text>
+  <line x1="100" y1="50" x2="160" y2="85" stroke="#0f172a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="100" y1="140" x2="160" y2="105" stroke="#0f172a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="240" y1="95" x2="300" y2="95" stroke="#0f172a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="200" y="180" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#0f172a">ReactDoc compilation pipeline</text>
+</svg>

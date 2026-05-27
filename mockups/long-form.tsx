@@ -2,7 +2,7 @@ import "reactdoc/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH = resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png");
+const SWATCH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
 
 // long-form — magazine-feature stress test for two-column layout.
 //

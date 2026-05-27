@@ -2,7 +2,7 @@ import "reactdoc/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png");
+const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
 
 // Newsletter — multi-column layout.
 // Exercises: <columns widths={["2fr","1fr"]}> with <column> children,

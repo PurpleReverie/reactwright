@@ -2,7 +2,7 @@ import "reactdoc/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png");
+const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
 
 // Cover + frontmatter — page regimes, layered backgrounds, fixed ornaments.
 // Exercises: <layer> backgrounds, <fixed> at named + coordinate anchors,
