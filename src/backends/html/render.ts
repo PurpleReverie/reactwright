@@ -908,11 +908,18 @@ function renderFixedNode(node: ResolvedFixedNode): string {
 function renderPageSetNode(node: ResolvedPageSetNode): string {
   // Wrap the page-set's children in a regime container that routes them to
   // the named CSS Paged Media regime via `page: <name>` and forces a page
-  // break before the regime begins. Inside, content-less layers, fixed
-  // overlays, regions, and stacks all live; they appear only on pages of
-  // this regime.
+  // break before the regime begins. Inside, fixed overlays, regions, and
+  // stacks render inline; headers/footers and content-less background
+  // layers are extracted to per-regime CSS (see collectMarginMatter and
+  // buildPageBackgroundLayersCss) and excluded here.
+  const inlineChildren = node.children.filter(
+    (c) =>
+      c.kind !== "header" &&
+      c.kind !== "footer" &&
+      !(c.kind === "layer" && c.children.length === 0)
+  );
   const style = `page:${node.name};break-before:page;`;
-  return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${node.children.map((c) => renderResolvedChild(c)).join("")}</section>`;
+  return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${inlineChildren.map((c) => renderResolvedChild(c)).join("")}</section>`;
 }
 
 function renderResolvedChild(node: ResolvedChild): string {
@@ -1042,6 +1049,7 @@ type MarginMatterEntry = {
   kind: "header" | "footer";
   anchor: string;
   when?: string;
+  regime?: string;
   flowName: string;
   html: string;
 };
@@ -1050,23 +1058,31 @@ function collectMarginMatter(page: ResolvedPageNode): MarginMatterEntry[] {
   const entries: MarginMatterEntry[] = [];
   let counter = 0;
 
-  for (const child of page.children) {
-    if (child.kind !== "header" && child.kind !== "footer") continue;
-
-    const flowName = `reactdoc-${child.kind}-${counter}`;
-    counter += 1;
-
-    const inner = child.children.map((c) => renderResolvedChild(c)).join("");
-    const html = `<div class="${flowName}" data-margin-flow="${flowName}">${inner}</div>`;
-
-    entries.push({
-      kind: child.kind,
-      anchor: child.anchor,
-      when: child.when,
-      flowName,
-      html
-    });
-  }
+  const visit = (children: ResolvedChild[]): void => {
+    for (const child of children) {
+      if (child.kind === "header" || child.kind === "footer") {
+        const flowName = `reactdoc-${child.kind}-${counter}`;
+        counter += 1;
+        const inner = child.children.map((c) => renderResolvedChild(c)).join("");
+        const html = `<div class="${flowName}" data-margin-flow="${flowName}">${inner}</div>`;
+        entries.push({
+          kind: child.kind,
+          anchor: child.anchor,
+          when: child.when,
+          regime: child.regime,
+          flowName,
+          html
+        });
+        continue;
+      }
+      // Recurse into page-sets so their headers/footers are collected
+      // (with the regime already tagged at resolve time).
+      if (child.kind === "page-set") {
+        visit(child.children);
+      }
+    }
+  };
+  visit(page.children);
 
   return entries;
 }
@@ -1081,6 +1097,14 @@ function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
   for (const e of entries) {
     rules.push(`.${e.flowName}{position:running(${e.flowName});}`);
   }
+
+  // Helper: scope a @page rule to a specific regime when present.
+  const atPage = (extra: string) => (e: MarginMatterEntry): string =>
+    e.regime != null ? `@page ${e.regime}${extra}` : `@page${extra}`;
+  const atPageDefault = atPage("");
+  const atPageLeft = atPage(" :left");
+  const atPageRight = atPage(" :right");
+  const atPageFirst = atPage(" :first");
 
   // Group entries by their effective @page selector based on `when` and anchor
   // mirror semantics. For simplicity, emit one rule per entry.
@@ -1100,23 +1124,26 @@ function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
             ? "@bottom-right"
             : "@bottom-left";
       const rightBox = box;
-      const whenPrefix = e.when === "first-page" ? ":first" : "";
       const whenSuppress = e.when === "not-first-page";
 
-      rules.push(`@page :left${whenPrefix}{${leftBox}{content:element(${e.flowName});}}`);
-      rules.push(`@page :right${whenPrefix}{${rightBox}{content:element(${e.flowName});}}`);
-
-      if (whenSuppress) {
-        rules.push(`@page :first{${leftBox}{content:none;}${rightBox}{content:none;}}`);
+      if (e.when === "first-page") {
+        // Apply only to the first page; honour mirror box on left/right.
+        rules.push(`${atPageFirst(e)}{${leftBox}{content:element(${e.flowName});}${rightBox}{content:element(${e.flowName});}}`);
+      } else {
+        rules.push(`${atPageLeft(e)}{${leftBox}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageRight(e)}{${rightBox}{content:element(${e.flowName});}}`);
+        if (whenSuppress) {
+          rules.push(`${atPageFirst(e)}{${leftBox}{content:none;}${rightBox}{content:none;}}`);
+        }
       }
     } else {
       if (e.when === "first-page") {
-        rules.push(`@page :first{${box}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageFirst(e)}{${box}{content:element(${e.flowName});}}`);
       } else if (e.when === "not-first-page") {
-        rules.push(`@page{${box}{content:element(${e.flowName});}}`);
-        rules.push(`@page :first{${box}{content:none;}}`);
+        rules.push(`${atPageDefault(e)}{${box}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageFirst(e)}{${box}{content:none;}}`);
       } else {
-        rules.push(`@page{${box}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageDefault(e)}{${box}{content:element(${e.flowName});}}`);
       }
     }
   }
@@ -1221,21 +1248,46 @@ function buildSidenoteAreaCss(page: ResolvedPageNode): string {
   ].join("");
 }
 
+function collectAllLayers(
+  children: ResolvedChild[],
+  out: ResolvedLayerNode[]
+): void {
+  for (const c of children) {
+    if (c.kind === "layer") {
+      out.push(c);
+    } else if (c.kind === "page-set") {
+      collectAllLayers(c.children, out);
+    }
+  }
+}
+
 function buildPageBackgroundLayersCss(page: ResolvedPageNode): string {
   // A content-less <layer> with a backgroundColor (or other page-paintable
   // style) is treated as a page-wide background: Paged.js paints @page
   // background-color over the whole sheet, which is exactly what writers
-  // mean by "page tint". Layers with children stay as in-flow positioned
-  // divs (see flowBody below).
-  const decls: string[] = [];
-  for (const child of page.children) {
-    if (child.kind !== "layer") continue;
-    if (child.children.length > 0) continue;
-    const s = child.style;
-    if (s?.backgroundColor != null) decls.push(`background-color:${String(s.backgroundColor)};`);
+  // mean by "page tint". When the layer lives inside a <page-set name="X">,
+  // the rule scopes to @page X { ... } so the tint only applies to that
+  // regime's pages. Layers with children stay as in-flow positioned divs
+  // (see flowBody below).
+  const all: ResolvedLayerNode[] = [];
+  collectAllLayers(page.children, all);
+  const byRegime = new Map<string, string[]>();
+  for (const layer of all) {
+    if (layer.children.length > 0) continue;
+    const s = layer.style;
+    if (s?.backgroundColor == null) continue;
+    const key = layer.regime ?? "";
+    const list = byRegime.get(key) ?? [];
+    list.push(`background-color:${String(s.backgroundColor)};`);
+    byRegime.set(key, list);
   }
-  if (decls.length === 0) return "";
-  return `@page{${decls.join("")}}`;
+  if (byRegime.size === 0) return "";
+  const rules: string[] = [];
+  for (const [regime, decls] of byRegime) {
+    const sel = regime.length > 0 ? `@page ${regime}` : "@page";
+    rules.push(`${sel}{${decls.join("")}}`);
+  }
+  return rules.join("");
 }
 
 function buildPageRegimesCss(page: ResolvedPageNode): string {

@@ -403,6 +403,7 @@ export type ResolvedLayerNode = {
   kind: "layer";
   name?: string;
   when?: string;
+  regime?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -458,6 +459,7 @@ export type ResolvedHeaderNode = {
   kind: "header";
   anchor: string;
   when?: string;
+  regime?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };
@@ -466,6 +468,7 @@ export type ResolvedFooterNode = {
   kind: "footer";
   anchor: string;
   when?: string;
+  regime?: string;
   style?: TemplateStyle;
   children: ResolvedChild[];
 };

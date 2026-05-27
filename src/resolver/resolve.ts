@@ -1255,6 +1255,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         kind: "layer",
         ...(node.name != null ? { name: node.name } : {}),
         ...(node.when != null ? { when: node.when } : {}),
+        ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedLayerNode;
@@ -1293,6 +1294,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         kind: "header",
         anchor: node.anchor,
         when: node.when,
+        ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedHeaderNode;
@@ -1301,6 +1303,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         kind: "footer",
         anchor: node.anchor,
         when: node.when,
+        ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       } satisfies ResolvedFooterNode;
