@@ -9,6 +9,7 @@ import type {
   DocumentNode,
   EmNode,
   FigureNode,
+  InlineImgNode,
   LinkNode,
   ListItemNode,
   ListNode,
@@ -49,6 +50,7 @@ import type {
   ResolvedFooterNode,
   ResolvedHeaderNode,
   ResolvedImageNode,
+  ResolvedInlineImgNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
@@ -149,8 +151,27 @@ function resolveSupNode(node: SupNode): ResolvedSupNode {
   };
 }
 
+function resolveInlineImgNode(node: InlineImgNode): ResolvedInlineImgNode {
+  return {
+    kind: "img",
+    src: node.src,
+    ...(node.alt != null ? { alt: node.alt } : {}),
+    ...(node.width != null ? { width: node.width } : {}),
+    ...(node.height != null ? { height: node.height } : {})
+  };
+}
+
 function resolveInlineNode(
-  node: TextNode | EmNode | StrongNode | CodeNode | LinkNode | BreakNode | SubNode | SupNode
+  node:
+    | TextNode
+    | EmNode
+    | StrongNode
+    | CodeNode
+    | LinkNode
+    | BreakNode
+    | SubNode
+    | SupNode
+    | InlineImgNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -169,6 +190,8 @@ function resolveInlineNode(
       return resolveSubNode(node);
     case "sup":
       return resolveSupNode(node);
+    case "img":
+      return resolveInlineImgNode(node);
   }
 }
 
@@ -510,6 +533,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "br":
     case "sub":
     case "sup":
+    case "img":
     case "text":
     case "page-break":
     case "set-running":

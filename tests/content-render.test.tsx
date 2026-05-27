@@ -141,6 +141,31 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports inline img primitive", () => {
+  const result = renderContentToIR(
+    <document title="Inline img">
+      <p>
+        Inline <img src="/logo.png" alt="Logo" width="1em" /> here.
+      </p>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Inline img",
+    children: [
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "Inline " },
+          { kind: "img", src: "/logo.png", alt: "Logo", width: "1em" },
+          { kind: "text", value: " here." }
+        ]
+      }
+    ]
+  });
+});
+
 test("content renderer supports pre verbatim block", () => {
   const result = renderContentToIR(
     <document title="Pre">

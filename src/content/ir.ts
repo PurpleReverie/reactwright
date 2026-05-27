@@ -39,6 +39,14 @@ export type SupNode = {
   children: InlineNode[];
 };
 
+export type InlineImgNode = {
+  kind: "img";
+  src: string;
+  alt?: string;
+  width?: string;
+  height?: string;
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   role?: string;
@@ -150,7 +158,8 @@ export type InlineNode =
   | LinkNode
   | BreakNode
   | SubNode
-  | SupNode;
+  | SupNode
+  | InlineImgNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -189,6 +198,7 @@ export type SemanticNode =
   | BreakNode
   | SubNode
   | SupNode
+  | InlineImgNode
   | TextNode;
 
 export type SemanticContainerNode =

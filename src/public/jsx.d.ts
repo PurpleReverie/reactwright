@@ -76,6 +76,13 @@ type SupProps = {
   children?: ReactNode;
 };
 
+type InlineImgProps = {
+  src: string;
+  alt?: string;
+  width?: string;
+  height?: string;
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -330,6 +337,7 @@ declare module "react" {
       br: BreakElementProps;
       sub: SubProps;
       sup: SupProps;
+      img: InlineImgProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -374,6 +382,7 @@ declare module "react/jsx-runtime" {
       br: BreakElementProps;
       sub: SubProps;
       sup: SupProps;
+      img: InlineImgProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -418,6 +427,7 @@ declare module "react/jsx-dev-runtime" {
       br: BreakElementProps;
       sub: SubProps;
       sup: SupProps;
+      img: InlineImgProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -462,6 +472,7 @@ declare global {
       br: BreakElementProps;
       sub: SubProps;
       sup: SupProps;
+      img: InlineImgProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

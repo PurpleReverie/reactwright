@@ -41,6 +41,14 @@ export type ResolvedSupNode = {
   children: ResolvedInlineNode[];
 };
 
+export type ResolvedInlineImgNode = {
+  kind: "img";
+  src: string;
+  alt?: string;
+  width?: string;
+  height?: string;
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   role?: string;
@@ -273,6 +281,7 @@ export type ResolvedContentNode =
   | ResolvedBreakNode
   | ResolvedSubNode
   | ResolvedSupNode
+  | ResolvedInlineImgNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -296,7 +305,8 @@ export type ResolvedInlineNode =
   | ResolvedLinkNode
   | ResolvedBreakNode
   | ResolvedSubNode
-  | ResolvedSupNode;
+  | ResolvedSupNode
+  | ResolvedInlineImgNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

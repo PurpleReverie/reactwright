@@ -17,6 +17,7 @@ import type {
   ResolvedFooterNode,
   ResolvedHeaderNode,
   ResolvedImageNode,
+  ResolvedInlineImgNode,
   ResolvedInlineNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
@@ -256,9 +257,18 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<sub>${node.children.map(renderInlineNode).join("")}</sub>`;
     case "sup":
       return `<sup>${node.children.map(renderInlineNode).join("")}</sup>`;
+    case "img":
+      return renderInlineImgNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
+}
+
+function renderInlineImgNode(node: ResolvedInlineImgNode): string {
+  const widthAttr = node.width != null ? ` width="${escapeHtml(node.width)}"` : "";
+  const heightAttr = node.height != null ? ` height="${escapeHtml(node.height)}"` : "";
+  const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
+  return `<img data-inline src="${escapeHtml(node.src)}"${altAttr}${widthAttr}${heightAttr} />`;
 }
 
 function renderParagraphNode(node: ResolvedParagraphNode): string {
@@ -489,6 +499,7 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "br":
     case "sub":
     case "sup":
+    case "img":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -631,6 +642,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "br":
     case "sub":
     case "sup":
+    case "img":
     case "text":
     case "page-break":
     case "set-running":
