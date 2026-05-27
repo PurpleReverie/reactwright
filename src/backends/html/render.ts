@@ -35,6 +35,8 @@ import type {
   ResolvedRefNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
+  ResolvedInlineMathNode,
+  ResolvedMathNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -269,6 +271,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return renderRefNode(node);
     case "footnote":
       return renderFootnoteNode(node);
+    case "m":
+      return renderInlineMathNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -294,6 +298,15 @@ function renderFootnoteNode(node: ResolvedFootnoteNode): string {
   const markerAttr = node.marker != null ? ` data-marker="${escapeHtml(node.marker)}"` : "";
   const inner = node.children.map(renderInlineNode).join("");
   return `<span data-node="footnote"${markerAttr} class="reactdoc-footnote">${inner}</span>`;
+}
+
+function renderInlineMathNode(node: ResolvedInlineMathNode): string {
+  return `<span data-node="math-inline" class="reactdoc-math reactdoc-math-inline">${escapeHtml(node.src)}</span>`;
+}
+
+function renderMathNode(node: ResolvedMathNode): string {
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${escapeHtml(node.src)}</div>`;
 }
 
 function idAttr(id: string | undefined): string {
@@ -536,6 +549,8 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderDefNode(node);
     case "heading":
       return renderHeadingNode(node);
+    case "math":
+      return renderMathNode(node);
     case "page-break":
       return renderPageBreakNode(node);
     case "set-running":
@@ -691,6 +706,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "defs":
     case "def":
     case "heading":
+    case "math":
     case "paragraph":
     case "blockquote":
     case "list":
@@ -705,6 +721,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "img":
     case "ref":
     case "footnote":
+    case "m":
     case "text":
     case "page-break":
     case "set-running":

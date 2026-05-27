@@ -61,6 +61,20 @@ export type ResolvedFootnoteNode = {
   children: ResolvedInlineNode[];
 };
 
+export type ResolvedMathNode = {
+  kind: "math";
+  id?: string;
+  src: string;
+  role?: string;
+  page?: string;
+  variant?: string;
+};
+
+export type ResolvedInlineMathNode = {
+  kind: "m";
+  src: string;
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -338,6 +352,8 @@ export type ResolvedContentNode =
   | ResolvedInlineImgNode
   | ResolvedRefNode
   | ResolvedFootnoteNode
+  | ResolvedInlineMathNode
+  | ResolvedMathNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -350,6 +366,7 @@ export type ResolvedContentChild =
   | ResolvedPreNode
   | ResolvedDefsNode
   | ResolvedHeadingNode
+  | ResolvedMathNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode
@@ -366,7 +383,8 @@ export type ResolvedInlineNode =
   | ResolvedSupNode
   | ResolvedInlineImgNode
   | ResolvedRefNode
-  | ResolvedFootnoteNode;
+  | ResolvedFootnoteNode
+  | ResolvedInlineMathNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

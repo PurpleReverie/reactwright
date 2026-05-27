@@ -61,6 +61,20 @@ export type FootnoteNode = {
   children: InlineNode[];
 };
 
+export type MathNode = {
+  kind: "math";
+  id?: string;
+  src: string;
+  role?: string;
+  page?: string;
+  variant?: string;
+};
+
+export type InlineMathNode = {
+  kind: "m";
+  src: string;
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -208,7 +222,8 @@ export type InlineNode =
   | SupNode
   | InlineImgNode
   | RefNode
-  | FootnoteNode;
+  | FootnoteNode
+  | InlineMathNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -221,6 +236,7 @@ export type SemanticBlockChild =
   | PreNode
   | DefsNode
   | HeadingNode
+  | MathNode
   | PageBreakNode
   | SetRunningNode;
 
@@ -243,6 +259,7 @@ export type SemanticNode =
   | DefsNode
   | DefNode
   | HeadingNode
+  | MathNode
   | PageBreakNode
   | SetRunningNode
   | EmNode
@@ -255,6 +272,7 @@ export type SemanticNode =
   | InlineImgNode
   | RefNode
   | FootnoteNode
+  | InlineMathNode
   | TextNode;
 
 export type SemanticContainerNode =

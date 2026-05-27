@@ -13,6 +13,8 @@ import type {
   FigureNode,
   HeadingNode,
   InlineImgNode,
+  InlineMathNode,
+  MathNode,
   LinkNode,
   ListItemNode,
   ListNode,
@@ -60,7 +62,9 @@ import type {
   ResolvedHeaderNode,
   ResolvedImageNode,
   ResolvedInlineImgNode,
+  ResolvedInlineMathNode,
   ResolvedInlineNode,
+  ResolvedMathNode,
   ResolvedLayerNode,
   ResolvedLinkNode,
   ResolvedListItemNode,
@@ -188,6 +192,24 @@ function resolveFootnoteNode(node: FootnoteNode): ResolvedFootnoteNode {
   };
 }
 
+function resolveMathNode(node: MathNode): ResolvedMathNode {
+  return {
+    kind: "math",
+    src: node.src,
+    ...(node.id != null ? { id: node.id } : {}),
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.page != null ? { page: node.page } : {}),
+    ...(node.variant != null ? { variant: node.variant } : {})
+  };
+}
+
+function resolveInlineMathNode(node: InlineMathNode): ResolvedInlineMathNode {
+  return {
+    kind: "m",
+    src: node.src
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -201,6 +223,7 @@ function resolveInlineNode(
     | InlineImgNode
     | RefNode
     | FootnoteNode
+    | InlineMathNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -225,6 +248,8 @@ function resolveInlineNode(
       return resolveRefNode(node);
     case "footnote":
       return resolveFootnoteNode(node);
+    case "m":
+      return resolveInlineMathNode(node);
   }
 }
 
@@ -413,6 +438,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolveDefsNode(node);
     case "heading":
       return resolveHeadingNode(node);
+    case "math":
+      return resolveMathNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
     case "set-running":
@@ -496,6 +523,7 @@ const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
   list: "list",
   defs: "defs",
   heading: "heading",
+  math: "math",
   figure: "figure"
 };
 
@@ -613,6 +641,12 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
         variant:
           node.role != null ? findMatchingRole(node.role, "heading", rules) ?? node.variant : node.variant
       } as T;
+    case "math":
+      return {
+        ...node,
+        variant:
+          node.role != null ? findMatchingRole(node.role, "math", rules) ?? node.variant : node.variant
+      } as T;
     case "row":
     case "cell":
     case "code-block":
@@ -631,6 +665,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "img":
     case "ref":
     case "footnote":
+    case "m":
     case "text":
     case "page-break":
     case "set-running":

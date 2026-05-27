@@ -141,6 +141,33 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports math (block) and m (inline) primitives", () => {
+  const result = renderContentToIR(
+    <document title="Maths">
+      <math src={"\\int_0^1 x^2 dx"} />
+      <p>
+        We have <m src="x + 1" /> here.
+      </p>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Maths",
+    children: [
+      { kind: "math", src: "\\int_0^1 x^2 dx" },
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "We have " },
+          { kind: "m", src: "x + 1" },
+          { kind: "text", value: " here." }
+        ]
+      }
+    ]
+  });
+});
+
 test("content renderer supports ref inline primitive", () => {
   const result = renderContentToIR(
     <document title="Refs">

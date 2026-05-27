@@ -278,6 +278,31 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         ...(show != null ? { show } : {})
       };
     }
+    case "math": {
+      const src = typeof (props as Record<string, unknown>).src === "string"
+        ? ((props as Record<string, unknown>).src as string)
+        : "";
+      if (src.length === 0) {
+        throw new Error("`math` requires a non-empty `src` TeX string.");
+      }
+      return {
+        kind: "math",
+        src,
+        ...(id != null ? { id } : {}),
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {})
+      };
+    }
+    case "m": {
+      const src = typeof (props as Record<string, unknown>).src === "string"
+        ? ((props as Record<string, unknown>).src as string)
+        : "";
+      if (src.length === 0) {
+        throw new Error("`m` requires a non-empty `src` TeX string.");
+      }
+      return { kind: "m", src };
+    }
     case "img": {
       const src = typeof props.src === "string" ? props.src.trim() : "";
       if (src.length === 0) {
@@ -358,7 +383,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "sup" &&
         child.kind !== "img" &&
         child.kind !== "ref" &&
-        child.kind !== "footnote"
+        child.kind !== "footnote" &&
+        child.kind !== "m"
       ) {
         throw new Error("`p` may only contain inline primitives.");
       }
@@ -388,6 +414,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "pre" &&
         child.kind !== "defs" &&
         child.kind !== "heading" &&
+        child.kind !== "math" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -412,7 +439,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "sup" &&
         child.kind !== "img" &&
         child.kind !== "ref" &&
-        child.kind !== "footnote"
+        child.kind !== "footnote" &&
+        child.kind !== "m"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }
@@ -459,6 +487,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "pre" &&
         child.kind !== "defs" &&
         child.kind !== "heading" &&
+        child.kind !== "math" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -477,6 +506,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "pre" &&
         child.kind !== "defs" &&
         child.kind !== "heading" &&
+        child.kind !== "math" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -497,6 +527,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "pre" &&
         child.kind !== "defs" &&
         child.kind !== "heading" &&
+        child.kind !== "math" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -518,6 +549,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "pre" &&
         child.kind !== "defs" &&
         child.kind !== "heading" &&
+        child.kind !== "math" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {

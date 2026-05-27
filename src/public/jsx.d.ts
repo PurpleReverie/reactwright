@@ -104,6 +104,14 @@ type FootnoteAreaProps = Omit<TemplateStyleBag, "children"> & {
   separator?: boolean;
 };
 
+type MathProps = ContentMetadataProps & {
+  src: string;
+};
+
+type InlineMathProps = {
+  src: string;
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -374,6 +382,8 @@ declare module "react" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      math: MathProps;
+      m: InlineMathProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -425,6 +435,8 @@ declare module "react/jsx-runtime" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      math: MathProps;
+      m: InlineMathProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -476,6 +488,8 @@ declare module "react/jsx-dev-runtime" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      math: MathProps;
+      m: InlineMathProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -527,6 +541,8 @@ declare global {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      math: MathProps;
+      m: InlineMathProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
