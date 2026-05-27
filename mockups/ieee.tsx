@@ -65,21 +65,7 @@ export function Template() {
         </region>
 
         <region style={{ columns: 2, columnGap: "6mm" }}>
-          <bibliography
-            title="References"
-            entries={[
-              { key: "shannon1948", text: "C. E. Shannon, 'A mathematical theory of communication,' Bell Syst. Tech. J., vol. 27, pp. 379-423, Jul. 1948." },
-              { key: "turing1950", text: "A. M. Turing, 'Computing machinery and intelligence,' Mind, vol. 59, pp. 433-460, 1950." },
-              { key: "kernighan1976", text: "B. W. Kernighan and P. J. Plauger, Software Tools. Reading, MA: Addison-Wesley, 1976." },
-              { key: "knuth1984", text: "D. E. Knuth, The TeXbook. Reading, MA: Addison-Wesley, 1984." },
-              { key: "tufte1983", text: "E. R. Tufte, The Visual Display of Quantitative Information. Cheshire, CT: Graphics Press, 1983." },
-              { key: "lamport1986", text: "L. Lamport, LaTeX: A Document Preparation System. Reading, MA: Addison-Wesley, 1986." },
-              { key: "raskin2000", text: "J. Raskin, The Humane Interface. Reading, MA: Addison-Wesley, 2000." },
-              { key: "norman2013", text: "D. A. Norman, The Design of Everyday Things, revised and expanded ed. New York, NY: Basic Books, 2013." },
-              { key: "bringhurst2004", text: "R. Bringhurst, The Elements of Typographic Style, 3rd ed. Vancouver, BC: Hartley & Marks, 2004." },
-              { key: "kindersley1969", text: "D. Kindersley, Optical letter spacing for new printing systems. London, UK: Lund Humphries, 1969." }
-            ]}
-          />
+          <bibliography title="References" />
         </region>
       </stack>
     </page>
@@ -415,6 +401,47 @@ export default function IEEEPaper() {
           from the writer's attention entirely, leaving only the writing.
         </p>
       </section>
+
+      <refs>
+        <ref-entry refKey="shannon1948">
+          C. E. Shannon, "A mathematical theory of communication,"
+          <em>Bell Syst. Tech. J.</em>, vol. 27, pp. 379–423, Jul. 1948.
+        </ref-entry>
+        <ref-entry refKey="turing1950">
+          A. M. Turing, "Computing machinery and intelligence,"
+          <em>Mind</em>, vol. 59, pp. 433–460, 1950.
+        </ref-entry>
+        <ref-entry refKey="kernighan1976">
+          B. W. Kernighan and P. J. Plauger, <em>Software Tools</em>.
+          Reading, MA: Addison-Wesley, 1976.
+        </ref-entry>
+        <ref-entry refKey="knuth1984">
+          D. E. Knuth, <em>The TeXbook</em>. Reading, MA: Addison-Wesley, 1984.
+        </ref-entry>
+        <ref-entry refKey="tufte1983">
+          E. R. Tufte, <em>The Visual Display of Quantitative Information</em>.
+          Cheshire, CT: Graphics Press, 1983.
+        </ref-entry>
+        <ref-entry refKey="lamport1986">
+          L. Lamport, <em>LaTeX: A Document Preparation System</em>.
+          Reading, MA: Addison-Wesley, 1986.
+        </ref-entry>
+        <ref-entry refKey="raskin2000">
+          J. Raskin, <em>The Humane Interface</em>. Reading, MA: Addison-Wesley, 2000.
+        </ref-entry>
+        <ref-entry refKey="norman2013">
+          D. A. Norman, <em>The Design of Everyday Things</em>, revised ed.
+          New York, NY: Basic Books, 2013.
+        </ref-entry>
+        <ref-entry refKey="bringhurst2004">
+          R. Bringhurst, <em>The Elements of Typographic Style</em>, 3rd ed.
+          Vancouver, BC: Hartley &amp; Marks, 2004.
+        </ref-entry>
+        <ref-entry refKey="kindersley1969">
+          D. Kindersley, <em>Optical letter spacing for new printing systems</em>.
+          London, UK: Lund Humphries, 1969.
+        </ref-entry>
+      </refs>
     </document>
   );
 }

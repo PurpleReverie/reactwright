@@ -80,21 +80,7 @@ export function Template() {
         </region>
 
         <region style={{ columns: 2, columnGap: "8mm", paddingTop: "4mm", borderTop: "1px solid #94a3b8" }}>
-          <bibliography
-            title="Notes & Sources"
-            entries={[
-              { key: "brand1995", text: "Stewart Brand, How Buildings Learn: What Happens After They're Built. Viking, 1995." },
-              { key: "alexander1979", text: "Christopher Alexander, The Timeless Way of Building. Oxford UP, 1979." },
-              { key: "tufte2006", text: "Edward Tufte, Beautiful Evidence. Graphics Press, 2006." },
-              { key: "bringhurst2004", text: "Robert Bringhurst, The Elements of Typographic Style, 3rd ed. Hartley & Marks, 2004." },
-              { key: "rams1976", text: "Dieter Rams, 'Design by Vitsoe,' lecture given at the Jack Lenor Larsen showroom, New York, 1976." },
-              { key: "norman2013", text: "Donald A. Norman, The Design of Everyday Things. Basic Books, 2013." },
-              { key: "lessig2004", text: "Lawrence Lessig, Free Culture. Penguin, 2004." },
-              { key: "carr2010", text: "Nicholas Carr, The Shallows: What the Internet Is Doing to Our Brains. W. W. Norton, 2010." },
-              { key: "robinson2011", text: "Andrew Robinson, Writing and Script: A Very Short Introduction. Oxford UP, 2011." },
-              { key: "raskin2000", text: "Jef Raskin, The Humane Interface. Addison-Wesley, 2000." }
-            ]}
-          />
+          <bibliography title="Notes & Sources" />
         </region>
       </stack>
     </page>
@@ -459,6 +445,46 @@ export default function LongForm() {
           <cite cite="brand1995" />.
         </p>
       </section>
+
+      <refs>
+        <ref-entry refKey="brand1995">
+          Stewart Brand, <em>How Buildings Learn: What Happens After They're
+          Built</em>. Viking, 1995.
+        </ref-entry>
+        <ref-entry refKey="alexander1979">
+          Christopher Alexander, <em>The Timeless Way of Building</em>.
+          Oxford UP, 1979.
+        </ref-entry>
+        <ref-entry refKey="tufte2006">
+          Edward Tufte, <em>Beautiful Evidence</em>. Graphics Press, 2006.
+        </ref-entry>
+        <ref-entry refKey="bringhurst2004">
+          Robert Bringhurst, <em>The Elements of Typographic Style</em>,
+          3rd ed. Hartley &amp; Marks, 2004.
+        </ref-entry>
+        <ref-entry refKey="rams1976">
+          Dieter Rams, "Design by Vitsoe," lecture given at the Jack
+          Lenor Larsen showroom, New York, 1976.
+        </ref-entry>
+        <ref-entry refKey="norman2013">
+          Donald A. Norman, <em>The Design of Everyday Things</em>.
+          Basic Books, 2013.
+        </ref-entry>
+        <ref-entry refKey="lessig2004">
+          Lawrence Lessig, <em>Free Culture</em>. Penguin, 2004.
+        </ref-entry>
+        <ref-entry refKey="carr2010">
+          Nicholas Carr, <em>The Shallows: What the Internet Is Doing to
+          Our Brains</em>. W. W. Norton, 2010.
+        </ref-entry>
+        <ref-entry refKey="robinson2011">
+          Andrew Robinson, <em>Writing and Script: A Very Short Introduction</em>.
+          Oxford UP, 2011.
+        </ref-entry>
+        <ref-entry refKey="raskin2000">
+          Jef Raskin, <em>The Humane Interface</em>. Addison-Wesley, 2000.
+        </ref-entry>
+      </refs>
     </document>
   );
 }

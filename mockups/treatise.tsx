@@ -63,23 +63,7 @@ export function Template() {
         </region>
 
         <region>
-          <bibliography
-            title="References"
-            entries={[
-              {
-                key: "shannon1948",
-                text: "Shannon, C. E. (1948). A Mathematical Theory of Communication. Bell System Technical Journal, 27(3), 379-423."
-              },
-              {
-                key: "turing1950",
-                text: "Turing, A. M. (1950). Computing Machinery and Intelligence. Mind, 59(236), 433-460."
-              },
-              {
-                key: "knuth1984",
-                text: "Knuth, D. E. (1984). The TeXbook. Addison-Wesley."
-              }
-            ]}
-          />
+          <bibliography title="References" />
         </region>
       </stack>
     </page>
@@ -178,6 +162,20 @@ export default function Treatise() {
           as standard.
         </p>
       </section>
+
+      <refs>
+        <ref-entry refKey="shannon1948">
+          Shannon, C. E. (1948). A Mathematical Theory of Communication.
+          <em>Bell System Technical Journal</em>, 27(3), 379–423.
+        </ref-entry>
+        <ref-entry refKey="turing1950">
+          Turing, A. M. (1950). Computing Machinery and Intelligence.
+          <em>Mind</em>, 59(236), 433–460.
+        </ref-entry>
+        <ref-entry refKey="knuth1984">
+          Knuth, D. E. (1984). <em>The TeXbook</em>. Addison-Wesley.
+        </ref-entry>
+      </refs>
     </document>
   );
 }

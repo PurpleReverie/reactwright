@@ -46,7 +46,7 @@ export function Template() {
           <slot name="title" />
         </fixed>
         <fixed anchor="subtitle" style={{ color: "#fbbf24", fontStyle: "italic", fontSize: "14pt" }}>
-          A Manual of Quiet Disciplines
+          <running name="subtitle" />
         </fixed>
         <fixed anchor="page-bottom-right" style={{ padding: "20mm 24mm", color: "#cbd5e1" }}>
           <slot name="author" />
@@ -78,6 +78,7 @@ export function Template() {
 export default function Cover() {
   return (
     <document title="ON STILLNESS" author="N. L. Reed">
+      <set running="subtitle" value="A Manual of Quiet Disciplines" />
       <section page="cover" title="" />
 
       <section page="frontmatter" title="">
