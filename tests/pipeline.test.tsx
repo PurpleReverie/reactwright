@@ -245,7 +245,7 @@ test("role rules emit dropCap CSS via ::first-letter and initial-letter", () => 
 
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
-  assert.match(html, /\[data-variant="opener"\]::first-letter\{initial-letter:3;font-family:'Bookerly';\}/);
+  assert.match(html, /\[data-variant="opener"\]::first-letter\{initial-letter:3;-webkit-initial-letter:3;font-family:'Bookerly';padding-right:0\.12em;\}/);
   assert.match(html, /data-variant="opener"/);
 });
 

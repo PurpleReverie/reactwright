@@ -1097,7 +1097,11 @@ function buildVariantRulesCss(page: ResolvedPageNode): string {
       const dc = r.dropCap;
       const lines = dc.lines ?? 3;
       const fontPart = dc.font != null ? `font-family:${dc.font};` : "";
-      out.push(`${selector}::first-letter{initial-letter:${lines};${fontPart}}`);
+      // -webkit-initial-letter for Chromium/Safari support; padding-right
+      // keeps wrapped text from touching the cap.
+      out.push(
+        `${selector}::first-letter{initial-letter:${lines};-webkit-initial-letter:${lines};${fontPart}padding-right:0.12em;}`
+      );
     }
   }
   return out.join("");

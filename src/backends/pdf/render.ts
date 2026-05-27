@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { renderResolvedToHTML } from "../html/render.js";
@@ -12,6 +12,7 @@ type BrowserLike = {
 
 type PageLike = {
   setContent(html: string, options?: { waitUntil?: string }): Promise<void>;
+  goto(url: string, options?: { waitUntil?: string }): Promise<unknown>;
   evaluate<T>(fn: (() => T) | string): Promise<T>;
   pdf(options: { path?: string; format?: string; printBackground?: boolean }): Promise<Uint8Array>;
   close(): Promise<void>;
@@ -78,16 +79,18 @@ export async function buildPdfFromHtml(
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
+  // Write the HTML to a real file on disk and navigate to it via page.goto.
+  // This sets the document URL to file://, which is required for file://
+  // image src attributes to load as same-origin. setContent leaves the URL
+  // at about:blank, where cross-scheme image loads are blocked.
+  await mkdir(dirname(options.outputPath), { recursive: true });
+  const tmpHtmlPath = join(dirname(options.outputPath), `.${Date.now()}-pdf-source.html`);
+  await writeFile(tmpHtmlPath, html, "utf8");
+
   try {
     const browserPage = await browser.newPage();
-    // Prepend <base href="file:///"> so that absolute filesystem paths in
-    // <img src="/abs/path"> etc. resolve as file:// URLs. Without this,
-    // setContent uses about:blank as the document URL and absolute paths
-    // fail to load.
-    const htmlWithBase = html.includes("<base ")
-      ? html
-      : html.replace(/<head>/i, '<head><base href="file:///" />');
-    await browserPage.setContent(htmlWithBase, { waitUntil: "networkidle0" });
+    const url = pathToFileURL(tmpHtmlPath).href;
+    await browserPage.goto(url, { waitUntil: "networkidle0" });
 
     // Wait for Paged.js to finish paginating. Passed as a source string to
     // avoid tsx/esbuild helper injection (e.g. __name) leaking into the page
@@ -108,7 +111,6 @@ export async function buildPdfFromHtml(
       })`
     );
 
-    await mkdir(dirname(options.outputPath), { recursive: true });
     await browserPage.pdf({
       path: options.outputPath,
       format: options.format ?? "a4",
@@ -118,6 +120,7 @@ export async function buildPdfFromHtml(
     return { pdfPath: options.outputPath };
   } finally {
     await browser.close();
+    await rm(tmpHtmlPath, { force: true });
   }
 }
 
