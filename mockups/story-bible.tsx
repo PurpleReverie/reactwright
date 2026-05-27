@@ -37,7 +37,7 @@ export function Template() {
           on="section"
           match="chapter"
           apply="chapter"
-          breakBefore="recto"
+          breakBefore="page"
         />
         <role
           on="paragraph"
