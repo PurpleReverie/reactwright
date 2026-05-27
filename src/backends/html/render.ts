@@ -33,6 +33,8 @@ import type {
   ResolvedParagraphNode,
   ResolvedPreNode,
   ResolvedRefNode,
+  ResolvedFootnoteAreaNode,
+  ResolvedFootnoteNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -265,6 +267,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return renderInlineImgNode(node);
     case "ref":
       return renderRefNode(node);
+    case "footnote":
+      return renderFootnoteNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -284,6 +288,12 @@ function refClassFor(show: string): string {
 function renderRefNode(node: ResolvedRefNode): string {
   const href = `#${escapeHtml(node.to)}`;
   return `<a data-node="ref" data-ref-to="${escapeHtml(node.to)}" data-ref-show="${escapeHtml(node.show)}" class="${refClassFor(node.show)}" href="${href}"></a>`;
+}
+
+function renderFootnoteNode(node: ResolvedFootnoteNode): string {
+  const markerAttr = node.marker != null ? ` data-marker="${escapeHtml(node.marker)}"` : "";
+  const inner = node.children.map(renderInlineNode).join("");
+  return `<span data-node="footnote"${markerAttr} class="reactdoc-footnote">${inner}</span>`;
 }
 
 function idAttr(id: string | undefined): string {
@@ -543,6 +553,7 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "sup":
     case "img":
     case "ref":
+    case "footnote":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -657,6 +668,9 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderImageNode(node);
     case "fixed":
       return renderFixedNode(node);
+    case "footnote-area":
+      // footnote-area is extracted to @footnote margin-box CSS at the page level.
+      return "";
     case "header":
     case "footer":
       // Header/footer are extracted to CSS margin boxes by the page renderer.
@@ -690,6 +704,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "sup":
     case "img":
     case "ref":
+    case "footnote":
     case "text":
     case "page-break":
     case "set-running":
@@ -815,9 +830,24 @@ function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
   return rules.join("");
 }
 
+function buildFootnoteAreaCss(page: ResolvedPageNode): string {
+  const area = page.children.find(
+    (child): child is ResolvedFootnoteAreaNode => child.kind === "footnote-area"
+  );
+  if (area == null) return "";
+  const rules: string[] = [];
+  rules.push(".reactdoc-footnote{float:footnote;}");
+  rules.push("@page{@footnote{border-top:1px solid #999;padding-top:0.25em;}}");
+  if (area.separator === false) {
+    rules.push("@page{@footnote{border-top:none;}}");
+  }
+  return rules.join("");
+}
+
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
+  const footnoteAreaCss = buildFootnoteAreaCss(page);
 
   const runningNames = new Set<string>();
   collectRunningStringNames(page, runningNames);
@@ -861,6 +891,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     bodyTextRule ?? "",
     marginMatterCss,
     runningStringsCss,
+    footnoteAreaCss,
     "body{margin:0;}",
     ".reactdoc-flow{box-sizing:border-box;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",

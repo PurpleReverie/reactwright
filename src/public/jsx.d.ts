@@ -95,6 +95,15 @@ type RefProps = {
   show?: "number" | "page" | "title" | "number-and-page";
 };
 
+type FootnoteProps = {
+  marker?: string;
+  children?: ReactNode;
+};
+
+type FootnoteAreaProps = Omit<TemplateStyleBag, "children"> & {
+  separator?: boolean;
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -363,6 +372,8 @@ declare module "react" {
       sup: SupProps;
       img: InlineImgProps;
       ref: RefProps;
+      footnote: FootnoteProps;
+      "footnote-area": FootnoteAreaProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -412,6 +423,8 @@ declare module "react/jsx-runtime" {
       sup: SupProps;
       img: InlineImgProps;
       ref: RefProps;
+      footnote: FootnoteProps;
+      "footnote-area": FootnoteAreaProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -461,6 +474,8 @@ declare module "react/jsx-dev-runtime" {
       sup: SupProps;
       img: InlineImgProps;
       ref: RefProps;
+      footnote: FootnoteProps;
+      "footnote-area": FootnoteAreaProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -510,6 +525,8 @@ declare global {
       sup: SupProps;
       img: InlineImgProps;
       ref: RefProps;
+      footnote: FootnoteProps;
+      "footnote-area": FootnoteAreaProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

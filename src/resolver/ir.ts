@@ -55,6 +55,12 @@ export type ResolvedRefNode = {
   show: "number" | "page" | "title" | "number-and-page";
 };
 
+export type ResolvedFootnoteNode = {
+  kind: "footnote";
+  marker?: string;
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -185,6 +191,12 @@ export type ResolvedImageNode = {
   cover?: boolean;
   contain?: boolean;
   width?: string;
+  style?: TemplateStyle;
+};
+
+export type ResolvedFootnoteAreaNode = {
+  kind: "footnote-area";
+  separator?: boolean;
   style?: TemplateStyle;
 };
 
@@ -325,6 +337,7 @@ export type ResolvedContentNode =
   | ResolvedSupNode
   | ResolvedInlineImgNode
   | ResolvedRefNode
+  | ResolvedFootnoteNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -352,7 +365,8 @@ export type ResolvedInlineNode =
   | ResolvedSubNode
   | ResolvedSupNode
   | ResolvedInlineImgNode
-  | ResolvedRefNode;
+  | ResolvedRefNode
+  | ResolvedFootnoteNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
@@ -366,6 +380,7 @@ export type ResolvedTemplateNode =
   | ResolvedPageCountNode
   | ResolvedRunningNode
   | ResolvedImageNode
+  | ResolvedFootnoteAreaNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

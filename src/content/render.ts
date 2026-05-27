@@ -246,6 +246,16 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       };
     case "br":
       return { kind: "br" };
+    case "footnote": {
+      const marker = typeof (props as Record<string, unknown>).marker === "string"
+        ? ((props as Record<string, unknown>).marker as string)
+        : undefined;
+      return {
+        kind: "footnote",
+        ...(marker != null ? { marker } : {}),
+        children: []
+      };
+    }
     case "ref": {
       const to = typeof (props as Record<string, unknown>).to === "string"
         ? ((props as Record<string, unknown>).to as string).trim()
@@ -347,7 +357,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "sub" &&
         child.kind !== "sup" &&
         child.kind !== "img" &&
-        child.kind !== "ref"
+        child.kind !== "ref" &&
+        child.kind !== "footnote"
       ) {
         throw new Error("`p` may only contain inline primitives.");
       }
@@ -389,6 +400,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
     case "link":
     case "sub":
     case "sup":
+    case "footnote":
       if (
         child.kind !== "text" &&
         child.kind !== "em" &&
@@ -399,7 +411,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "sub" &&
         child.kind !== "sup" &&
         child.kind !== "img" &&
-        child.kind !== "ref"
+        child.kind !== "ref" &&
+        child.kind !== "footnote"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }

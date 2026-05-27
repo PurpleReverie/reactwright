@@ -55,6 +55,12 @@ export type RefNode = {
   show?: RefShow;
 };
 
+export type FootnoteNode = {
+  kind: "footnote";
+  marker?: string;
+  children: InlineNode[];
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -201,7 +207,8 @@ export type InlineNode =
   | SubNode
   | SupNode
   | InlineImgNode
-  | RefNode;
+  | RefNode
+  | FootnoteNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -247,6 +254,7 @@ export type SemanticNode =
   | SupNode
   | InlineImgNode
   | RefNode
+  | FootnoteNode
   | TextNode;
 
 export type SemanticContainerNode =
@@ -271,4 +279,5 @@ export type SemanticContainerNode =
   | CodeNode
   | LinkNode
   | SubNode
-  | SupNode;
+  | SupNode
+  | FootnoteNode;

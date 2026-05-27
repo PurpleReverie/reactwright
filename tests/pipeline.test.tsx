@@ -223,6 +223,33 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("footnote primitive + footnote-area emit float:footnote and @footnote CSS", () => {
+  const documentTree = renderContentToIR(
+    <document title="Footnoted">
+      <section title="Body">
+        <p>
+          Inline text<footnote>An aside.</footnote> continues.
+        </p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <footnote-area />
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /float:footnote/);
+  assert.match(html, /@page\{@footnote\{/);
+  assert.match(html, /data-node="footnote"/);
+});
+
 test("resolver applies unified role rules and page-set filtering", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">

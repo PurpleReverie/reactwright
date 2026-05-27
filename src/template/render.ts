@@ -9,6 +9,7 @@ import type {
   FixedNode,
   FixedWhen,
   FooterNode,
+  FootnoteAreaNode,
   HeaderNode,
   ImageNode,
   LayerNode,
@@ -358,6 +359,12 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         style
       } satisfies ImageNode;
     }
+    case "footnote-area":
+      return {
+        kind: "footnote-area",
+        ...((props as Record<string, unknown>).separator === false ? {} : { separator: true }),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies FootnoteAreaNode;
     case "running": {
       const name = typeof props.name === "string" ? props.name.trim() : "";
       if (name.length === 0) {

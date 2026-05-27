@@ -214,6 +214,12 @@ export type ImageNode = {
   style?: TemplateStyle;
 };
 
+export type FootnoteAreaNode = {
+  kind: "footnote-area";
+  separator?: boolean;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -281,6 +287,7 @@ export type TemplateNode =
   | PageCountNode
   | RunningNode
   | ImageNode
+  | FootnoteAreaNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -305,5 +312,6 @@ export type TemplateChild =
   | PageCountNode
   | RunningNode
   | ImageNode
+  | FootnoteAreaNode
   | SlotNode
   | TemplateTextNode;

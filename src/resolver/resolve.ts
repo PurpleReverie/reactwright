@@ -20,6 +20,7 @@ import type {
   ParagraphNode,
   PreNode,
   RefNode,
+  FootnoteNode,
   RowNode,
   SectionNode,
   SemanticBlockChild,
@@ -55,6 +56,7 @@ import type {
   ResolvedFigureNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
+  ResolvedFootnoteAreaNode,
   ResolvedHeaderNode,
   ResolvedImageNode,
   ResolvedInlineImgNode,
@@ -70,6 +72,7 @@ import type {
   ResolvedParagraphNode,
   ResolvedPreNode,
   ResolvedRefNode,
+  ResolvedFootnoteNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -177,6 +180,14 @@ function resolveRefNode(node: RefNode): ResolvedRefNode {
   };
 }
 
+function resolveFootnoteNode(node: FootnoteNode): ResolvedFootnoteNode {
+  return {
+    kind: "footnote",
+    ...(node.marker != null ? { marker: node.marker } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -189,6 +200,7 @@ function resolveInlineNode(
     | SupNode
     | InlineImgNode
     | RefNode
+    | FootnoteNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -211,6 +223,8 @@ function resolveInlineNode(
       return resolveInlineImgNode(node);
     case "ref":
       return resolveRefNode(node);
+    case "footnote":
+      return resolveFootnoteNode(node);
   }
 }
 
@@ -616,6 +630,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "sup":
     case "img":
     case "ref":
+    case "footnote":
     case "text":
     case "page-break":
     case "set-running":
@@ -733,6 +748,14 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedImageNode
       ];
+    case "footnote-area":
+      return [
+        {
+          kind: "footnote-area",
+          ...(child.separator === true ? { separator: true } : {}),
+          style: child.style
+        } satisfies ResolvedFootnoteAreaNode
+      ];
   }
 }
 
@@ -804,6 +827,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "page-count":
     case "running":
     case "image":
+    case "footnote-area":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
