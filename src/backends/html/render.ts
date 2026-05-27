@@ -1127,13 +1127,21 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     (child) => child.kind !== "fixed" && child.kind !== "header" && child.kind !== "footer"
   );
 
-  let layerIndex = 0;
+  // Layers stack by JSX position relative to non-layer content. Layers that
+  // appear before the first non-layer child sit behind it (negative z-index);
+  // layers that appear after sit in front (positive z-index). This matches the
+  // common "tinted background" vs "watermark overlay" cases.
+  const firstContentIdx = flowChildren.findIndex((c) => c.kind !== "layer");
+  let beforeIdx = 0;
+  let afterIdx = 0;
   const flowBody = flowChildren
-    .map((child) => {
+    .map((child, idx) => {
       if (child.kind === "layer") {
-        const rendered = renderLayerNode(child, layerIndex);
-        layerIndex += 1;
-        return rendered;
+        const before = firstContentIdx === -1 || idx < firstContentIdx;
+        const z = before ? -10 - beforeIdx : 10 + afterIdx;
+        if (before) beforeIdx += 1;
+        else afterIdx += 1;
+        return renderLayerNode(child, z);
       }
       return renderResolvedChild(child);
     })
@@ -1150,7 +1158,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     sidenoteAreaCss,
     variantRulesCss,
     "body{margin:0;}",
-    ".reactdoc-flow{box-sizing:border-box;}",
+    ".reactdoc-flow{box-sizing:border-box;position:relative;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
     ".reactdoc-page-number::before{content:counter(page);}",
     ".reactdoc-page-count::before{content:counter(pages);}",
