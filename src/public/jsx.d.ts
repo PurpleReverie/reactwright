@@ -116,6 +116,13 @@ type CiteProps = {
   cite: string;
 };
 
+type IndexProps = Omit<TemplateStyleBag, "children"> & {
+  // Content-side: marks a term to include in the index (required there).
+  // Template-side: declares the back-matter index; accepts optional title.
+  term?: string;
+  title?: string;
+};
+
 type BibliographyEntryProp = {
   key: string;
   text: string;
@@ -400,6 +407,7 @@ declare module "react" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      index: IndexProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -455,6 +463,7 @@ declare module "react/jsx-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      index: IndexProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -510,6 +519,7 @@ declare module "react/jsx-dev-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      index: IndexProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -565,6 +575,7 @@ declare global {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      index: IndexProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

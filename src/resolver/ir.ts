@@ -219,6 +219,24 @@ export type ResolvedCiteNode = {
   cite: string;
 };
 
+export type ResolvedIndexEntryNode = {
+  kind: "index";
+  term: string;
+  anchorId: string;
+};
+
+export type ResolvedIndexEntry = {
+  term: string;
+  anchorIds: string[];
+};
+
+export type ResolvedIndexTemplateNode = {
+  kind: "index-template";
+  title?: string;
+  entries: ResolvedIndexEntry[];
+  style?: TemplateStyle;
+};
+
 export type ResolvedBibliographyEntry = {
   key: string;
   text: string;
@@ -373,6 +391,7 @@ export type ResolvedContentNode =
   | ResolvedInlineMathNode
   | ResolvedMathNode
   | ResolvedCiteNode
+  | ResolvedIndexEntryNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -404,7 +423,8 @@ export type ResolvedInlineNode =
   | ResolvedRefNode
   | ResolvedFootnoteNode
   | ResolvedInlineMathNode
-  | ResolvedCiteNode;
+  | ResolvedCiteNode
+  | ResolvedIndexEntryNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
@@ -420,6 +440,7 @@ export type ResolvedTemplateNode =
   | ResolvedImageNode
   | ResolvedFootnoteAreaNode
   | ResolvedBibliographyNode
+  | ResolvedIndexTemplateNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

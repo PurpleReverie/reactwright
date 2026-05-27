@@ -13,6 +13,7 @@ import type {
   EmNode,
   FigureNode,
   HeadingNode,
+  IndexNode,
   InlineImgNode,
   InlineMathNode,
   MathNode,
@@ -60,6 +61,9 @@ import type {
   ResolvedBibliographyEntry,
   ResolvedBibliographyNode,
   ResolvedCiteNode,
+  ResolvedIndexEntry,
+  ResolvedIndexEntryNode,
+  ResolvedIndexTemplateNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -114,6 +118,7 @@ type ResolveContext = {
   currentAnchors?: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }>;
   rules: RuleMaps;
   citeKeys: Set<string>;
+  indexEntries: Map<string, string[]>;
 };
 
 function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
@@ -131,6 +136,44 @@ function collectCiteKeysFromSlotMap(slots: SlotMap, keys: Set<string>): void {
   for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
     for (const node of list) {
       collectCiteKeysFromNode(node, keys);
+    }
+  }
+}
+
+function termToSlug(term: string): string {
+  return term
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function stampIndexAnchorsAndCollect(
+  node: ResolvedContentNode | ResolvedInlineNode,
+  counts: Map<string, number>,
+  indexEntries: Map<string, string[]>
+): void {
+  if ("kind" in node && node.kind === "index") {
+    const slug = termToSlug(node.term);
+    const n = (counts.get(slug) ?? 0) + 1;
+    counts.set(slug, n);
+    const anchorId = `reactdoc-idx-${slug}-${n}`;
+    node.anchorId = anchorId;
+    const list = indexEntries.get(node.term) ?? [];
+    list.push(anchorId);
+    indexEntries.set(node.term, list);
+  }
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      stampIndexAnchorsAndCollect(child as ResolvedContentNode, counts, indexEntries);
+    }
+  }
+}
+
+function stampIndexAnchorsInSlotMap(slots: SlotMap, indexEntries: Map<string, string[]>): void {
+  const counts = new Map<string, number>();
+  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
+    for (const node of list) {
+      stampIndexAnchorsAndCollect(node, counts, indexEntries);
     }
   }
 }
@@ -241,6 +284,14 @@ function resolveCiteNode(node: CiteNode): ResolvedCiteNode {
   };
 }
 
+function resolveIndexNode(node: IndexNode): ResolvedIndexEntryNode {
+  return {
+    kind: "index",
+    term: node.term,
+    anchorId: ""
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -256,6 +307,7 @@ function resolveInlineNode(
     | FootnoteNode
     | InlineMathNode
     | CiteNode
+    | IndexNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -284,6 +336,8 @@ function resolveInlineNode(
       return resolveInlineMathNode(node);
     case "cite":
       return resolveCiteNode(node);
+    case "index":
+      return resolveIndexNode(node);
   }
 }
 
@@ -701,6 +755,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "footnote":
     case "m":
     case "cite":
+    case "index":
     case "text":
     case "page-break":
     case "set-running":
@@ -826,6 +881,19 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedFootnoteAreaNode
       ];
+    case "index-template": {
+      const entries: ResolvedIndexEntry[] = [...ctx.indexEntries.entries()]
+        .map(([term, anchorIds]) => ({ term, anchorIds }))
+        .sort((a, b) => a.term.localeCompare(b.term));
+      return [
+        {
+          kind: "index-template",
+          ...(child.title != null ? { title: child.title } : {}),
+          entries,
+          style: child.style
+        } satisfies ResolvedIndexTemplateNode
+      ];
+    }
     case "bibliography": {
       const provided = child.entries ?? [];
       const providedKeys = new Set(provided.map((e) => e.key));
@@ -922,6 +990,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "image":
     case "footnote-area":
     case "bibliography":
+    case "index-template":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");
@@ -947,11 +1016,14 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   } satisfies SlotMap;
   const citeKeys = new Set<string>();
   collectCiteKeysFromSlotMap(slots, citeKeys);
+  const indexEntries = new Map<string, string[]>();
+  stampIndexAnchorsInSlotMap(slots, indexEntries);
   const resolved = resolveTemplateNode(template, slots, {
     rules,
     currentPageSet: undefined,
     currentAnchors: undefined,
-    citeKeys
+    citeKeys,
+    indexEntries
   });
 
   if (resolved.kind !== "page") {

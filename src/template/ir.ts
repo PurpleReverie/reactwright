@@ -232,6 +232,12 @@ export type BibliographyNode = {
   style?: TemplateStyle;
 };
 
+export type IndexTemplateNode = {
+  kind: "index-template";
+  title?: string;
+  style?: TemplateStyle;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -301,6 +307,7 @@ export type TemplateNode =
   | ImageNode
   | FootnoteAreaNode
   | BibliographyNode
+  | IndexTemplateNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -327,5 +334,6 @@ export type TemplateChild =
   | ImageNode
   | FootnoteAreaNode
   | BibliographyNode
+  | IndexTemplateNode
   | SlotNode
   | TemplateTextNode;

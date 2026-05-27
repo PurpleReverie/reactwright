@@ -35,6 +35,8 @@ import type {
   ResolvedRefNode,
   ResolvedBibliographyNode,
   ResolvedCiteNode,
+  ResolvedIndexEntryNode,
+  ResolvedIndexTemplateNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedInlineMathNode,
@@ -277,6 +279,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return renderInlineMathNode(node);
     case "cite":
       return renderCiteNode(node);
+    case "index":
+      return renderIndexEntryNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -311,6 +315,26 @@ function renderInlineMathNode(node: ResolvedInlineMathNode): string {
 function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${escapeHtml(node.src)}</div>`;
+}
+
+function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
+  return `<span data-node="index-entry" data-index-term="${escapeHtml(node.term)}" id="${escapeHtml(node.anchorId)}" hidden></span>`;
+}
+
+function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string {
+  const title = node.title != null ? `<h2 class="reactdoc-index-title">${escapeHtml(node.title)}</h2>` : "";
+  const items = node.entries
+    .map((e) => {
+      const refs = e.anchorIds
+        .map(
+          (id) =>
+            `<a class="reactdoc-index-pageref" href="#${escapeHtml(id)}"></a>`
+        )
+        .join(", ");
+      return `<li data-index-term="${escapeHtml(e.term)}">${escapeHtml(e.term)}<span class="reactdoc-index-pagerefs"> ${refs}</span></li>`;
+    })
+    .join("");
+  return `<section data-node="index" class="reactdoc-index">${title}<ul>${items}</ul></section>`;
 }
 
 function renderCiteNode(node: ResolvedCiteNode): string {
@@ -591,6 +615,7 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "footnote":
     case "m":
     case "cite":
+    case "index":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -710,6 +735,8 @@ function renderResolvedChild(node: ResolvedChild): string {
       return "";
     case "bibliography":
       return renderBibliographyNode(node);
+    case "index-template":
+      return renderIndexTemplateNode(node);
     case "header":
     case "footer":
       // Header/footer are extracted to CSS margin boxes by the page renderer.
@@ -747,6 +774,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "footnote":
     case "m":
     case "cite":
+    case "index":
     case "text":
     case "page-break":
     case "set-running":
@@ -946,6 +974,8 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     ".reactdoc-cite::before{content:'[';}",
     ".reactdoc-cite::after{content:target-counter(attr(href url), list-item) ']';}",
     ".reactdoc-bibliography ol{padding-left:1.5em;}",
+    ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
+    ".reactdoc-index-pagerefs a + a::before{content:', ';}",
     "h1,h2,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
     "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
     "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",

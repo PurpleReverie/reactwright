@@ -14,6 +14,7 @@ import type {
   FootnoteAreaNode,
   HeaderNode,
   ImageNode,
+  IndexTemplateNode,
   LayerNode,
   LayerWhen,
   MarginAnchor,
@@ -367,6 +368,15 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...((props as Record<string, unknown>).separator === false ? {} : { separator: true }),
         style: mergeTemplateStyleGroups(props)
       } satisfies FootnoteAreaNode;
+    case "index": {
+      const titleProp = (props as Record<string, unknown>).title;
+      const title = typeof titleProp === "string" ? titleProp : undefined;
+      return {
+        kind: "index-template",
+        ...(title != null ? { title } : {}),
+        style: mergeTemplateStyleGroups(props)
+      } satisfies IndexTemplateNode;
+    }
     case "bibliography": {
       const rawEntries = (props as Record<string, unknown>).entries;
       let entries: BibliographyEntry[] | undefined;

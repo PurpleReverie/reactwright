@@ -223,6 +223,42 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("index entries collect to back-matter index with anchor refs", () => {
+  const documentTree = renderContentToIR(
+    <document title="Indexed">
+      <section title="Chapter">
+        <p>
+          Magic<index term="magic" /> was discussed.
+        </p>
+        <p>
+          More on magic<index term="magic" /> appears here.
+        </p>
+        <p>
+          Aspects<index term="aspect" /> too.
+        </p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <slot name="body" />
+        <index title="Index" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /data-node="index"/);
+  assert.match(html, /data-node="index-entry"/);
+  assert.match(html, /id="reactdoc-idx-magic-1"/);
+  assert.match(html, /id="reactdoc-idx-magic-2"/);
+  assert.match(html, /id="reactdoc-idx-aspect-1"/);
+  assert.match(html, /data-index-term="magic"/);
+});
+
 test("cite + bibliography collect cited keys and emit a bibliography section", () => {
   const documentTree = renderContentToIR(
     <document title="Cited">

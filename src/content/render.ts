@@ -312,6 +312,15 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
       }
       return { kind: "cite", cite: key };
     }
+    case "index": {
+      const term = typeof (props as Record<string, unknown>).term === "string"
+        ? ((props as Record<string, unknown>).term as string).trim()
+        : "";
+      if (term.length === 0) {
+        throw new Error("`index` requires a non-empty `term`.");
+      }
+      return { kind: "index", term };
+    }
     case "img": {
       const src = typeof props.src === "string" ? props.src.trim() : "";
       if (src.length === 0) {
@@ -394,7 +403,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "ref" &&
         child.kind !== "footnote" &&
         child.kind !== "m" &&
-        child.kind !== "cite"
+        child.kind !== "cite" &&
+        child.kind !== "index"
       ) {
         throw new Error("`p` may only contain inline primitives.");
       }
@@ -451,7 +461,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "ref" &&
         child.kind !== "footnote" &&
         child.kind !== "m" &&
-        child.kind !== "cite"
+        child.kind !== "cite" &&
+        child.kind !== "index"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }
