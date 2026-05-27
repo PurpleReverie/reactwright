@@ -14,6 +14,7 @@ import type {
   ResolvedDefNode,
   ResolvedDefsNode,
   ResolvedEmNode,
+  ResolvedHeadingNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
@@ -471,6 +472,12 @@ function renderTitleNode(node: ResolvedTitleNode): string {
   return `<h1 class="reactdoc-document-title">${escapeHtml(node.value)}</h1>`;
 }
 
+function renderHeadingNode(node: ResolvedHeadingNode): string {
+  const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
+  const tag = `h${node.level}`;
+  return `<${tag}${variantAttr}>${escapeHtml(node.title)}</${tag}>`;
+}
+
 function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `<p>${escapeHtml(node.value)}</p>`;
 }
@@ -501,6 +508,8 @@ function renderContentNode(node: ResolvedContentNode): string {
       return renderDefsNode(node);
     case "def":
       return renderDefNode(node);
+    case "heading":
+      return renderHeadingNode(node);
     case "page-break":
       return renderPageBreakNode(node);
     case "set-running":
@@ -650,6 +659,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "pre":
     case "defs":
     case "def":
+    case "heading":
     case "paragraph":
     case "blockquote":
     case "list":

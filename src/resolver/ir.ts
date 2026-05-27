@@ -142,6 +142,15 @@ export type ResolvedSectionNode = {
   children: ResolvedContentChild[];
 };
 
+export type ResolvedHeadingNode = {
+  kind: "heading";
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  title: string;
+  role?: string;
+  page?: string;
+  variant?: string;
+};
+
 export type ResolvedPageBreakNode = {
   kind: "page-break";
 };
@@ -287,6 +296,7 @@ export type ResolvedContentNode =
   | ResolvedPreNode
   | ResolvedDefsNode
   | ResolvedDefNode
+  | ResolvedHeadingNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode
@@ -309,6 +319,7 @@ export type ResolvedContentChild =
   | ResolvedCodeBlockNode
   | ResolvedPreNode
   | ResolvedDefsNode
+  | ResolvedHeadingNode
   | ResolvedPageBreakNode
   | ResolvedSetRunningNode
   | ResolvedParagraphNode

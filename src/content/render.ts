@@ -48,6 +48,7 @@ type ContentProps = Record<string, unknown> & {
   running?: string;
   value?: string;
   term?: string;
+  level?: number;
 };
 
 type ContentContainer = {
@@ -98,6 +99,25 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         ...(variant != null ? { variant } : {}),
         children: []
       };
+    case "heading": {
+      const rawLevel = (props as Record<string, unknown>).level;
+      const level = typeof rawLevel === "number" ? rawLevel : 1;
+      if (![1, 2, 3, 4, 5, 6].includes(level)) {
+        throw new Error("`heading` `level` must be 1-6.");
+      }
+      const title = typeof props.title === "string" ? props.title : "";
+      if (title.length === 0) {
+        throw new Error("`heading` requires a non-empty `title`.");
+      }
+      return {
+        kind: "heading",
+        level: level as 1 | 2 | 3 | 4 | 5 | 6,
+        title,
+        ...(role != null ? { role } : {}),
+        ...(page != null ? { page } : {}),
+        ...(variant != null ? { variant } : {})
+      };
+    }
     case "p":
       return {
         kind: "paragraph",
@@ -313,6 +333,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
         child.kind !== "defs" &&
+        child.kind !== "heading" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -380,6 +401,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
         child.kind !== "defs" &&
+        child.kind !== "heading" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -397,6 +419,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
         child.kind !== "defs" &&
+        child.kind !== "heading" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -416,6 +439,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
         child.kind !== "defs" &&
+        child.kind !== "heading" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {
@@ -436,6 +460,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "code-block" &&
         child.kind !== "pre" &&
         child.kind !== "defs" &&
+        child.kind !== "heading" &&
         child.kind !== "page-break" &&
         child.kind !== "set-running"
       ) {

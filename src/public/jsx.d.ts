@@ -17,6 +17,11 @@ type SectionProps = ContentMetadataProps & {
   children?: ReactNode;
 };
 
+type HeadingProps = ContentMetadataProps & {
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  title: string;
+};
+
 type ParagraphProps = ContentMetadataProps & {
   children?: ReactNode;
 };
@@ -333,6 +338,7 @@ declare module "react" {
     interface IntrinsicElements {
       document: DocumentProps;
       section: SectionProps;
+      heading: HeadingProps;
       p: ParagraphProps;
       figure: FigureProps;
       table: TableProps;
@@ -380,6 +386,7 @@ declare module "react/jsx-runtime" {
     interface IntrinsicElements {
       document: DocumentProps;
       section: SectionProps;
+      heading: HeadingProps;
       p: ParagraphProps;
       figure: FigureProps;
       table: TableProps;
@@ -427,6 +434,7 @@ declare module "react/jsx-dev-runtime" {
     interface IntrinsicElements {
       document: DocumentProps;
       section: SectionProps;
+      heading: HeadingProps;
       p: ParagraphProps;
       figure: FigureProps;
       table: TableProps;
@@ -474,6 +482,7 @@ declare global {
     interface IntrinsicElements {
       document: DocumentProps;
       section: SectionProps;
+      heading: HeadingProps;
       p: ParagraphProps;
       figure: FigureProps;
       table: TableProps;

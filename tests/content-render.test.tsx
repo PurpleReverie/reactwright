@@ -141,6 +141,24 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports standalone heading primitive", () => {
+  const result = renderContentToIR(
+    <document title="Headings">
+      <heading level={1} title="Part One" />
+      <heading level={3} title="Side note" role="ornament" />
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Headings",
+    children: [
+      { kind: "heading", level: 1, title: "Part One" },
+      { kind: "heading", level: 3, title: "Side note", role: "ornament" }
+    ]
+  });
+});
+
 test("content renderer supports defs/def definition lists", () => {
   const result = renderContentToIR(
     <document title="Glossary">

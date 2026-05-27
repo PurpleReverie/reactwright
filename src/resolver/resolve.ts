@@ -11,6 +11,7 @@ import type {
   DocumentNode,
   EmNode,
   FigureNode,
+  HeadingNode,
   InlineImgNode,
   LinkNode,
   ListItemNode,
@@ -48,6 +49,7 @@ import type {
   ResolvedContentNode,
   ResolvedDefNode,
   ResolvedDefsNode,
+  ResolvedHeadingNode,
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedFixedNode,
@@ -268,6 +270,17 @@ function resolveDefNode(node: DefNode): ResolvedDefNode {
   };
 }
 
+function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
+  return {
+    kind: "heading",
+    level: node.level,
+    title: node.title,
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.page != null ? { page: node.page } : {}),
+    ...(node.variant != null ? { variant: node.variant } : {})
+  };
+}
+
 function resolveDefsNode(node: DefsNode): ResolvedDefsNode {
   return {
     kind: "defs",
@@ -361,6 +374,8 @@ function resolveContentChild(node: SemanticBlockChild): ResolvedContentChild {
       return resolvePreNode(node);
     case "defs":
       return resolveDefsNode(node);
+    case "heading":
+      return resolveHeadingNode(node);
     case "page-break":
       return resolvePageBreakNode(node);
     case "set-running":
@@ -443,6 +458,7 @@ const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
   blockquote: "blockquote",
   list: "list",
   defs: "defs",
+  heading: "heading",
   figure: "figure"
 };
 
@@ -553,6 +569,12 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
       return {
         ...node,
         variant: node.role != null ? findMatchingRole(node.role, "figure", rules) ?? node.variant : node.variant
+      } as T;
+    case "heading":
+      return {
+        ...node,
+        variant:
+          node.role != null ? findMatchingRole(node.role, "heading", rules) ?? node.variant : node.variant
       } as T;
     case "row":
     case "cell":

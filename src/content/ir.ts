@@ -140,6 +140,15 @@ export type SectionNode = {
   children: SemanticBlockChild[];
 };
 
+export type HeadingNode = {
+  kind: "heading";
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  title: string;
+  role?: string;
+  page?: string;
+  variant?: string;
+};
+
 export type PageBreakNode = {
   kind: "page-break";
 };
@@ -185,6 +194,7 @@ export type SemanticBlockChild =
   | CodeBlockNode
   | PreNode
   | DefsNode
+  | HeadingNode
   | PageBreakNode
   | SetRunningNode;
 
@@ -206,6 +216,7 @@ export type SemanticNode =
   | PreNode
   | DefsNode
   | DefNode
+  | HeadingNode
   | PageBreakNode
   | SetRunningNode
   | EmNode
@@ -234,6 +245,7 @@ export type SemanticContainerNode =
   | PreNode
   | DefsNode
   | DefNode
+  | HeadingNode
   | EmNode
   | StrongNode
   | CodeNode
