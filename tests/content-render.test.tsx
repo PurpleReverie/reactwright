@@ -141,6 +141,44 @@ test("content renderer rejects empty metadata tokens", () => {
   );
 });
 
+test("content renderer supports br, sub, sup inline primitives", () => {
+  const result = renderContentToIR(
+    <document title="Inline finishes">
+      <p>
+        Line one.<br />Line two.
+      </p>
+      <p>
+        H<sub>2</sub>O and x<sup>2</sup>.
+      </p>
+    </document>
+  );
+
+  assert.deepEqual(result, {
+    kind: "document",
+    title: "Inline finishes",
+    children: [
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "Line one." },
+          { kind: "br" },
+          { kind: "text", value: "Line two." }
+        ]
+      },
+      {
+        kind: "paragraph",
+        children: [
+          { kind: "text", value: "H" },
+          { kind: "sub", children: [{ kind: "text", value: "2" }] },
+          { kind: "text", value: "O and x" },
+          { kind: "sup", children: [{ kind: "text", value: "2" }] },
+          { kind: "text", value: "." }
+        ]
+      }
+    ]
+  });
+});
+
 test("content renderer supports links and code-block primitives", () => {
   const result = renderContentToIR(
     <document title="Markdown-ish">

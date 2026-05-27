@@ -249,6 +249,12 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return `<code>${node.children.map(renderTextNode).join("")}</code>`;
     case "link":
       return renderLinkNode(node);
+    case "br":
+      return "<br />";
+    case "sub":
+      return `<sub>${node.children.map(renderInlineNode).join("")}</sub>`;
+    case "sup":
+      return `<sup>${node.children.map(renderInlineNode).join("")}</sup>`;
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -473,6 +479,9 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "strong":
     case "code":
     case "link":
+    case "br":
+    case "sub":
+    case "sup":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -611,6 +620,9 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "strong":
     case "code":
     case "link":
+    case "br":
+    case "sub":
+    case "sup":
     case "text":
     case "page-break":
     case "set-running":

@@ -1,6 +1,7 @@
 import type {
   AbstractNode,
   BlockQuoteNode,
+  BreakNode,
   CellNode,
   CodeBlockNode,
   CodeNode,
@@ -18,6 +19,8 @@ import type {
   SemanticBlockChild,
   SetRunningNode,
   StrongNode,
+  SubNode,
+  SupNode,
   TableNode,
   TextNode
 } from "../content/ir.js";
@@ -32,6 +35,7 @@ import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
+  ResolvedBreakNode,
   ResolvedCellNode,
   ResolvedChild,
   ResolvedCodeBlockNode,
@@ -61,6 +65,8 @@ import type {
   ResolvedSetRunningNode,
   ResolvedStackNode,
   ResolvedStrongNode,
+  ResolvedSubNode,
+  ResolvedSupNode,
   ResolvedTableNode,
   ResolvedTemplateNode,
   ResolvedTextNode,
@@ -123,8 +129,26 @@ function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
   };
 }
 
+function resolveBreakNode(_node: BreakNode): ResolvedBreakNode {
+  return { kind: "br" };
+}
+
+function resolveSubNode(node: SubNode): ResolvedSubNode {
+  return {
+    kind: "sub",
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
+function resolveSupNode(node: SupNode): ResolvedSupNode {
+  return {
+    kind: "sup",
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
 function resolveInlineNode(
-  node: TextNode | EmNode | StrongNode | CodeNode | LinkNode
+  node: TextNode | EmNode | StrongNode | CodeNode | LinkNode | BreakNode | SubNode | SupNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -137,6 +161,12 @@ function resolveInlineNode(
       return resolveCodeNode(node);
     case "link":
       return resolveLinkNode(node);
+    case "br":
+      return resolveBreakNode(node);
+    case "sub":
+      return resolveSubNode(node);
+    case "sup":
+      return resolveSupNode(node);
   }
 }
 
@@ -465,6 +495,9 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "strong":
     case "code":
     case "link":
+    case "br":
+    case "sub":
+    case "sup":
     case "text":
     case "page-break":
     case "set-running":

@@ -27,6 +27,20 @@ export type ResolvedCodeNode = {
   children: ResolvedTextNode[];
 };
 
+export type ResolvedBreakNode = {
+  kind: "br";
+};
+
+export type ResolvedSubNode = {
+  kind: "sub";
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedSupNode = {
+  kind: "sup";
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedParagraphNode = {
   kind: "paragraph";
   role?: string;
@@ -250,6 +264,9 @@ export type ResolvedContentNode =
   | ResolvedStrongNode
   | ResolvedCodeNode
   | ResolvedLinkNode
+  | ResolvedBreakNode
+  | ResolvedSubNode
+  | ResolvedSupNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -269,7 +286,10 @@ export type ResolvedInlineNode =
   | ResolvedEmNode
   | ResolvedStrongNode
   | ResolvedCodeNode
-  | ResolvedLinkNode;
+  | ResolvedLinkNode
+  | ResolvedBreakNode
+  | ResolvedSubNode
+  | ResolvedSupNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

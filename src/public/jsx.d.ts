@@ -66,6 +66,16 @@ type CodeProps = {
   children?: ReactNode;
 };
 
+type BreakElementProps = Record<string, never>;
+
+type SubProps = {
+  children?: ReactNode;
+};
+
+type SupProps = {
+  children?: ReactNode;
+};
+
 type QuoteProps = ContentMetadataProps & {
   speaker?: string;
   children?: ReactNode;
@@ -313,6 +323,9 @@ declare module "react" {
       strong: StrongProps;
       link: LinkProps;
       code: CodeProps;
+      br: BreakElementProps;
+      sub: SubProps;
+      sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       list: ListProps;
@@ -353,6 +366,9 @@ declare module "react/jsx-runtime" {
       strong: StrongProps;
       link: LinkProps;
       code: CodeProps;
+      br: BreakElementProps;
+      sub: SubProps;
+      sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       list: ListProps;
@@ -393,6 +409,9 @@ declare module "react/jsx-dev-runtime" {
       strong: StrongProps;
       link: LinkProps;
       code: CodeProps;
+      br: BreakElementProps;
+      sub: SubProps;
+      sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       list: ListProps;
@@ -433,6 +452,9 @@ declare global {
       strong: StrongProps;
       link: LinkProps;
       code: CodeProps;
+      br: BreakElementProps;
+      sub: SubProps;
+      sup: SupProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       list: ListProps;
