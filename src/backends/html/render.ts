@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
 import { getAllFonts } from "../../fonts/registry.js";
@@ -61,6 +62,57 @@ import type {
 } from "../../resolver/ir.js";
 
 const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
+
+// KaTeX CSS bundled by the same CDN serving the Chromium-side fonts.
+const KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css";
+
+// Lazy KaTeX import so we don't pay the require cost for documents that have
+// no math. Result is cached after first use.
+let katexImpl: { renderToString: (tex: string, opts?: Record<string, unknown>) => string } | null =
+  null;
+const requireFromHere = createRequire(import.meta.url);
+function getKatex(): typeof katexImpl {
+  if (katexImpl != null) return katexImpl;
+  try {
+    // KaTeX ships as CJS; require via createRequire so the dep is optional
+    // (tolerant of missing install).
+    const mod = requireFromHere("katex") as
+      | { default?: typeof katexImpl }
+      | typeof katexImpl;
+    katexImpl = (mod as { default?: typeof katexImpl }).default ?? (mod as typeof katexImpl);
+    return katexImpl;
+  } catch {
+    return null;
+  }
+}
+
+function hasMathNodes(node: ResolvedPageNode | ResolvedChild | ResolvedContentNode | ResolvedInlineNode): boolean {
+  if ("kind" in node && (node.kind === "math" || node.kind === "m")) return true;
+  if ("children" in node && Array.isArray(node.children)) {
+    for (const c of node.children) {
+      if (hasMathNodes(c as ResolvedChild)) return true;
+    }
+  }
+  return false;
+}
+
+function renderTeX(src: string, displayMode: boolean): string {
+  const k = getKatex();
+  if (k == null) {
+    // KaTeX unavailable; fall back to plain text so the doc still renders.
+    return escapeHtml(src);
+  }
+  try {
+    return k.renderToString(src, {
+      displayMode,
+      throwOnError: false,
+      output: "html",
+      strict: "ignore"
+    });
+  } catch {
+    return escapeHtml(src);
+  }
+}
 
 const PAGE_GROUP_KEYS = new Set([
   "size",
@@ -350,12 +402,12 @@ function renderSidenoteNode(node: ResolvedSidenoteNode): string {
 }
 
 function renderInlineMathNode(node: ResolvedInlineMathNode): string {
-  return `<span data-node="math-inline" class="reactdoc-math reactdoc-math-inline">${escapeHtml(node.src)}</span>`;
+  return `<span data-node="math-inline" class="reactdoc-math reactdoc-math-inline">${renderTeX(node.src, false)}</span>`;
 }
 
 function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${escapeHtml(node.src)}</div>`;
+  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${renderTeX(node.src, true)}</div>`;
 }
 
 function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
@@ -1257,7 +1309,10 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;background:#f1f5f9;padding:0.1em 0.25em;border-radius:0.2em;}",
     "table{border-collapse:collapse;width:100%;}",
     "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
-    "figure img{max-width:100%;height:auto;}"
+    "figure img{max-width:100%;height:auto;}",
+    ".reactdoc-math-block{position:relative;text-align:center;margin:0.6em 0;}",
+    ".reactdoc-math-block .katex-display{margin:0;}",
+    ".reactdoc-math-block[data-variant]::before{position:absolute;right:0;top:50%;transform:translateY(-50%);font-style:normal;}"
   ]
     .filter((s) => s.length > 0)
     .join("");
@@ -1270,6 +1325,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     "<title>ReactDoc Preview</title>",
     ...fontTags,
+    hasMathNodes(page) ? `<link rel="stylesheet" href="${KATEX_CSS}" />` : "",
     `<style>${styleRules}</style>`,
     `<script src="${PAGED_JS_SCRIPT}"></script>`,
     "</head>",
