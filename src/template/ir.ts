@@ -88,6 +88,12 @@ export type SlotName = "title" | "author" | "abstract" | "body";
 
 export type BreakValue = "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
 
+export type RoleNumbering = {
+  counter: string;
+  scope?: string;
+  format?: string;
+};
+
 export type RoleRuleNode = {
   kind: "role-rule";
   match: string;
@@ -96,6 +102,7 @@ export type RoleRuleNode = {
   breakBefore?: BreakValue;
   breakAfter?: BreakValue;
   breakInside?: "auto" | "avoid";
+  numbering?: RoleNumbering;
 };
 
 export type PageRuleNode = {

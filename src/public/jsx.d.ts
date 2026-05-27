@@ -412,6 +412,12 @@ type RulesProps = {
   children?: ReactNode;
 };
 
+type RoleNumberingProp = {
+  counter: string;
+  scope?: string;
+  format?: string;
+};
+
 type RoleRuleProps = {
   match: string;
   apply: string;
@@ -419,6 +425,7 @@ type RoleRuleProps = {
   breakBefore?: "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
   breakAfter?: "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
   breakInside?: "auto" | "avoid";
+  numbering?: RoleNumberingProp;
 };
 
 declare module "react" {

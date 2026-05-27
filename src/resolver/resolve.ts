@@ -119,6 +119,7 @@ type RoleRule = {
   breakBefore?: string;
   breakAfter?: string;
   breakInside?: string;
+  numbering?: { counter: string; scope?: string; format?: string };
 };
 
 type RuleMaps = {
@@ -710,7 +711,8 @@ function applyRule(rule: RulesChild, rules: RuleMaps): void {
           ...(rule.on != null ? { on: rule.on } : {}),
           ...(rule.breakBefore != null ? { breakBefore: rule.breakBefore } : {}),
           ...(rule.breakAfter != null ? { breakAfter: rule.breakAfter } : {}),
-          ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {})
+          ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {}),
+          ...(rule.numbering != null ? { numbering: rule.numbering } : {})
         });
       }
       return;
@@ -1119,12 +1121,19 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
   switch (node.kind) {
     case "page": {
       const variantRules = ctx.rules.roles
-        .filter((r) => r.breakBefore != null || r.breakAfter != null || r.breakInside != null)
+        .filter(
+          (r) =>
+            r.breakBefore != null ||
+            r.breakAfter != null ||
+            r.breakInside != null ||
+            r.numbering != null
+        )
         .map((r) => ({
           apply: r.apply,
           ...(r.breakBefore != null ? { breakBefore: r.breakBefore } : {}),
           ...(r.breakAfter != null ? { breakAfter: r.breakAfter } : {}),
-          ...(r.breakInside != null ? { breakInside: r.breakInside } : {})
+          ...(r.breakInside != null ? { breakInside: r.breakInside } : {}),
+          ...(r.numbering != null ? { numbering: r.numbering } : {})
         }));
       return {
         kind: "page",

@@ -1018,6 +1018,30 @@ function buildFootnoteAreaCss(page: ResolvedPageNode): string {
   return rules.join("");
 }
 
+function formatToContent(format: string, fallbackCounter: string): string {
+  // Replace $name tokens with CSS counter() functions, quoting the in-between literals.
+  const tokens: string[] = [];
+  const re = /\$([a-zA-Z_][a-zA-Z0-9_-]*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(format)) !== null) {
+    if (match.index > lastIndex) {
+      const literal = format.slice(lastIndex, match.index);
+      tokens.push(`'${literal.replace(/'/g, "\\'")}'`);
+    }
+    tokens.push(`counter(${match[1]})`);
+    lastIndex = re.lastIndex;
+  }
+  if (lastIndex < format.length) {
+    const tail = format.slice(lastIndex);
+    tokens.push(`'${tail.replace(/'/g, "\\'")}'`);
+  }
+  if (tokens.length === 0) {
+    return `counter(${fallbackCounter})`;
+  }
+  return tokens.join(" ");
+}
+
 function buildVariantRulesCss(page: ResolvedPageNode): string {
   const rules = page.variantRules ?? [];
   if (rules.length === 0) return "";
@@ -1028,7 +1052,19 @@ function buildVariantRulesCss(page: ResolvedPageNode): string {
     if (r.breakBefore != null) decls.push(`break-before:${r.breakBefore};`);
     if (r.breakAfter != null) decls.push(`break-after:${r.breakAfter};`);
     if (r.breakInside != null) decls.push(`break-inside:${r.breakInside};`);
+    if (r.numbering != null) {
+      decls.push(`counter-increment:${r.numbering.counter};`);
+    }
     if (decls.length > 0) out.push(`${selector}{${decls.join("")}}`);
+    if (r.numbering != null) {
+      if (r.numbering.scope != null) {
+        out.push(`[data-variant="${r.numbering.scope}"]{counter-reset:${r.numbering.counter};}`);
+      }
+      if (r.numbering.format != null) {
+        const content = formatToContent(r.numbering.format, r.numbering.counter);
+        out.push(`${selector}::before{content:${content};}`);
+      }
+    }
   }
   return out.join("");
 }

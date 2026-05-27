@@ -223,6 +223,39 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("role rules emit numbering CSS via counters and format string", () => {
+  const documentTree = renderContentToIR(
+    <document title="Numbered">
+      <section title="Chapter" role="chapter">
+        <p>Body.</p>
+      </section>
+    </document>
+  );
+
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <rules>
+        <role
+          on="figure"
+          match="numbered"
+          apply="numberedFigure"
+          numbering={{ counter: "figure", scope: "chapter", format: "Figure $chapter.$figure" }}
+        />
+        <role on="section" match="chapter" apply="chapter" />
+      </rules>
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /\[data-variant="numberedFigure"\]\{counter-increment:figure;\}/);
+  assert.match(html, /\[data-variant="chapter"\]\{counter-reset:figure;\}/);
+  assert.match(html, /\[data-variant="numberedFigure"\]::before\{content:'Figure ' counter\(chapter\) '\.' counter\(figure\);\}/);
+});
+
 test("role rules emit break-* CSS keyed by variant", () => {
   const documentTree = renderContentToIR(
     <document title="Breaks">
