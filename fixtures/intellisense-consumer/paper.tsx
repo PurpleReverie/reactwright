@@ -1,9 +1,24 @@
 import "reactdoc/jsx";
 
 import type { ContentComponent, TemplateComponent } from "reactdoc";
-import { ArticleTemplate } from "reactdoc/templates";
 
-export const Template: TemplateComponent = () => <ArticleTemplate />;
+// Consumers ship their own templates. The engine only provides primitives.
+export const Template: TemplateComponent = () => (
+  <page style={{ size: "a4", margin: "25mm", fontFamily: "serif", fontSize: "11pt" }}>
+    <stack gap="6mm">
+      <region style={{ textAlign: "center" }}>
+        <slot name="title" />
+        <slot name="author" />
+      </region>
+      <region>
+        <slot name="abstract" />
+      </region>
+      <region>
+        <slot name="body" />
+      </region>
+    </stack>
+  </page>
+);
 
 const Paper: ContentComponent = () => (
   <document title="Consumer Paper" author="Tauraj Greig">

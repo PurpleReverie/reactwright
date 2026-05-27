@@ -13,10 +13,6 @@
       "types": "./src/public/jsx.d.ts",
       "default": "./src/public/jsx.js"
     },
-    "./templates": {
-      "types": "./src/public/templates.tsx",
-      "default": "./src/public/templates.tsx"
-    },
     "./contract": {
       "types": "./src/public/contract.ts",
       "default": "./src/public/contract.ts"
@@ -27,7 +23,7 @@
     "check": "tsc --noEmit",
     "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
     "test": "node --import tsx --test tests/**/*.test.tsx",
-    "run:file": "node --import tsx ./src/cli/run-file.ts",
+    "run:file": "node --import tsx ./src/cli/run-file.tsx",
     "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
     "example:template": "node --import tsx ./src/examples/template.tsx",
     "example:resolve": "node --import tsx ./src/examples/resolve.tsx",

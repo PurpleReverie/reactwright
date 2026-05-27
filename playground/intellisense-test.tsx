@@ -1,9 +1,23 @@
 import "reactdoc/jsx";
 
-import { ArticleTemplate } from "reactdoc/templates";
 import type { ContentComponent, TemplateComponent } from "reactdoc";
 
-export const Template: TemplateComponent = () => <ArticleTemplate />;
+export const Template: TemplateComponent = () => (
+  <page style={{ size: "a4", margin: "25mm", fontFamily: "serif", fontSize: "11pt" }}>
+    <stack gap="6mm">
+      <region style={{ textAlign: "center" }}>
+        <slot name="title" />
+        <slot name="author" />
+      </region>
+      <region>
+        <slot name="abstract" />
+      </region>
+      <region>
+        <slot name="body" />
+      </region>
+    </stack>
+  </page>
+);
 
 const IntelliSenseTest: ContentComponent = () => (
   <document title="IntelliSense Playground" author="Tauraj Greig">

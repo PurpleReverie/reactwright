@@ -8,7 +8,28 @@ import { buildPdfFromHtml } from "../backends/pdf/render.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
 import { renderTemplateToIR } from "../template/render.js";
-import { ArticleTemplate } from "../public/templates.jsx";
+
+// Minimal fallback template used when an input .tsx doesn't export a Template.
+// Templates are user-land; the engine doesn't ship a starter kit. This is a
+// last-resort default so a bare content file still renders something.
+function DefaultTemplate() {
+  return (
+    <page style={{ size: "a4", margin: "25mm", fontFamily: "serif", fontSize: "11pt", lineHeight: 1.4 }}>
+      <stack gap="6mm">
+        <region style={{ textAlign: "center" }}>
+          <slot name="title" />
+          <slot name="author" />
+        </region>
+        <region>
+          <slot name="abstract" />
+        </region>
+        <region>
+          <slot name="body" />
+        </region>
+      </stack>
+    </page>
+  );
+}
 
 type OutputFormat = "html" | "pdf";
 
@@ -130,7 +151,7 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
   const ExternalTemplateComponent = getExternalTemplateComponent(loadedModule);
   const contentElement = React.createElement(DocumentComponent);
   const templateElement = React.createElement(
-    ExternalTemplateComponent ?? ArticleTemplate,
+    ExternalTemplateComponent ?? DefaultTemplate,
     null
   );
 
