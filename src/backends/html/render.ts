@@ -907,18 +907,22 @@ function renderFixedNode(node: ResolvedFixedNode): string {
 
 function renderPageSetNode(node: ResolvedPageSetNode): string {
   // Wrap the page-set's children in a regime container that routes them to
-  // the named CSS Paged Media regime via `page: <name>` and forces a page
-  // break before the regime begins. Inside, fixed overlays, regions, and
-  // stacks render inline; headers/footers and content-less background
-  // layers are extracted to per-regime CSS (see collectMarginMatter and
-  // buildPageBackgroundLayersCss) and excluded here.
+  // the named CSS Paged Media regime via `page: <name>`. CSS Paged Media
+  // inserts an implicit page break whenever the named page changes, so we
+  // don't add an explicit break-before (which would compound with role
+  // rules and produce blank intermediate pages).
+  //
+  // Inside, fixed overlays, regions, and stacks render inline;
+  // headers/footers and content-less background layers are extracted to
+  // per-regime CSS (see collectMarginMatter and buildPageBackgroundLayersCss)
+  // and excluded here.
   const inlineChildren = node.children.filter(
     (c) =>
       c.kind !== "header" &&
       c.kind !== "footer" &&
       !(c.kind === "layer" && c.children.length === 0)
   );
-  const style = `page:${node.name};break-before:page;`;
+  const style = `page:${node.name};`;
   return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${inlineChildren.map((c) => renderResolvedChild(c)).join("")}</section>`;
 }
 
@@ -1407,6 +1411,13 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "table{border-collapse:collapse;width:100%;}",
     "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
     "figure img{max-width:100%;height:auto;}",
+    // Plate figures: a figure tagged role="plate" via a template role rule
+    // (variant="plate") fills its containing page and centers — useful for
+    // portrait/plate regimes where the writer wants a full-bleed image
+    // without relying on absolute positioning (which escapes Paged.js's
+    // chunker and overlays subsequent pages).
+    "figure[data-variant=\"plate\"]{margin:0;width:100%;display:flex;align-items:center;justify-content:center;}",
+    "figure[data-variant=\"plate\"]>img{width:100%;height:auto;display:block;}",
     // Math block centering is robust against parent text-align:justify by
     // pinning the inner .katex-display to a centered block. The numbered-
     // equation ::before counter floats at the right margin.

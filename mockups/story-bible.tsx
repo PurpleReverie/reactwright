@@ -47,6 +47,7 @@ export function Template() {
         />
         <role on="quote" match="dialogue" apply="dialogue" />
         <role on="section" match="scene-heading" apply="sceneHeading" />
+        <role on="figure" match="plate" apply="plate" />
       </rules>
 
       <page-set
@@ -75,7 +76,7 @@ export function Template() {
         style={{ size: "a5", margin: "0", backgroundColor: "#0f172a" }}
       >
         <stack gap="0">
-          <region fill style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <region>
             <slot name="body" />
           </region>
         </stack>
@@ -134,7 +135,7 @@ export default function StoryBible() {
       </section>
 
       <section page="portrait" title="">
-        <figure src={DIAGRAM} alt="Reference plate of the lighthouse keeper's quarters at dusk" />
+        <figure role="plate" src={DIAGRAM} alt="Reference plate of the lighthouse keeper's quarters at dusk" />
       </section>
 
       <section page="chapter" role="chapter" title="Chapter One: The Boathouse">
@@ -266,7 +267,7 @@ export default function StoryBible() {
       </section>
 
       <section page="portrait" title="">
-        <figure src={DIAGRAM} alt="Reference plate of the long room at the moment of the steward's turn" />
+        <figure role="plate" src={DIAGRAM} alt="Reference plate of the long room at the moment of the steward's turn" />
       </section>
 
       <section page="chapter" role="chapter" title="Chapter Three: The Letter">
