@@ -280,6 +280,15 @@ export type ListOfNode = {
   style?: TemplateStyle;
 };
 
+export type FontNode = {
+  kind: "font";
+  family: string;
+  src: string;
+  weight?: string;
+  fontStyle?: string;
+  format?: string;
+};
+
 export type MarginAnchor =
   | "top-left"
   | "top-center"
@@ -355,6 +364,7 @@ export type TemplateNode =
   | SidenoteAreaNode
   | TocNode
   | ListOfNode
+  | FontNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -387,5 +397,6 @@ export type TemplateChild =
   | SidenoteAreaNode
   | TocNode
   | ListOfNode
+  | FontNode
   | SlotNode
   | TemplateTextNode;

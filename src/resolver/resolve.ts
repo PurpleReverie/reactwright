@@ -73,6 +73,7 @@ import type {
   ResolvedTocNode,
   ResolvedListOfEntry,
   ResolvedListOfNode,
+  ResolvedFontNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -1032,6 +1033,17 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedSidenoteAreaNode
       ];
+    case "font":
+      return [
+        {
+          kind: "font",
+          family: child.family,
+          src: child.src,
+          ...(child.weight != null ? { weight: child.weight } : {}),
+          ...(child.fontStyle != null ? { fontStyle: child.fontStyle } : {}),
+          ...(child.format != null ? { format: child.format } : {})
+        } satisfies ResolvedFontNode
+      ];
     case "list-of": {
       const entries = ctx.listOf[child.of];
       return [
@@ -1186,6 +1198,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "index-template":
     case "toc":
     case "list-of":
+    case "font":
     case "role-rule":
     case "page-rule":
       throw new Error("Template control nodes should be resolved before returning a template node.");

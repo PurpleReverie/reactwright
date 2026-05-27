@@ -278,6 +278,15 @@ export type ResolvedListOfNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedFontNode = {
+  kind: "font";
+  family: string;
+  src: string;
+  weight?: string;
+  fontStyle?: string;
+  format?: string;
+};
+
 export type ResolvedBibliographyEntry = {
   key: string;
   text: string;
@@ -504,6 +513,7 @@ export type ResolvedTemplateNode =
   | ResolvedSidenoteAreaNode
   | ResolvedTocNode
   | ResolvedListOfNode
+  | ResolvedFontNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;

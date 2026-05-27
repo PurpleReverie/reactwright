@@ -41,6 +41,7 @@ import type {
   ResolvedIndexTemplateNode,
   ResolvedTocNode,
   ResolvedListOfNode,
+  ResolvedFontNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedSidenoteAreaNode,
@@ -94,6 +95,21 @@ function collectUsedFontFamilies(node: ResolvedPageNode | ResolvedChild): Set<st
   return families;
 }
 
+function collectTemplateFonts(page: ResolvedPageNode): ResolvedFontNode[] {
+  const out: ResolvedFontNode[] = [];
+  const walk = (n: ResolvedChild | ResolvedPageNode): void => {
+    if ("kind" in n && n.kind === "font") {
+      out.push(n as ResolvedFontNode);
+      return;
+    }
+    if ("children" in n && Array.isArray(n.children)) {
+      for (const c of n.children) walk(c as ResolvedChild);
+    }
+  };
+  walk(page);
+  return out;
+}
+
 function buildFontHeadTags(page: ResolvedPageNode): string[] {
   const used = collectUsedFontFamilies(page);
   const registry = getAllFonts();
@@ -112,6 +128,16 @@ function buildFontHeadTags(page: ResolvedPageNode): string[] {
         `@font-face{font-family:'${escapeHtml(family)}';src:url('${escapeHtml(def.html.src)}')${formatAttr};}`
       );
     }
+  }
+
+  // Append declarative <font/> @font-face rules from the template tree.
+  for (const f of collectTemplateFonts(page)) {
+    const formatPart = f.format != null ? ` format('${escapeHtml(f.format)}')` : "";
+    const weightPart = f.weight != null ? `font-weight:${escapeHtml(f.weight)};` : "";
+    const stylePart = f.fontStyle != null ? `font-style:${escapeHtml(f.fontStyle)};` : "";
+    faces.push(
+      `@font-face{font-family:'${escapeHtml(f.family)}';src:url('${escapeHtml(f.src)}')${formatPart};${weightPart}${stylePart}}`
+    );
   }
 
   const tags: string[] = [...links];
@@ -810,6 +836,9 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderListOfNode(node);
     case "sidenote-area":
       // sidenote-area is extracted to absolute-positioned margin CSS at the page level.
+      return "";
+    case "font":
+      // font declarations are extracted to @font-face CSS in the head.
       return "";
     case "header":
     case "footer":

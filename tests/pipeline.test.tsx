@@ -223,6 +223,29 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
+test("font template primitive emits @font-face declarations", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <font family="Bookerly" src="/fonts/bookerly.woff2" format="woff2" weight="400" />
+      <font family="Bookerly" src="/fonts/bookerly-italic.woff2" format="woff2" fontStyle="italic" />
+      <stack>
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+
+  const documentTree = renderContentToIR(
+    <document title="Font Test">
+      <p>Hi.</p>
+    </document>
+  );
+
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+
+  assert.match(html, /@font-face\{font-family:'Bookerly';src:url\('\/fonts\/bookerly\.woff2'\) format\('woff2'\);font-weight:400;\}/);
+  assert.match(html, /font-style:italic;/);
+});
+
 test("columns/column emits CSS grid with explicit and inferred widths", () => {
   const template = (
     <page page={{ size: "a4", margin: "20mm" }}>

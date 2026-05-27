@@ -144,6 +144,14 @@ type ListOfProps = Omit<TemplateStyleBag, "children"> & {
   title?: string;
 };
 
+type FontProps = {
+  family: string;
+  src: string;
+  weight?: string | number;
+  fontStyle?: string;
+  format?: string;
+};
+
 type BibliographyEntryProp = {
   key: string;
   text: string;
@@ -442,6 +450,7 @@ declare module "react" {
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
+      font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -504,6 +513,7 @@ declare module "react/jsx-runtime" {
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
+      font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -566,6 +576,7 @@ declare module "react/jsx-dev-runtime" {
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
+      font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;
@@ -628,6 +639,7 @@ declare global {
       index: IndexProps;
       toc: TocProps;
       "list-of": ListOfProps;
+      font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
       pre: PreProps;

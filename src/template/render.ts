@@ -22,6 +22,7 @@ import type {
   TocNode,
   ListOfNode,
   ListOfKind,
+  FontNode,
   LayerNode,
   LayerWhen,
   MarginAnchor,
@@ -422,6 +423,32 @@ function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
         ...(typeof gapRaw === "string" ? { gap: gapRaw } : {}),
         style: mergeTemplateStyleGroups(props)
       } satisfies SidenoteAreaNode;
+    }
+    case "font": {
+      const familyRaw = (props as Record<string, unknown>).family;
+      const family = typeof familyRaw === "string" ? familyRaw.trim() : "";
+      if (family.length === 0) {
+        throw new Error("`font` requires a non-empty `family`.");
+      }
+      const srcRaw = (props as Record<string, unknown>).src;
+      const src = typeof srcRaw === "string" ? srcRaw.trim() : "";
+      if (src.length === 0) {
+        throw new Error("`font` requires a non-empty `src`.");
+      }
+      const weightRaw = (props as Record<string, unknown>).weight;
+      const weight = typeof weightRaw === "string" || typeof weightRaw === "number" ? String(weightRaw) : undefined;
+      const fontStyleRaw = (props as Record<string, unknown>).fontStyle;
+      const fontStyle = typeof fontStyleRaw === "string" ? fontStyleRaw : undefined;
+      const formatRaw = (props as Record<string, unknown>).format;
+      const format = typeof formatRaw === "string" ? formatRaw : undefined;
+      return {
+        kind: "font",
+        family,
+        src,
+        ...(weight != null ? { weight } : {}),
+        ...(fontStyle != null ? { fontStyle } : {}),
+        ...(format != null ? { format } : {})
+      } satisfies FontNode;
     }
     case "list-of": {
       const ofRaw = (props as Record<string, unknown>).of;
