@@ -39,6 +39,8 @@ import type {
   ResolvedIndexTemplateNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
+  ResolvedSidenoteAreaNode,
+  ResolvedSidenoteNode,
   ResolvedInlineMathNode,
   ResolvedMathNode,
   ResolvedRegionNode,
@@ -281,6 +283,8 @@ function renderInlineNode(node: ResolvedInlineNode): string {
       return renderCiteNode(node);
     case "index":
       return renderIndexEntryNode(node);
+    case "sidenote":
+      return renderSidenoteNode(node);
   }
 
   throw new Error("Unsupported resolved inline node.");
@@ -306,6 +310,11 @@ function renderFootnoteNode(node: ResolvedFootnoteNode): string {
   const markerAttr = node.marker != null ? ` data-marker="${escapeHtml(node.marker)}"` : "";
   const inner = node.children.map(renderInlineNode).join("");
   return `<span data-node="footnote"${markerAttr} class="reactdoc-footnote">${inner}</span>`;
+}
+
+function renderSidenoteNode(node: ResolvedSidenoteNode): string {
+  const inner = node.children.map(renderInlineNode).join("");
+  return `<span data-node="sidenote" class="reactdoc-sidenote">${inner}</span>`;
 }
 
 function renderInlineMathNode(node: ResolvedInlineMathNode): string {
@@ -616,6 +625,7 @@ function renderContentNode(node: ResolvedContentNode): string {
     case "m":
     case "cite":
     case "index":
+    case "sidenote":
       return renderInlineNode(node);
     case "text":
       return renderTextNode(node);
@@ -737,6 +747,9 @@ function renderResolvedChild(node: ResolvedChild): string {
       return renderBibliographyNode(node);
     case "index-template":
       return renderIndexTemplateNode(node);
+    case "sidenote-area":
+      // sidenote-area is extracted to absolute-positioned margin CSS at the page level.
+      return "";
     case "header":
     case "footer":
       // Header/footer are extracted to CSS margin boxes by the page renderer.
@@ -775,6 +788,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "m":
     case "cite":
     case "index":
+    case "sidenote":
     case "text":
     case "page-break":
     case "set-running":
@@ -914,10 +928,33 @@ function buildFootnoteAreaCss(page: ResolvedPageNode): string {
   return rules.join("");
 }
 
+function buildSidenoteAreaCss(page: ResolvedPageNode): string {
+  const area = page.children.find(
+    (child): child is ResolvedSidenoteAreaNode => child.kind === "sidenote-area"
+  );
+  if (area == null) return "";
+  const side = area.side ?? "outside";
+  const width = area.width ?? "30mm";
+  const gap = area.gap ?? "4mm";
+  const sideRule =
+    side === "left"
+      ? `left:calc(-1 * (${width} + ${gap}));`
+      : side === "right"
+        ? `right:calc(-1 * (${width} + ${gap}));`
+        : side === "inside"
+          ? `left:calc(-1 * (${width} + ${gap}));`
+          : `right:calc(-1 * (${width} + ${gap}));`;
+  return [
+    `.reactdoc-sidenote{position:absolute;${sideRule}width:${width};font-size:0.85em;line-height:1.3;}`,
+    ".reactdoc-flow{position:relative;}"
+  ].join("");
+}
+
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
   const footnoteAreaCss = buildFootnoteAreaCss(page);
+  const sidenoteAreaCss = buildSidenoteAreaCss(page);
 
   const runningNames = new Set<string>();
   collectRunningStringNames(page, runningNames);
@@ -962,6 +999,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     marginMatterCss,
     runningStringsCss,
     footnoteAreaCss,
+    sidenoteAreaCss,
     "body{margin:0;}",
     ".reactdoc-flow{box-sizing:border-box;}",
     ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",

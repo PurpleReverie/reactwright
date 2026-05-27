@@ -256,6 +256,11 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
         children: []
       };
     }
+    case "sidenote":
+      return {
+        kind: "sidenote",
+        children: []
+      };
     case "ref": {
       const to = typeof (props as Record<string, unknown>).to === "string"
         ? ((props as Record<string, unknown>).to as string).trim()
@@ -404,7 +409,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "footnote" &&
         child.kind !== "m" &&
         child.kind !== "cite" &&
-        child.kind !== "index"
+        child.kind !== "index" &&
+        child.kind !== "sidenote"
       ) {
         throw new Error("`p` may only contain inline primitives.");
       }
@@ -448,6 +454,7 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
     case "sub":
     case "sup":
     case "footnote":
+    case "sidenote":
       if (
         child.kind !== "text" &&
         child.kind !== "em" &&
@@ -462,7 +469,8 @@ function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode)
         child.kind !== "footnote" &&
         child.kind !== "m" &&
         child.kind !== "cite" &&
-        child.kind !== "index"
+        child.kind !== "index" &&
+        child.kind !== "sidenote"
       ) {
         throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
       }

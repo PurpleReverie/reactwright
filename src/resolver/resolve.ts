@@ -26,6 +26,7 @@ import type {
   RefNode,
   FootnoteNode,
   RowNode,
+  SidenoteNode,
   SectionNode,
   SemanticBlockChild,
   SetRunningNode,
@@ -64,6 +65,8 @@ import type {
   ResolvedIndexEntry,
   ResolvedIndexEntryNode,
   ResolvedIndexTemplateNode,
+  ResolvedSidenoteAreaNode,
+  ResolvedSidenoteNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -292,6 +295,13 @@ function resolveIndexNode(node: IndexNode): ResolvedIndexEntryNode {
   };
 }
 
+function resolveSidenoteNode(node: SidenoteNode): ResolvedSidenoteNode {
+  return {
+    kind: "sidenote",
+    children: node.children.map(resolveInlineNode)
+  };
+}
+
 function resolveInlineNode(
   node:
     | TextNode
@@ -308,6 +318,7 @@ function resolveInlineNode(
     | InlineMathNode
     | CiteNode
     | IndexNode
+    | SidenoteNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":
@@ -338,6 +349,8 @@ function resolveInlineNode(
       return resolveCiteNode(node);
     case "index":
       return resolveIndexNode(node);
+    case "sidenote":
+      return resolveSidenoteNode(node);
   }
 }
 
@@ -756,6 +769,7 @@ function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleM
     case "m":
     case "cite":
     case "index":
+    case "sidenote":
     case "text":
     case "page-break":
     case "set-running":
@@ -881,6 +895,16 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           style: child.style
         } satisfies ResolvedFootnoteAreaNode
       ];
+    case "sidenote-area":
+      return [
+        {
+          kind: "sidenote-area",
+          ...(child.side != null ? { side: child.side } : {}),
+          ...(child.width != null ? { width: child.width } : {}),
+          ...(child.gap != null ? { gap: child.gap } : {}),
+          style: child.style
+        } satisfies ResolvedSidenoteAreaNode
+      ];
     case "index-template": {
       const entries: ResolvedIndexEntry[] = [...ctx.indexEntries.entries()]
         .map(([term, anchorIds]) => ({ term, anchorIds }))
@@ -989,6 +1013,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
     case "running":
     case "image":
     case "footnote-area":
+    case "sidenote-area":
     case "bibliography":
     case "index-template":
     case "role-rule":

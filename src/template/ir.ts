@@ -220,6 +220,16 @@ export type FootnoteAreaNode = {
   style?: TemplateStyle;
 };
 
+export type SidenoteAreaSide = "outside" | "inside" | "left" | "right";
+
+export type SidenoteAreaNode = {
+  kind: "sidenote-area";
+  side?: SidenoteAreaSide;
+  width?: string;
+  gap?: string;
+  style?: TemplateStyle;
+};
+
 export type BibliographyEntry = {
   key: string;
   text: string;
@@ -308,6 +318,7 @@ export type TemplateNode =
   | FootnoteAreaNode
   | BibliographyNode
   | IndexTemplateNode
+  | SidenoteAreaNode
   | SlotNode
   | CustomTemplateNode
   | RulesNode
@@ -335,5 +346,6 @@ export type TemplateChild =
   | FootnoteAreaNode
   | BibliographyNode
   | IndexTemplateNode
+  | SidenoteAreaNode
   | SlotNode
   | TemplateTextNode;

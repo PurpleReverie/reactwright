@@ -104,6 +104,16 @@ type FootnoteAreaProps = Omit<TemplateStyleBag, "children"> & {
   separator?: boolean;
 };
 
+type SidenoteProps = {
+  children?: ReactNode;
+};
+
+type SidenoteAreaProps = Omit<TemplateStyleBag, "children"> & {
+  side?: "outside" | "inside" | "left" | "right";
+  width?: string;
+  gap?: string;
+};
+
 type MathProps = ContentMetadataProps & {
   src: string;
 };
@@ -403,6 +413,8 @@ declare module "react" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      sidenote: SidenoteProps;
+      "sidenote-area": SidenoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
@@ -459,6 +471,8 @@ declare module "react/jsx-runtime" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      sidenote: SidenoteProps;
+      "sidenote-area": SidenoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
@@ -515,6 +529,8 @@ declare module "react/jsx-dev-runtime" {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      sidenote: SidenoteProps;
+      "sidenote-area": SidenoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
@@ -571,6 +587,8 @@ declare global {
       ref: RefProps;
       footnote: FootnoteProps;
       "footnote-area": FootnoteAreaProps;
+      sidenote: SidenoteProps;
+      "sidenote-area": SidenoteAreaProps;
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;

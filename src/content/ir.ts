@@ -85,6 +85,11 @@ export type IndexNode = {
   term: string;
 };
 
+export type SidenoteNode = {
+  kind: "sidenote";
+  children: InlineNode[];
+};
+
 export type ParagraphNode = {
   kind: "paragraph";
   id?: string;
@@ -235,7 +240,8 @@ export type InlineNode =
   | FootnoteNode
   | InlineMathNode
   | CiteNode
-  | IndexNode;
+  | IndexNode
+  | SidenoteNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -287,6 +293,7 @@ export type SemanticNode =
   | InlineMathNode
   | CiteNode
   | IndexNode
+  | SidenoteNode
   | TextNode;
 
 export type SemanticContainerNode =
@@ -312,4 +319,5 @@ export type SemanticContainerNode =
   | LinkNode
   | SubNode
   | SupNode
-  | FootnoteNode;
+  | FootnoteNode
+  | SidenoteNode;

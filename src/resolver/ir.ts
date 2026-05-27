@@ -214,6 +214,19 @@ export type ResolvedFootnoteAreaNode = {
   style?: TemplateStyle;
 };
 
+export type ResolvedSidenoteNode = {
+  kind: "sidenote";
+  children: ResolvedInlineNode[];
+};
+
+export type ResolvedSidenoteAreaNode = {
+  kind: "sidenote-area";
+  side?: "outside" | "inside" | "left" | "right";
+  width?: string;
+  gap?: string;
+  style?: TemplateStyle;
+};
+
 export type ResolvedCiteNode = {
   kind: "cite";
   cite: string;
@@ -392,6 +405,7 @@ export type ResolvedContentNode =
   | ResolvedMathNode
   | ResolvedCiteNode
   | ResolvedIndexEntryNode
+  | ResolvedSidenoteNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -424,7 +438,8 @@ export type ResolvedInlineNode =
   | ResolvedFootnoteNode
   | ResolvedInlineMathNode
   | ResolvedCiteNode
-  | ResolvedIndexEntryNode;
+  | ResolvedIndexEntryNode
+  | ResolvedSidenoteNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
@@ -441,6 +456,7 @@ export type ResolvedTemplateNode =
   | ResolvedFootnoteAreaNode
   | ResolvedBibliographyNode
   | ResolvedIndexTemplateNode
+  | ResolvedSidenoteAreaNode
   | ResolvedCustomTemplateNode;
 
 export type ResolvedChild = ResolvedTemplateNode | ResolvedContentNode;
