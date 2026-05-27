@@ -12,5 +12,5 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node", "react"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "playground/**/*.tsx", "tests/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "playground/**/*.tsx", "mockups/**/*.tsx", "tests/**/*.tsx"]
 }
