@@ -3,13 +3,25 @@ import { DefaultEventPriority } from "react-reconciler/constants";
 import type { ReactNode } from "react";
 import { getTemplateIntrinsic } from "./registry.js";
 
+import {
+  isPageRule,
+  mergeTemplateStyleGroups,
+  readAnchorsMap,
+  readFixedAnchor,
+  readFixedWhen,
+  readLayerWhen,
+  readMarginAnchor,
+  readMarginMatterWhen,
+  readOptionalTemplateToken,
+  readRegionPositioning,
+  readRequiredTemplateToken,
+  type TemplateProps
+} from "./prop-readers.js";
 import type {
   ColumnNode,
   ColumnsNode,
   CustomTemplateNode,
-  FixedAnchor,
   FixedNode,
-  FixedWhen,
   FooterNode,
   BibliographyEntry,
   BibliographyNode,
@@ -24,9 +36,6 @@ import type {
   ListOfKind,
   FontNode,
   LayerNode,
-  LayerWhen,
-  MarginAnchor,
-  MarginMatterWhen,
   PageCountNode,
   PageNode,
   PageNumberNode,
@@ -36,7 +45,6 @@ import type {
   RoleDropCap,
   PageSetNode,
   RegionNode,
-  RegionPositioning,
   RoleRuleNode,
   RulesNode,
   RunningNode,
@@ -44,230 +52,20 @@ import type {
   SlotName,
   SlotNode,
   StackNode,
-  TemplateBoxProps,
-  TemplateBreaksProps,
   TemplateChild,
   TemplateContainerNode,
-  TemplateLayoutProps,
   TemplateNode,
-  TemplatePageProps,
-  TemplateParagraphProps,
-  TemplateStyle,
-  TemplateTextNode,
-  TemplateTypographyProps
+  TemplateTextNode
 } from "./ir.js";
 
 type HostContext = {
   scope: "template";
 };
 
-type TemplateProps = Record<string, unknown> & {
-  style?: TemplateStyle;
-  page?: TemplatePageProps;
-  typography?: TemplateTypographyProps;
-  paragraph?: TemplateParagraphProps;
-  box?: TemplateBoxProps;
-  layout?: TemplateLayoutProps;
-  breaks?: TemplateBreaksProps;
-  gap?: string;
-  name?: string;
-  match?: string;
-  apply?: string;
-  on?: string;
-  use?: string;
-  anchor?: unknown;
-  when?: unknown;
-  fill?: boolean;
-  cover?: boolean;
-  contain?: boolean;
-  center?: boolean;
-  policy?: unknown;
-};
-
 type TemplateContainer = {
   root: TemplateNode | null;
   children: TemplateNode[];
 };
-
-function readOptionalObjectProp<T extends Record<string, unknown>>(
-  props: TemplateProps,
-  key: "page" | "typography" | "paragraph" | "box" | "layout" | "breaks"
-): T | undefined {
-  const value = props[key];
-  if (value == null) {
-    return undefined;
-  }
-
-  if (typeof value !== "object" || Array.isArray(value)) {
-    throw new Error(`\`${key}\` must be an object when provided.`);
-  }
-
-  return value as T;
-}
-
-function mergeTemplateStyleGroups(props: TemplateProps): TemplateStyle | undefined {
-  const page = readOptionalObjectProp<TemplatePageProps>(props, "page");
-  const typography = readOptionalObjectProp<TemplateTypographyProps>(props, "typography");
-  const paragraph = readOptionalObjectProp<TemplateParagraphProps>(props, "paragraph");
-  const box = readOptionalObjectProp<TemplateBoxProps>(props, "box");
-  const layout = readOptionalObjectProp<TemplateLayoutProps>(props, "layout");
-  const breaks = readOptionalObjectProp<TemplateBreaksProps>(props, "breaks");
-
-  const merged: TemplateStyle = {
-    ...(page ?? {}),
-    ...(typography ?? {}),
-    ...(paragraph ?? {}),
-    ...(box ?? {}),
-    ...(layout ?? {}),
-    ...(breaks ?? {}),
-    ...(props.style ?? {})
-  };
-
-  return Object.keys(merged).length > 0 ? merged : undefined;
-}
-
-function readRequiredTemplateToken(
-  props: TemplateProps,
-  key: "name" | "match" | "apply" | "on" | "use"
-): string {
-  const value = props[key];
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new Error(`\`${key}\` must be a non-empty string.`);
-  }
-
-  return value.trim();
-}
-
-function readOptionalTemplateToken(props: TemplateProps, key: "gap" | "on"): string | undefined {
-  const value = props[key];
-  if (value == null) {
-    return undefined;
-  }
-
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new Error(`\`${key}\` must be a non-empty string when provided.`);
-  }
-
-  return value.trim();
-}
-
-function readFixedAnchor(props: TemplateProps): FixedAnchor {
-  const anchor = props.anchor;
-  if (typeof anchor === "string" && anchor.trim().length > 0) {
-    return anchor.trim();
-  }
-  if (anchor != null && typeof anchor === "object" && !Array.isArray(anchor)) {
-    const coord = anchor as Record<string, unknown>;
-    const result: { [k: string]: string } = {};
-    for (const key of ["top", "right", "bottom", "left", "inside", "outside"] as const) {
-      const value = coord[key];
-      if (typeof value === "string" && value.trim().length > 0) {
-        result[key] = value.trim();
-      }
-    }
-    if (Object.keys(result).length > 0) {
-      return result;
-    }
-  }
-  throw new Error("`fixed` requires a named or coordinate `anchor`.");
-}
-
-function readAnchorsMap(props: TemplateProps): Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }> | undefined {
-  const raw = (props as Record<string, unknown>).anchors;
-  if (raw == null) return undefined;
-  if (typeof raw !== "object" || Array.isArray(raw)) {
-    throw new Error("`anchors` must be an object map of name -> coordinate.");
-  }
-  const result: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }> = {};
-  for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
-    if (value == null || typeof value !== "object" || Array.isArray(value)) {
-      throw new Error(`Anchor \`${name}\` must be a coordinate object.`);
-    }
-    const coord = value as Record<string, unknown>;
-    const entry: Record<string, string> = {};
-    for (const key of ["top", "right", "bottom", "left", "inside", "outside"]) {
-      const v = coord[key];
-      if (typeof v === "string" && v.trim().length > 0) {
-        entry[key] = v.trim();
-      }
-    }
-    result[name] = entry;
-  }
-  return result;
-}
-
-function readMarginAnchor(props: TemplateProps, kind: "header" | "footer"): MarginAnchor {
-  switch (props.anchor) {
-    case "top-left":
-    case "top-center":
-    case "top-right":
-    case "bottom-left":
-    case "bottom-center":
-    case "bottom-right":
-    case "top-inside":
-    case "top-outside":
-    case "bottom-inside":
-    case "bottom-outside":
-    case "left-top":
-    case "left-middle":
-    case "left-bottom":
-    case "right-top":
-    case "right-middle":
-    case "right-bottom":
-      return props.anchor;
-    default:
-      throw new Error(`\`${kind}\` requires a valid \`anchor\` (e.g. top-left, bottom-center, top-outside).`);
-  }
-}
-
-function readMarginMatterWhen(props: TemplateProps, kind: "header" | "footer"): MarginMatterWhen | undefined {
-  if (props.when == null) {
-    return undefined;
-  }
-
-  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
-    return props.when;
-  }
-
-  throw new Error(`\`${kind}\` \`when\` must be \`all\`, \`first-page\`, or \`not-first-page\`.`);
-}
-
-function readLayerWhen(props: TemplateProps): LayerWhen | undefined {
-  if (props.when == null) {
-    return undefined;
-  }
-
-  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
-    return props.when;
-  }
-
-  throw new Error("`layer` `when` must be `all`, `first-page`, or `not-first-page`.");
-}
-
-function readRegionPositioning(props: TemplateProps): RegionPositioning | undefined {
-  const positioning: RegionPositioning = {};
-  if (props.fill === true) positioning.fill = true;
-  if (props.cover === true) positioning.cover = true;
-  if (props.contain === true) positioning.contain = true;
-  if (props.center === true) positioning.center = true;
-  return Object.keys(positioning).length > 0 ? positioning : undefined;
-}
-
-function readFixedWhen(props: TemplateProps): FixedWhen | undefined {
-  if (props.when == null) {
-    return undefined;
-  }
-
-  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
-    return props.when;
-  }
-
-  throw new Error("`fixed` `when` must be `all`, `first-page`, or `not-first-page`.");
-}
-
-function isPageRule(props: TemplateProps): boolean {
-  return typeof props.match === "string" || typeof props.use === "string";
-}
 
 function createTemplateNode(type: string, props: TemplateProps): TemplateNode {
   switch (type) {
