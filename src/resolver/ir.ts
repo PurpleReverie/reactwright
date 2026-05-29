@@ -371,11 +371,20 @@ export type ResolvedPageRegime = {
   style?: TemplateStyle;
 };
 
-export type ResolvedPageSetNode = {
-  kind: "page-set";
-  name: string;
-  style?: TemplateStyle;
-  children: ResolvedChild[];
+// Marker for the body slot inside a regime flow template. The HTML backend
+// replaces this with the section's rendered children at section-emit time.
+export type ResolvedBodySlotNode = {
+  kind: "body-slot";
+};
+
+// Auto-streamed body sections. Emitted by the resolver when no top-level
+// <slot name="body"> exists but page-sets declare regime flows — so that
+// putting `<slot name="body">` inside a page-set is enough to wire up body
+// content. The renderer expands this by rendering each section in document
+// order (wrapping depth-1 sections in their regime's flow template).
+export type ResolvedBodyStreamNode = {
+  kind: "body-stream";
+  children: ResolvedContentNode[];
 };
 
 export type ResolvedPageNode = {
@@ -383,6 +392,11 @@ export type ResolvedPageNode = {
   style?: TemplateStyle;
   variantRules?: ResolvedRoleVariantRule[];
   regimes?: ResolvedPageRegime[];
+  // Per-regime flow template. When a section has `page="X"`, the renderer
+  // wraps the section in `regimeFlows[X]` (replacing the body-slot marker
+  // with the section's content). Lets a page-set declare per-regime layout
+  // without filtering the document-order body stream.
+  regimeFlows?: Record<string, ResolvedChild[]>;
   children: ResolvedChild[];
 };
 
@@ -549,7 +563,8 @@ export type ResolvedInlineNode =
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode
-  | ResolvedPageSetNode
+  | ResolvedBodySlotNode
+  | ResolvedBodyStreamNode
   | ResolvedRegionNode
   | ResolvedStackNode
   | ResolvedColumnsNode

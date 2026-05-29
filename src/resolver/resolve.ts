@@ -80,7 +80,6 @@ import type {
   ResolvedListOfNode,
   ResolvedFontNode,
   ResolvedPageRegime,
-  ResolvedPageSetNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
   ResolvedFootnoteAreaNode,
@@ -138,6 +137,11 @@ type RuleMaps = {
 
 type ResolveContext = {
   currentPageSet?: string;
+  // When true, body-slot expansion yields a placeholder marker instead of
+  // the actual body content. Set while resolving children inside a
+  // <page-set>, so the resolved subtree becomes a regime template that
+  // the renderer instantiates per-section.
+  inPageSetBody?: boolean;
   currentAnchors?: Record<string, { top?: string; right?: string; bottom?: string; left?: string; inside?: string; outside?: string }>;
   rules: RuleMaps;
   citeKeys: Set<string>;
@@ -149,6 +153,13 @@ type ResolveContext = {
     equation: ResolvedListOfEntry[];
   };
   pageRegimes: ResolvedPageRegime[];
+  regimeFlows: Map<string, ResolvedChild[]>;
+  // Shared mutable flag — flipped to true when a top-level <slot name="body">
+  // expands inline. If still false at the end of page resolution but
+  // page-sets supplied regime flows, the resolver auto-emits a body-stream
+  // marker so authors can wire content by placing the body slot inside the
+  // page-set alone.
+  bodyState: { consumed: boolean };
   refEntries: Map<string, ResolvedInlineNode[]>;
 };
 
@@ -1006,24 +1017,20 @@ function buildSlotMap(document: DocumentNode): SlotMap {
   };
 }
 
-function matchesPageSet(node: ResolvedContentNode, ctx: ResolveContext): boolean {
-  if (ctx.currentPageSet == null) {
-    return true;
-  }
-
-  const mappedPage =
-    "page" in node && typeof node.page === "string" ? ctx.rules.pages.get(node.page) ?? node.page : undefined;
-
-  return mappedPage === ctx.currentPageSet;
-}
-
 function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveContext): ResolvedChild[] {
   switch (child.kind) {
     case "slot":
       if (child.name !== "body") {
         return slots[child.name];
       }
-      return slots[child.name].filter((node) => matchesPageSet(node, ctx));
+      // Inside a page-set, the body slot is a marker — the renderer fills
+      // it per-section as each section routes to its regime. At the page
+      // level, the body slot expands to all body content in document order.
+      if (ctx.inPageSetBody === true) {
+        return [{ kind: "body-slot" }];
+      }
+      ctx.bodyState.consumed = true;
+      return slots[child.name];
     case "page":
     case "region":
     case "stack":
@@ -1044,26 +1051,37 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
           ...(child.style != null ? { style: child.style } : {})
         });
       }
-      // Keep the page-set as a node in the resolved tree (rather than
-      // flattening) so the HTML emitter can wrap its chrome in a regime
-      // container with CSS `page: <name>` and break-before. This routes
-      // the page-set's content to a named CSS Paged Media regime, instead
-      // of overlaying every page-set's chrome on every page.
+      // A page-set is a purely declarative regime template:
+      //   - chrome (header/footer/layer) is hoisted to the page's flow as
+      //     direct siblings, tagged with `regime: <name>` so the renderer
+      //     emits per-regime margin-box + background-layer CSS.
+      //   - the remaining flow tree (region/stack/columns/slot/...) is the
+      //     regime's body template. The renderer wraps each section with
+      //     page="<name>" in this template (replacing body-slot markers
+      //     with the section's content). Sections still stream in document
+      //     order — the regime only controls per-section layout, never
+      //     content grouping.
       const setChildren = child.children.flatMap((grandchild) =>
         resolveTemplateChild(grandchild, slots, {
           ...ctx,
           currentPageSet: child.name,
+          inPageSetBody: true,
           ...(child.anchors != null ? { currentAnchors: child.anchors } : {})
         })
       );
-      return [
-        {
-          kind: "page-set",
-          name: child.name,
-          ...(child.style != null ? { style: child.style } : {}),
-          children: setChildren
-        } satisfies ResolvedPageSetNode
-      ];
+      const chrome: ResolvedChild[] = [];
+      const bodyFlow: ResolvedChild[] = [];
+      for (const c of setChildren) {
+        if (c.kind === "header" || c.kind === "footer" || c.kind === "layer") {
+          chrome.push(c);
+        } else {
+          bodyFlow.push(c);
+        }
+      }
+      if (bodyFlow.length > 0 || !ctx.regimeFlows.has(child.name)) {
+        ctx.regimeFlows.set(child.name, bodyFlow);
+      }
+      return chrome;
     }
     case "rules":
       return [];
@@ -1240,11 +1258,22 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
           ...(r.style != null ? { style: r.style as TemplateStyle } : {})
         }));
       const children = node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx));
+      const regimeFlows: Record<string, ResolvedChild[]> = {};
+      for (const [name, flow] of ctx.regimeFlows) {
+        regimeFlows[name] = flow;
+      }
+      // If no top-level body slot expanded the body stream but page-sets
+      // declared regime flows, append an auto-stream marker so authors can
+      // wire body content by placing <slot name="body"> inside the page-set.
+      if (!ctx.bodyState.consumed && ctx.regimeFlows.size > 0 && slots.body.length > 0) {
+        children.push({ kind: "body-stream", children: slots.body });
+      }
       return {
         kind: "page",
         style: node.style,
         ...(variantRules.length > 0 ? { variantRules } : {}),
         ...(ctx.pageRegimes.length > 0 ? { regimes: ctx.pageRegimes.slice() } : {}),
+        ...(ctx.regimeFlows.size > 0 ? { regimeFlows } : {}),
         children
       };
     }
@@ -1321,8 +1350,8 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
       };
     case "page-set":
-      // page-set nodes are returned as ResolvedPageSetNode wrappers by
-      // resolveTemplateChild; never reached here.
+      // Page-sets are flattened by resolveTemplateChild (chrome hoisted,
+      // body flow stored in regimeFlows); never reached here.
     case "rules":
     case "page-number":
     case "page-count":
@@ -1367,6 +1396,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const listOf = { figure: [] as ResolvedListOfEntry[], table: [] as ResolvedListOfEntry[], equation: [] as ResolvedListOfEntry[] };
   stampListOfInSlotMap(slots, listOf);
   const pageRegimes: ResolvedPageRegime[] = [];
+  const regimeFlows = new Map<string, ResolvedChild[]>();
   const refEntries = new Map<string, ResolvedInlineNode[]>();
   collectRefEntriesFromSlotMap(slots, refEntries);
   const resolved = resolveTemplateNode(template, slots, {
@@ -1378,6 +1408,8 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
     tocEntries,
     listOf,
     pageRegimes,
+    regimeFlows,
+    bodyState: { consumed: false },
     refEntries
   });
 

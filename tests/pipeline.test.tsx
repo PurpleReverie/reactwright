@@ -533,7 +533,7 @@ test("footnote primitive + footnote-area emit float:footnote and @footnote CSS",
   assert.match(html, /data-node="footnote"/);
 });
 
-test("resolver applies unified role rules and page-set filtering", () => {
+test("resolver applies role rules and stores page-set body flow as a per-regime template", () => {
   const documentTree = renderContentToIR(
     <document title="Story Pilot">
       <section title="World" page="world">
@@ -569,45 +569,53 @@ test("resolver applies unified role rules and page-set filtering", () => {
         <page match="world" use="world" />
         <page match="script" use="script" />
       </rules>
-      <stack>
-        <page-set name="world">
-          <region>
-            <slot name="body" />
-          </region>
-        </page-set>
-        <page-set name="script">
-          <region>
-            <slot name="body" />
-          </region>
-        </page-set>
-      </stack>
+      <page-set name="world">
+        <region>
+          <slot name="body" />
+        </region>
+      </page-set>
+      <page-set name="script">
+        <region>
+          <slot name="body" />
+        </region>
+      </page-set>
+      <region>
+        <slot name="body" />
+      </region>
     </page>
   );
 
   const resolved = resolveDocument(documentTree, templateTree);
-  const stack = resolved.children[0];
-  assert.equal(stack?.kind, "stack");
-  assert.equal(stack.children.length, 2);
 
-  const worldSet = stack.children[0];
-  assert.equal(worldSet?.kind, "page-set");
-  const worldRegion = worldSet.children[0];
-  assert.equal(worldRegion?.kind, "region");
-  assert.equal(worldRegion.children[0]?.kind, "section");
-  assert.equal(worldRegion.children[0]?.title, "World");
-  assert.equal(worldRegion.children[0]?.children[0]?.kind, "paragraph");
-  assert.equal(worldRegion.children[0]?.children[0]?.variant, "leadParagraph");
-  assert.equal(worldRegion.children[0]?.children[1]?.kind, "figure");
-  assert.equal(worldRegion.children[0]?.children[1]?.variant, "framedMap");
-  assert.equal(worldRegion.children[0]?.children[2]?.kind, "list");
-  assert.equal(worldRegion.children[0]?.children[2]?.variant, "compactChecklist");
+  // Page-sets are declarations: their body flow becomes a regime template,
+  // keyed by name. The flow template contains a body-slot marker that the
+  // renderer fills per-section.
+  const flows = resolved.regimeFlows;
+  assert.ok(flows != null);
+  const worldFlow = flows.world;
+  assert.equal(worldFlow.length, 1);
+  assert.equal(worldFlow[0]?.kind, "region");
+  assert.equal(worldFlow[0]?.children[0]?.kind, "body-slot");
+  const scriptFlow = flows.script;
+  assert.equal(scriptFlow[0]?.kind, "region");
+  assert.equal(scriptFlow[0]?.children[0]?.kind, "body-slot");
 
-  const scriptSet = stack.children[1];
-  assert.equal(scriptSet?.kind, "page-set");
-  const scriptRegion = scriptSet.children[0];
-  assert.equal(scriptRegion?.kind, "region");
-  assert.equal(scriptRegion.children[0]?.kind, "section");
-  assert.equal(scriptRegion.children[0]?.variant, "sceneHeading");
-  assert.equal(scriptRegion.children[0]?.children[0]?.kind, "blockquote");
-  assert.equal(scriptRegion.children[0]?.children[0]?.variant, "dialogueBlock");
+  // The page-level body slot streams all body sections in document order
+  // (no regime filtering). Role rules are still applied to each section's
+  // contents.
+  const region = resolved.children[0];
+  assert.equal(region?.kind, "region");
+  assert.equal(region.children.length, 2);
+  const sec0 = region.children[0];
+  assert.equal(sec0?.kind, "section");
+  if (sec0?.kind !== "section") throw new Error("expected section");
+  assert.equal(sec0.title, "World");
+  assert.equal((sec0.children[0] as { variant?: string }).variant, "leadParagraph");
+  assert.equal((sec0.children[1] as { variant?: string }).variant, "framedMap");
+  assert.equal((sec0.children[2] as { variant?: string }).variant, "compactChecklist");
+  const sec1 = region.children[1];
+  assert.equal(sec1?.kind, "section");
+  if (sec1?.kind !== "section") throw new Error("expected section");
+  assert.equal(sec1.variant, "sceneHeading");
+  assert.equal((sec1.children[0] as { variant?: string }).variant, "dialogueBlock");
 });

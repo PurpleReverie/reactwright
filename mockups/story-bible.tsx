@@ -73,12 +73,12 @@ export function Template() {
       </rules>
 
       {/*
-        page-sets declare regime geometry + chrome only — NOT a body slot.
-        That way the body slot at the bottom streams all content in
-        document order, and each <section page="X"> routes itself to the
-        matching regime via CSS `page: <name>`. If the body slot lived
-        inside a page-set it would filter content to that regime, which
-        re-groups the writer's interleaving into contiguous blocks.
+        Each <page-set> declares one regime: geometry + chrome + the flow
+        shape for sections routed there. The body slot inside a page-set
+        is a marker — the resolver stores the page-set's flow as a
+        per-regime template and the renderer wraps each <section page="X">
+        in the matching template. Sections still stream in document order,
+        so chapter→portrait→chapter→script interleaving is preserved.
       */}
       <page-set
         name="chapter"
@@ -93,12 +93,19 @@ export function Template() {
         <footer anchor="bottom-outside">
           <page-number />
         </footer>
+        <region>
+          <slot name="body" />
+        </region>
       </page-set>
 
       <page-set
         name="portrait"
         style={{ size: "a5", margin: "0", backgroundColor: "#0f172a" }}
-      />
+      >
+        <region style={{ width: "100%", minHeight: "100vh" }}>
+          <slot name="body" />
+        </region>
+      </page-set>
 
       <page-set
         name="script"
@@ -107,11 +114,10 @@ export function Template() {
         <footer anchor="bottom-center">
           — <page-number /> —
         </footer>
+        <region>
+          <slot name="body" />
+        </region>
       </page-set>
-
-      <region>
-        <slot name="body" />
-      </region>
     </page>
   );
 }

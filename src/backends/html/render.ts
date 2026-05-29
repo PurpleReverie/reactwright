@@ -49,7 +49,6 @@ import type {
   ResolvedSidenoteNode,
   ResolvedInlineMathNode,
   ResolvedMathNode,
-  ResolvedPageSetNode,
   ResolvedRegionNode,
   ResolvedRowNode,
   ResolvedRunningNode,
@@ -660,6 +659,10 @@ function anchorToCss(anchor: string): string {
   }
 }
 
+// Stable reference set during a top-level render so nested calls can look up
+// per-regime flow templates without threading the argument through every helper.
+let currentRegimeFlows: Record<string, ResolvedChild[]> | undefined;
+
 function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   const classes = ["reactdoc-section-title"];
@@ -677,7 +680,7 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
     node.title.length > 0
       ? `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`
       : "";
-  return [
+  const sectionHtml = [
     `<section${idAttr(node.id)}${regimeStyle}>`,
     titleHeading,
     ...node.children.map((child) =>
@@ -687,6 +690,94 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
     ),
     "</section>"
   ].join("");
+
+  // Wrap depth-1 sections in their regime's flow template so a <page-set>
+  // can declare per-regime layout (e.g. a script regime that wraps each
+  // scene in a monospace block) while sections still stream in document
+  // order.
+  if (
+    depth === 1 &&
+    typeof node.page === "string" &&
+    node.page.length > 0 &&
+    currentRegimeFlows != null
+  ) {
+    const flow = currentRegimeFlows[node.page];
+    if (flow != null && flow.length > 0) {
+      return flow.map((c) => renderRegimeFlowChild(c, sectionHtml)).join("");
+    }
+  }
+  return sectionHtml;
+}
+
+// Renders a regime-flow template node, substituting the body-slot marker
+// with the section's pre-rendered HTML.
+function renderRegimeFlowChild(node: ResolvedChild, sectionHtml: string): string {
+  if (node.kind === "body-slot") {
+    return sectionHtml;
+  }
+  if (
+    node.kind === "region" ||
+    node.kind === "stack" ||
+    node.kind === "columns" ||
+    node.kind === "column" ||
+    node.kind === "fixed"
+  ) {
+    const inner = node.children.map((c) => renderRegimeFlowChild(c, sectionHtml)).join("");
+    return wrapRegimeContainer(node, inner);
+  }
+  return renderResolvedChild(node);
+}
+
+function wrapRegimeContainer(
+  node: ResolvedRegionNode | ResolvedStackNode | ResolvedColumnsNode | ResolvedColumnNode | ResolvedFixedNode,
+  inner: string
+): string {
+  if (node.kind === "region") {
+    const positioning = regionPositioningCss(node);
+    const inline = styleToInlineCss(node.style, "region");
+    const combined = positioning + inline;
+    const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
+    return `<div data-node="region"${styleAttr}>${inner}</div>`;
+  }
+  if (node.kind === "stack") {
+    const mergedStyle: TemplateStyle = {
+      ...(node.style ?? {}),
+      ...(node.gap != null ? { gap: node.gap } : {})
+    };
+    const style = styleToInlineCss(mergedStyle, "stack");
+    const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
+    return `<div data-node="stack"${styleAttr}>${inner}</div>`;
+  }
+  if (node.kind === "columns") {
+    const widths = node.widths;
+    const explicit = node.children.filter(
+      (c): c is ResolvedColumnNode => (c as ResolvedChild).kind === "column"
+    );
+    const gap = node.gap ?? "8mm";
+    let gridTemplate: string;
+    if (explicit.length > 0) {
+      gridTemplate = explicit.map((c, i) => c.width ?? widths?.[i] ?? "1fr").join(" ");
+    } else if (widths && widths.length > 0) {
+      gridTemplate = widths.join(" ");
+    } else {
+      gridTemplate = "1fr 1fr";
+    }
+    const style = `display:grid;grid-template-columns:${gridTemplate};gap:${gap};${styleToInlineCss(node.style, "region")}`;
+    return `<div data-node="columns" style="${escapeHtml(style)}">${inner}</div>`;
+  }
+  if (node.kind === "column") {
+    const style = styleToInlineCss(node.style, "region");
+    const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
+    return `<div data-node="column"${styleAttr}>${inner}</div>`;
+  }
+  // fixed
+  const anchorCss =
+    typeof node.anchor === "string" ? anchorToCss(node.anchor) : coordinateAnchorToCss(node.anchor);
+  const style = ["position:absolute;", "z-index:2;", anchorCss, styleToInlineCss(node.style, "region")].join("");
+  const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
+  const anchorAttr =
+    typeof node.anchor === "string" ? ` data-anchor="${escapeHtml(node.anchor)}"` : "";
+  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${inner}</div>`;
 }
 
 function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
@@ -920,36 +1011,21 @@ function renderFixedNode(node: ResolvedFixedNode): string {
     .join("")}</div>`;
 }
 
-function renderPageSetNode(node: ResolvedPageSetNode): string {
-  // A page-set with only chrome (headers, footers, background layers) and
-  // no body slot is a pure regime declaration — the chrome is already
-  // extracted to per-regime CSS, so the wrapper itself has nothing to
-  // emit. Emitting an empty <section style="page: <name>"> would force
-  // an unwanted page break to a blank page.
-  //
-  // When the page-set DOES have inline body content (stack, region, etc.),
-  // emit a wrapper that routes those children to the named CSS Paged Media
-  // regime via `page: <name>`. CSS Paged Media inserts an implicit page
-  // break on named-page change, so no explicit break-before is needed.
-  const inlineChildren = node.children.filter(
-    (c) =>
-      c.kind !== "header" &&
-      c.kind !== "footer" &&
-      !(c.kind === "layer" && c.children.length === 0)
-  );
-  if (inlineChildren.length === 0) {
-    return "";
-  }
-  const style = `page:${node.name};`;
-  return `<section data-node="page-set" data-name="${escapeHtml(node.name)}" style="${style}">${inlineChildren.map((c) => renderResolvedChild(c)).join("")}</section>`;
-}
-
 function renderResolvedChild(node: ResolvedChild): string {
   switch (node.kind) {
     case "page":
       throw new Error("Nested page nodes are not supported in the resolved tree.");
-    case "page-set":
-      return renderPageSetNode(node);
+    case "body-slot":
+      // Body-slot markers live inside regime flow templates and are
+      // substituted by the section renderer; they should never reach the
+      // main flow.
+      return "";
+    case "body-stream":
+      // Auto-streamed body sections: render each in document order.
+      // Depth-1 sections with a regime get wrapped by renderSectionNode.
+      return node.children
+        .map((c) => (c.kind === "section" ? renderSectionNode(c, 1) : renderContentNode(c)))
+        .join("");
     case "region":
       return renderRegionNode(node);
     case "stack":
@@ -1097,14 +1173,17 @@ function collectMarginMatter(page: ResolvedPageNode): MarginMatterEntry[] {
         });
         continue;
       }
-      // Recurse into page-sets so their headers/footers are collected
-      // (with the regime already tagged at resolve time).
-      if (child.kind === "page-set") {
-        visit(child.children);
-      }
     }
   };
   visit(page.children);
+  // Also walk regime flow templates so chrome (header/footer) declared
+  // inside a page-set still gets surfaced — though the resolver currently
+  // hoists chrome to the page tree, regime flows are walked for safety.
+  if (page.regimeFlows != null) {
+    for (const flow of Object.values(page.regimeFlows)) {
+      visit(flow);
+    }
+  }
 
   return entries;
 }
@@ -1285,8 +1364,6 @@ function collectAllLayers(
   for (const c of children) {
     if (c.kind === "layer") {
       out.push(c);
-    } else if (c.kind === "page-set") {
-      collectAllLayers(c.children, out);
     }
   }
 }
@@ -1329,6 +1406,7 @@ function buildPageRegimesCss(page: ResolvedPageNode): string {
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
+  currentRegimeFlows = page.regimeFlows;
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
   const pageBackgroundLayersCss = buildPageBackgroundLayersCss(page);
@@ -1448,7 +1526,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     .filter((s) => s.length > 0)
     .join("");
 
-  return [
+  const html = [
     "<!DOCTYPE html>",
     '<html lang="en">',
     "<head>",
@@ -1469,4 +1547,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   ]
     .filter((s) => s.length > 0)
     .join("");
+
+  currentRegimeFlows = undefined;
+  return html;
 }
