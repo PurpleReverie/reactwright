@@ -194,31 +194,21 @@ Nothing imports them yet. Phase 0 is a pure addition.
 
 ---
 
-## Phase 1 — `jsx.d.ts` 4× block dedup
+## Phase 1 — `jsx.d.ts` 4× block dedup (skipped — see below)
 
-**Goal:** adding a new JSX intrinsic is a one-line change, not four.
+**Goal:** would have made adding a new JSX intrinsic a one-line change instead of four.
 
 **Audit refs:** Tier 1 #5.
 
-**Steps:**
+**Outcome:** **Not viable.** Attempted via `interface IntrinsicElements extends ReactDocIntrinsics {}` in each of the four augmentation sites. TypeScript fails to apply our prop-type overrides for tags that collide with React's HTML/SVG defaults (`<header>`, `<footer>`, `<image>`, `<page>`, etc.).
 
-1. In `src/public/jsx.d.ts`, define `interface ReactDocIntrinsics { ... }` containing the 60-entry intrinsic table — exactly once, at the top.
-2. Replace each of the four `interface IntrinsicElements { ... }` blocks (in `declare module "react"`, `"react/jsx-runtime"`, `"react/jsx-dev-runtime"`, and `declare global`) with `interface IntrinsicElements extends ReactDocIntrinsics {}`.
-3. Leave per-intrinsic prop type declarations (`DocumentProps`, `SectionProps`, etc.) where they are — those are the irreducible glossary.
+**Why it doesn't work:** TypeScript's declaration-merging rule that lets our augmentation override React's defaults only applies to **explicit own-member declarations** on the merged interface. Members inherited via `extends` participate in the interface but do not trigger the same override semantics — when the augmentation's inherited shape collides with React's lib.dom.d.ts shape for the same JSX tag name, React's wins.
 
-**After-state:**
-- `jsx.d.ts` drops from 709 → ~360 lines.
-- `npm run check:intellisense` (the consumer fixture) still passes.
+The 4× repetition is therefore **structurally required** by TypeScript, not accidental redundancy. Removing AUDIT.md Tier 1 #5 from the actionable list; the duplication stays.
 
-**Validation gate:**
-```
-npm run check
-npm run check:intellisense
-npm run test
-npm run mockup:all
-```
+**Lesson for future phases:** before scheduling a TypeScript-declaration-merging dedup, prototype the syntax on a single tag that collides with React's defaults (e.g. `<header>`) and confirm the override still applies.
 
-**Out of scope:** consolidating prop type declarations (e.g. shared `ContentMetadataProps`). The 4× block fix is mechanical and contained; consolidating glossary entries is a follow-up.
+**Documented and moved on.** No code change. Next consumer of "add a new intrinsic" still has to edit four places.
 
 ---
 
