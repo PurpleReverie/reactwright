@@ -2,6 +2,16 @@ import { createRequire } from "node:module";
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
 import { getAllFonts } from "../../fonts/registry.js";
+import {
+  anchorToCss,
+  coordinateAnchorToCss,
+  escapeHtml,
+  idAttr,
+  marginAnchorToCssBox,
+  normalizeImageSrc,
+  normalizePageSize,
+  regionPositioningCss
+} from "./utils.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
@@ -212,24 +222,6 @@ function buildFontHeadTags(page: ResolvedPageNode): string[] {
     tags.push(`<style>${faces.join("")}</style>`);
   }
   return tags;
-}
-
-export function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function normalizePageSize(size: unknown): string | null {
-  if (typeof size !== "string") return null;
-  const lower = size.trim().toLowerCase();
-  if (lower === "a4" || lower === "letter" || lower === "a5" || lower === "a3" || lower === "legal") {
-    return lower.toUpperCase();
-  }
-  return size.trim();
 }
 
 function buildAtPageRule(style: TemplateStyle | undefined, name?: string): string | null {
@@ -507,22 +499,10 @@ function renderBibliographyNode(node: ResolvedBibliographyNode): string {
   return `<section data-node="bibliography" class="reactdoc-bibliography" style="counter-reset:reactdoc-bib;">${title}<ol>${items}</ol></section>`;
 }
 
-function idAttr(id: string | undefined): string {
-  return id != null ? ` id="${escapeHtml(id)}"` : "";
-}
-
 function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   return `<p${idAttr(node.id)}${variantAttr}>${inner}</p>`;
-}
-
-function normalizeImageSrc(src: string): string {
-  // Absolute filesystem paths (POSIX) become file:// URLs so they load in
-  // headless Chromium and in browsers opened directly on the HTML. Other
-  // schemes (http, https, data, file already) and relative paths pass through.
-  if (src.startsWith("/")) return `file://${src}`;
-  return src;
 }
 
 function renderFigureNode(node: ResolvedFigureNode): string {
@@ -594,69 +574,6 @@ function renderImageNode(node: ResolvedImageNode): string {
 
 function renderSetRunningNode(node: ResolvedSetRunningNode): string {
   return `<span data-node="set-running" data-running-name="${escapeHtml(node.name)}" class="reactdoc-set ${runningClassFor(node.name)}-source" hidden>${escapeHtml(node.value)}</span>`;
-}
-
-function marginAnchorToCssBox(anchor: string): string {
-  // Maps the spec's anchor names to CSS Paged Media margin-box selectors.
-  switch (anchor) {
-    case "top-left":
-      return "@top-left";
-    case "top-center":
-      return "@top-center";
-    case "top-right":
-      return "@top-right";
-    case "bottom-left":
-      return "@bottom-left";
-    case "bottom-center":
-      return "@bottom-center";
-    case "bottom-right":
-      return "@bottom-right";
-    case "top-inside":
-    case "top-outside":
-      // Mirror-aware anchors map to top-left/top-right via @page :left/:right rules.
-      // Emitted under explicit :left/:right page selectors by the caller.
-      return anchor === "top-inside" ? "@top-left" : "@top-right";
-    case "bottom-inside":
-    case "bottom-outside":
-      return anchor === "bottom-inside" ? "@bottom-left" : "@bottom-right";
-    case "left-top":
-      return "@left-top";
-    case "left-middle":
-      return "@left-middle";
-    case "left-bottom":
-      return "@left-bottom";
-    case "right-top":
-      return "@right-top";
-    case "right-middle":
-      return "@right-middle";
-    case "right-bottom":
-      return "@right-bottom";
-    default:
-      return "@top-center";
-  }
-}
-
-function anchorToCss(anchor: string): string {
-  switch (anchor) {
-    case "top-left":
-    case "page-top-left":
-      return "top:0;left:0;";
-    case "top-center":
-      return "top:0;left:50%;transform:translateX(-50%);";
-    case "top-right":
-    case "page-top-right":
-      return "top:0;right:0;";
-    case "bottom-left":
-    case "page-bottom-left":
-      return "bottom:0;left:0;";
-    case "bottom-center":
-      return "bottom:0;left:50%;transform:translateX(-50%);";
-    case "bottom-right":
-    case "page-bottom-right":
-      return "bottom:0;right:0;";
-    default:
-      return "top:0;left:0;";
-  }
 }
 
 // Render-scoped regime-flow table. Set at the top of renderResolvedToHTML
@@ -859,17 +776,6 @@ function renderContentNode(node: ResolvedContentNode): string {
   throw new Error("Unsupported resolved content node.");
 }
 
-function regionPositioningCss(node: ResolvedRegionNode): string {
-  const p = node.positioning;
-  if (p == null) return "";
-  const declarations: string[] = [];
-  if (p.fill === true) declarations.push("position:absolute;", "inset:0;");
-  if (p.center === true) {
-    declarations.push("display:flex;", "align-items:center;", "justify-content:center;");
-  }
-  return declarations.join("");
-}
-
 function renderRegionNode(node: ResolvedRegionNode, innerHtml: string): string {
   const positioning = regionPositioningCss(node);
   const inline = styleToInlineCss(node.style, "region");
@@ -939,17 +845,6 @@ function renderStackNode(node: ResolvedStackNode, innerHtml: string): string {
   const style = styleToInlineCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
   return `<div data-node="stack"${styleAttr}>${innerHtml}</div>`;
-}
-
-function coordinateAnchorToCss(
-  coord: { top?: string; right?: string; bottom?: string; left?: string }
-): string {
-  const parts: string[] = [];
-  if (coord.top != null) parts.push(`top:${coord.top};`);
-  if (coord.right != null) parts.push(`right:${coord.right};`);
-  if (coord.bottom != null) parts.push(`bottom:${coord.bottom};`);
-  if (coord.left != null) parts.push(`left:${coord.left};`);
-  return parts.join("");
 }
 
 // Render an array of children to a single concatenated HTML string.
