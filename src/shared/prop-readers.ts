@@ -26,11 +26,26 @@ export function getString(props: object, key: string): string | undefined {
 
 // Optional string, trimmed. Returns undefined if absent or if the
 // string is empty after trimming; throws if present but not a string.
+// Use for permissive fields (e.g. `language`, `caption`) where an
+// empty value is equivalent to absence.
 export function getTrimmedString(props: object, key: string): string | undefined {
   const value = getString(props, key);
   if (value == null) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+// Strict optional string. Returns undefined if absent; throws if
+// present but empty (after trimming) or not a string. Use for fields
+// whose presence implies a non-empty value (e.g. `id`, `role`, `page`,
+// `variant`, `speaker` — if the author wrote it, they meant it).
+export function getNonEmptyStringIfPresent(props: object, key: string): string | undefined {
+  const value = asProps(props)[key];
+  if (value == null) return undefined;
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`\`${key}\` must be a non-empty string when provided.`);
+  }
+  return value.trim();
 }
 
 // Required non-empty string. The `intrinsic` argument is the JSX tag
