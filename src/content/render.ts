@@ -2,11 +2,11 @@ import Reconciler from "react-reconciler";
 import { DefaultEventPriority } from "react-reconciler/constants";
 import type { ReactNode } from "react";
 
+import { appendSemanticChild } from "./grammar.js";
 import type {
   CellNode,
   CodeBlockNode,
   CodeNode,
-  DocumentChild,
   DocumentNode,
   EmNode,
   FigureNode,
@@ -16,7 +16,6 @@ import type {
   PageBreakNode,
   ParagraphNode,
   RowNode,
-  SemanticBlockChild,
   SemanticContainerNode,
   SemanticNode,
   SetRunningNode,
@@ -404,237 +403,8 @@ function createContentNode(type: string, props: ContentProps): SemanticNode {
   }
 }
 
-function isWhitespaceOnlyText(node: SemanticNode): boolean {
-  return node.kind === "text" && node.value.trim().length === 0;
-}
-
-function appendSemanticChild(parent: SemanticContainerNode, child: SemanticNode): void {
-  if (isWhitespaceOnlyText(child)) {
-    return;
-  }
-
-  switch (parent.kind) {
-    case "paragraph":
-      if (
-        child.kind !== "text" &&
-        child.kind !== "em" &&
-        child.kind !== "strong" &&
-        child.kind !== "code" &&
-        child.kind !== "link" &&
-        child.kind !== "br" &&
-        child.kind !== "sub" &&
-        child.kind !== "sup" &&
-        child.kind !== "img" &&
-        child.kind !== "ref" &&
-        child.kind !== "footnote" &&
-        child.kind !== "m" &&
-        child.kind !== "cite" &&
-        child.kind !== "index" &&
-        child.kind !== "sidenote"
-      ) {
-        throw new Error("`p` may only contain inline primitives.");
-      }
-      parent.children.push(child);
-      return;
-    case "figure":
-      throw new Error("`figure` may not contain child nodes.");
-    case "table":
-      if (child.kind !== "row") {
-        throw new Error("`table` may only contain `row` children.");
-      }
-      parent.children.push(child);
-      return;
-    case "row":
-      if (child.kind !== "cell") {
-        throw new Error("`row` may only contain `cell` children.");
-      }
-      parent.children.push(child);
-      return;
-    case "cell":
-      if (
-        child.kind !== "paragraph" &&
-        child.kind !== "figure" &&
-        child.kind !== "blockquote" &&
-        child.kind !== "list" &&
-        child.kind !== "code-block" &&
-        child.kind !== "pre" &&
-        child.kind !== "defs" &&
-        child.kind !== "heading" &&
-        child.kind !== "math" &&
-        child.kind !== "page-break" &&
-        child.kind !== "set-running"
-      ) {
-        throw new Error("`cell` may only contain block primitives.");
-      }
-      parent.children.push(child);
-      return;
-    case "em":
-    case "strong":
-    case "link":
-    case "sub":
-    case "sup":
-    case "footnote":
-    case "sidenote":
-      if (
-        child.kind !== "text" &&
-        child.kind !== "em" &&
-        child.kind !== "strong" &&
-        child.kind !== "code" &&
-        child.kind !== "link" &&
-        child.kind !== "br" &&
-        child.kind !== "sub" &&
-        child.kind !== "sup" &&
-        child.kind !== "img" &&
-        child.kind !== "ref" &&
-        child.kind !== "footnote" &&
-        child.kind !== "m" &&
-        child.kind !== "cite" &&
-        child.kind !== "index" &&
-        child.kind !== "sidenote"
-      ) {
-        throw new Error(`\`${parent.kind}\` may only contain inline primitives.`);
-      }
-      parent.children.push(child);
-      return;
-    case "code":
-      if (child.kind !== "text") {
-        throw new Error("`code` may only contain text.");
-      }
-      parent.children.push(child);
-      return;
-    case "code-block":
-      if (child.kind !== "text") {
-        throw new Error("`code-block` may only contain text.");
-      }
-      parent.children.push(child);
-      return;
-    case "pre":
-      if (child.kind !== "text") {
-        throw new Error("`pre` may only contain text.");
-      }
-      parent.children.push(child);
-      return;
-    case "list":
-      if (child.kind !== "item") {
-        throw new Error("`list` may only contain `item` children.");
-      }
-      parent.children.push(child);
-      return;
-    case "refs":
-      if (child.kind !== "ref-entry") {
-        throw new Error("`refs` may only contain `ref-entry` children.");
-      }
-      parent.children.push(child);
-      return;
-    case "ref-entry":
-      if (
-        child.kind !== "text" &&
-        child.kind !== "em" &&
-        child.kind !== "strong" &&
-        child.kind !== "code" &&
-        child.kind !== "link" &&
-        child.kind !== "br" &&
-        child.kind !== "sub" &&
-        child.kind !== "sup"
-      ) {
-        throw new Error("`ref-entry` may only contain inline primitives.");
-      }
-      parent.children.push(child);
-      return;
-    case "defs":
-      if (child.kind !== "def") {
-        throw new Error("`defs` may only contain `def` children.");
-      }
-      parent.children.push(child);
-      return;
-    case "def":
-      if (
-        child.kind !== "paragraph" &&
-        child.kind !== "figure" &&
-        child.kind !== "table" &&
-        child.kind !== "blockquote" &&
-        child.kind !== "list" &&
-        child.kind !== "code-block" &&
-        child.kind !== "pre" &&
-        child.kind !== "defs" &&
-        child.kind !== "heading" &&
-        child.kind !== "math" &&
-        child.kind !== "page-break" &&
-        child.kind !== "set-running"
-      ) {
-        throw new Error("`def` may only contain block primitives.");
-      }
-      parent.children.push(child);
-      return;
-    case "item":
-      if (
-        child.kind !== "paragraph" &&
-        child.kind !== "figure" &&
-        child.kind !== "table" &&
-        child.kind !== "blockquote" &&
-        child.kind !== "list" &&
-        child.kind !== "code-block" &&
-        child.kind !== "pre" &&
-        child.kind !== "defs" &&
-        child.kind !== "heading" &&
-        child.kind !== "math" &&
-        child.kind !== "page-break" &&
-        child.kind !== "set-running"
-      ) {
-        throw new Error("`item` may only contain block primitives.");
-      }
-      parent.children.push(child);
-      return;
-    case "document":
-      if (
-        child.kind !== "abstract" &&
-        child.kind !== "section" &&
-        child.kind !== "paragraph" &&
-        child.kind !== "figure" &&
-        child.kind !== "table" &&
-        child.kind !== "blockquote" &&
-        child.kind !== "list" &&
-        child.kind !== "code-block" &&
-        child.kind !== "pre" &&
-        child.kind !== "defs" &&
-        child.kind !== "heading" &&
-        child.kind !== "math" &&
-        child.kind !== "refs" &&
-        child.kind !== "page-break" &&
-        child.kind !== "set-running"
-      ) {
-        throw new Error("`document` may only contain document-level block primitives.");
-      }
-      parent.children.push(child as DocumentChild);
-      return;
-    case "abstract":
-    case "section":
-    case "blockquote":
-      if (
-        child.kind !== "section" &&
-        child.kind !== "paragraph" &&
-        child.kind !== "figure" &&
-        child.kind !== "table" &&
-        child.kind !== "blockquote" &&
-        child.kind !== "list" &&
-        child.kind !== "code-block" &&
-        child.kind !== "pre" &&
-        child.kind !== "defs" &&
-        child.kind !== "heading" &&
-        child.kind !== "math" &&
-        child.kind !== "refs" &&
-        child.kind !== "page-break" &&
-        child.kind !== "set-running"
-      ) {
-        throw new Error(`\`${parent.kind}\` may only contain block primitives.`);
-      }
-      parent.children.push(child as SemanticBlockChild);
-      return;
-  }
-}
-
 function appendChildToContainerNode(container: ContentContainer, child: SemanticNode): void {
-  if (isWhitespaceOnlyText(child)) {
+  if (child.kind === "text" && child.value.trim().length === 0) {
     return;
   }
 
