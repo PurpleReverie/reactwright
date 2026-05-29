@@ -659,9 +659,16 @@ function anchorToCss(anchor: string): string {
   }
 }
 
-// Stable reference set during a top-level render so nested calls can look up
-// per-regime flow templates without threading the argument through every helper.
-let currentRegimeFlows: Record<string, ResolvedChild[]> | undefined;
+// Render-scoped regime-flow table. Set at the top of renderResolvedToHTML
+// and cleared in a finally-shaped reset at the bottom. Lives at module
+// scope because threading it through every container/content renderer
+// would touch ~15 function signatures for a single read site
+// (renderSectionNode). Acceptable because (a) the codebase renders one
+// document per process, (b) renderResolvedToHTML is synchronous so there
+// is no opportunity for parallel/reentrant access. If either invariant
+// changes, lift this to an explicit RenderCtx threaded from
+// renderResolvedToHTML through every renderer that calls renderSectionNode.
+let renderScopeRegimeFlows: Record<string, ResolvedChild[]> | undefined;
 
 function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
@@ -699,9 +706,9 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
     depth === 1 &&
     typeof node.page === "string" &&
     node.page.length > 0 &&
-    currentRegimeFlows != null
+    renderScopeRegimeFlows != null
   ) {
-    const flow = currentRegimeFlows[node.page];
+    const flow = renderScopeRegimeFlows[node.page];
     if (flow != null && flow.length > 0) {
       return flow.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
     }
@@ -1362,7 +1369,7 @@ function buildPageRegimesCss(page: ResolvedPageNode): string {
 }
 
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
-  currentRegimeFlows = page.regimeFlows;
+  renderScopeRegimeFlows = page.regimeFlows;
   const atPageRule = buildAtPageRule(page.style);
   const bodyTextRule = buildBodyTextRule(page.style);
   const pageBackgroundLayersCss = buildPageBackgroundLayersCss(page);
@@ -1504,6 +1511,6 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     .filter((s) => s.length > 0)
     .join("");
 
-  currentRegimeFlows = undefined;
+  renderScopeRegimeFlows = undefined;
   return html;
 }
