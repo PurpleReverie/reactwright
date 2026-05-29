@@ -99,38 +99,31 @@ function isComponent(value: unknown): value is React.ComponentType {
   return typeof value === "function";
 }
 
-function getDocumentComponent(moduleValue: ExternalDocumentModule): React.ComponentType {
-  if (typeof moduleValue === "object" && moduleValue != null) {
-    if (isComponent((moduleValue as { default?: unknown }).default)) {
-      return (moduleValue as { default: React.ComponentType }).default;
-    }
-
-    if (isComponent((moduleValue as { Content?: unknown }).Content)) {
-      return (moduleValue as { Content: React.ComponentType }).Content;
-    }
-
-    if (isComponent((moduleValue as { content?: unknown }).content)) {
-      return (moduleValue as { content: React.ComponentType }).content;
-    }
+// Look up the first function-typed export among `names` on the loaded
+// module. Used to find both the document component (default / Content
+// / content) and the template component (Template / template).
+function pickComponent(
+  moduleValue: ExternalDocumentModule,
+  names: readonly string[]
+): React.ComponentType | null {
+  if (typeof moduleValue !== "object" || moduleValue == null) return null;
+  const bag = moduleValue as Record<string, unknown>;
+  for (const name of names) {
+    if (isComponent(bag[name])) return bag[name] as React.ComponentType;
   }
+  return null;
+}
 
+function getDocumentComponent(moduleValue: ExternalDocumentModule): React.ComponentType {
+  const found = pickComponent(moduleValue, ["default", "Content", "content"]);
+  if (found != null) return found;
   throw new Error(
     "Input file must export content as `default`, `Content`, or `content`."
   );
 }
 
 function getExternalTemplateComponent(moduleValue: ExternalDocumentModule): React.ComponentType | null {
-  if (typeof moduleValue === "object" && moduleValue != null) {
-    if (isComponent((moduleValue as { Template?: unknown }).Template)) {
-      return (moduleValue as { Template: React.ComponentType }).Template;
-    }
-
-    if (isComponent((moduleValue as { template?: unknown }).template)) {
-      return (moduleValue as { template: React.ComponentType }).template;
-    }
-  }
-
-  return null;
+  return pickComponent(moduleValue, ["Template", "template"]);
 }
 
 async function writeHtmlOutput(outDir: string, baseName: string, html: string): Promise<string> {
