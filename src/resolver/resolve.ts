@@ -198,7 +198,7 @@ function buildSlotMap(document: DocumentNode): SlotMap {
   };
 }
 
-function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveContext): ResolvedChild[] {
+function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveContext): ResolvedChild[] {
   switch (child.kind) {
     case "slot":
       if (child.name !== "body") {
@@ -222,7 +222,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
     case "header":
     case "footer":
     case "custom":
-      return [resolveTemplateNode(child, slots, ctx)];
+      return [resolveTemplateContainer(child, slots, ctx)];
     case "page-set": {
       // Record the page-set as a regime so the HTML emitter can produce an
       // @page <name> rule with the page-set's geometry/style.
@@ -243,7 +243,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
       //     order — the regime only controls per-section layout, never
       //     content grouping.
       const setChildren = child.children.flatMap((grandchild) =>
-        resolveTemplateChild(grandchild, slots, {
+        expandTemplateChild(grandchild, slots, {
           ...ctx,
           currentPageSet: child.name,
           inPageSetBody: true,
@@ -416,7 +416,7 @@ function resolveTemplateChild(child: TemplateChild, slots: SlotMap, ctx: Resolve
   }
 }
 
-function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveContext): ResolvedTemplateNode {
+function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: ResolveContext): ResolvedTemplateNode {
   switch (node.kind) {
     case "page": {
       const variantRules = ctx.rules.roles
@@ -438,7 +438,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
           ...(r.dropCap != null ? { dropCap: r.dropCap } : {}),
           ...(r.style != null ? { style: r.style as TemplateStyle } : {})
         }));
-      const children = node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx));
+      const children = node.children.flatMap((child) => expandTemplateChild(child, slots, ctx));
       const regimeFlows: Record<string, ResolvedChild[]> = {};
       for (const [name, flow] of ctx.regimeFlows) {
         regimeFlows[name] = flow;
@@ -463,7 +463,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         kind: "region",
         style: node.style,
         ...(node.positioning != null ? { positioning: node.positioning } : {}),
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedRegionNode;
     case "layer":
       return {
@@ -472,14 +472,14 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         ...(node.when != null ? { when: node.when } : {}),
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedLayerNode;
     case "stack":
       return {
         kind: "stack",
         gap: node.gap,
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedStackNode;
     case "columns":
       return {
@@ -487,14 +487,14 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         ...(node.gap != null ? { gap: node.gap } : {}),
         ...(node.widths != null ? { widths: node.widths } : {}),
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedColumnsNode;
     case "column":
       return {
         kind: "column",
         ...(node.width != null ? { width: node.width } : {}),
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedColumnNode;
     case "fixed":
       return {
@@ -502,7 +502,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         anchor: resolveFixedAnchor(node.anchor, ctx),
         when: node.when,
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedFixedNode;
     case "header":
       return {
@@ -511,7 +511,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         when: node.when,
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedHeaderNode;
     case "footer":
       return {
@@ -520,7 +520,7 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         when: node.when,
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedFooterNode;
     case "custom":
       return {
@@ -528,10 +528,10 @@ function resolveTemplateNode(node: TemplateNode, slots: SlotMap, ctx: ResolveCon
         name: node.name,
         props: node.props,
         style: node.style,
-        children: node.children.flatMap((child) => resolveTemplateChild(child, slots, ctx))
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       };
     case "page-set":
-      // Page-sets are flattened by resolveTemplateChild (chrome hoisted,
+      // Page-sets are flattened by expandTemplateChild (chrome hoisted,
       // body flow stored in regimeFlows); never reached here.
     case "rules":
     case "page-number":
@@ -580,7 +580,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const regimeFlows = new Map<string, ResolvedChild[]>();
   const refEntries = new Map<string, ResolvedInlineNode[]>();
   collectRefEntriesFromSlotMap(slots, refEntries);
-  const resolved = resolveTemplateNode(template, slots, {
+  const resolved = resolveTemplateContainer(template, slots, {
     rules,
     currentPageSet: undefined,
     currentAnchors: undefined,
