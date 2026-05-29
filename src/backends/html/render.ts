@@ -23,6 +23,7 @@ import {
   styleToInlineCss,
   type MarginMatterEntry
 } from "./css.js";
+import { renderInlineNode, renderTextNode } from "./inline.js";
 
 // Re-export styleToCss for the custom-intrinsic registry callback shape.
 export { styleToCss };
@@ -90,90 +91,9 @@ const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
 // be re-emitted as inline CSS on region/stack/column elements. `columns`
 // and `columnGap` used to be in this set, but multi-column layout is per
 // element, not page-level, so they need to flow through to inline CSS.
-function renderTextNode(node: ResolvedTextNode): string {
-  return escapeHtml(node.value);
-}
-
-function renderLinkNode(node: ResolvedLinkNode): string {
-  const titleAttr = node.title != null ? ` title="${escapeHtml(node.title)}"` : "";
-  return `<a href="${escapeHtml(node.href)}"${titleAttr}>${node.children.map(renderInlineNode).join("")}</a>`;
-}
-
-function renderInlineNode(node: ResolvedInlineNode): string {
-  switch (node.kind) {
-    case "text":
-      return renderTextNode(node);
-    case "em":
-      return `<em>${node.children.map(renderInlineNode).join("")}</em>`;
-    case "strong":
-      return `<strong>${node.children.map(renderInlineNode).join("")}</strong>`;
-    case "code":
-      return `<code>${node.children.map(renderTextNode).join("")}</code>`;
-    case "link":
-      return renderLinkNode(node);
-    case "br":
-      return "<br />";
-    case "sub":
-      return `<sub>${node.children.map(renderInlineNode).join("")}</sub>`;
-    case "sup":
-      return `<sup>${node.children.map(renderInlineNode).join("")}</sup>`;
-    case "img":
-      return renderInlineImgNode(node);
-    case "ref":
-      return renderRefNode(node);
-    case "footnote":
-      return renderFootnoteNode(node);
-    case "m":
-      return renderInlineMathNode(node);
-    case "cite":
-      return renderCiteNode(node);
-    case "index":
-      return renderIndexEntryNode(node);
-    case "sidenote":
-      return renderSidenoteNode(node);
-  }
-
-  throw new Error("Unsupported resolved inline node.");
-}
-
-function renderInlineImgNode(node: ResolvedInlineImgNode): string {
-  const widthAttr = node.width != null ? ` width="${escapeHtml(node.width)}"` : "";
-  const heightAttr = node.height != null ? ` height="${escapeHtml(node.height)}"` : "";
-  const altAttr = ` alt="${escapeHtml(node.alt ?? "")}"`;
-  return `<img data-inline src="${escapeHtml(normalizeImageSrc(node.src))}"${altAttr}${widthAttr}${heightAttr} />`;
-}
-
-function refClassFor(show: string): string {
-  return `reactdoc-ref reactdoc-ref-${show}`;
-}
-
-function renderRefNode(node: ResolvedRefNode): string {
-  const href = `#${escapeHtml(node.to)}`;
-  return `<a data-node="ref" data-ref-to="${escapeHtml(node.to)}" data-ref-show="${escapeHtml(node.show)}" class="${refClassFor(node.show)}" href="${href}"></a>`;
-}
-
-function renderFootnoteNode(node: ResolvedFootnoteNode): string {
-  const markerAttr = node.marker != null ? ` data-marker="${escapeHtml(node.marker)}"` : "";
-  const inner = node.children.map(renderInlineNode).join("");
-  return `<span data-node="footnote"${markerAttr} class="reactdoc-footnote">${inner}</span>`;
-}
-
-function renderSidenoteNode(node: ResolvedSidenoteNode): string {
-  const inner = node.children.map(renderInlineNode).join("");
-  return `<span data-node="sidenote" class="reactdoc-sidenote">${inner}</span>`;
-}
-
-function renderInlineMathNode(node: ResolvedInlineMathNode): string {
-  return `<span data-node="math-inline" class="reactdoc-math reactdoc-math-inline">${renderTeX(node.src, false)}</span>`;
-}
-
 function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${renderTeX(node.src, true)}</div>`;
-}
-
-function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
-  return `<span data-node="index-entry" data-index-term="${escapeHtml(node.term)}" id="${escapeHtml(node.anchorId)}" hidden></span>`;
 }
 
 function renderListOfNode(node: ResolvedListOfNode): string {
@@ -213,11 +133,6 @@ function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string {
     })
     .join("");
   return `<section data-node="index" class="reactdoc-index">${title}<ul>${items}</ul></section>`;
-}
-
-function renderCiteNode(node: ResolvedCiteNode): string {
-  const href = `#${escapeHtml("reactdoc-bib-" + node.cite)}`;
-  return `<a data-node="cite" data-cite-key="${escapeHtml(node.cite)}" class="reactdoc-cite" href="${href}"></a>`;
 }
 
 function renderBibliographyNode(node: ResolvedBibliographyNode): string {
