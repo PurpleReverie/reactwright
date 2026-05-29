@@ -9,6 +9,13 @@ import {
   findMatchingRole,
   type RuleMaps
 } from "./rules.js";
+import {
+  assignAutoIdsAndCollectListOfInSlotMap,
+  assignIndexAnchorsInSlotMap,
+  assignSectionIdsInSlotMap,
+  collectCiteKeysFromSlotMap,
+  collectRefEntriesFromSlotMap
+} from "./collect.js";
 import type {
   AbstractNode,
   BlockQuoteNode,
@@ -156,200 +163,6 @@ type ResolveContext = {
   bodyState: { consumed: boolean };
   refEntries: Map<string, ResolvedInlineNode[]>;
 };
-
-function collectCiteKeysFromNode(node: ResolvedContentNode | ResolvedInlineNode, keys: Set<string>): void {
-  if ("kind" in node && node.kind === "cite") {
-    keys.add(node.cite);
-  }
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      collectCiteKeysFromNode(child as ResolvedContentNode, keys);
-    }
-  }
-}
-
-function collectCiteKeysFromSlotMap(slots: SlotMap, keys: Set<string>): void {
-  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
-    for (const node of list) {
-      collectCiteKeysFromNode(node, keys);
-    }
-  }
-}
-
-function termToSlug(term: string): string {
-  return term
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function stampIndexAnchorsAndCollect(
-  node: ResolvedContentNode | ResolvedInlineNode,
-  counts: Map<string, number>,
-  indexEntries: Map<string, string[]>
-): void {
-  if ("kind" in node && node.kind === "index") {
-    const slug = termToSlug(node.term);
-    const n = (counts.get(slug) ?? 0) + 1;
-    counts.set(slug, n);
-    const anchorId = `reactdoc-idx-${slug}-${n}`;
-    node.anchorId = anchorId;
-    const list = indexEntries.get(node.term) ?? [];
-    list.push(anchorId);
-    indexEntries.set(node.term, list);
-  }
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      stampIndexAnchorsAndCollect(child as ResolvedContentNode, counts, indexEntries);
-    }
-  }
-}
-
-function stampIndexAnchorsInSlotMap(slots: SlotMap, indexEntries: Map<string, string[]>): void {
-  const counts = new Map<string, number>();
-  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
-    for (const node of list) {
-      stampIndexAnchorsAndCollect(node, counts, indexEntries);
-    }
-  }
-}
-
-function titleToSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function stampSectionIdsAndCollectToc(
-  node: ResolvedContentNode,
-  depth: number,
-  used: Set<string>,
-  entries: ResolvedTocEntry[]
-): void {
-  if (node.kind === "section") {
-    let id = node.id;
-    if (id == null || id.length === 0) {
-      const base = titleToSlug(node.title) || "section";
-      let candidate = `reactdoc-sec-${base}`;
-      let n = 1;
-      while (used.has(candidate)) {
-        n += 1;
-        candidate = `reactdoc-sec-${base}-${n}`;
-      }
-      id = candidate;
-      node.id = id;
-    }
-    used.add(id);
-    entries.push({ id, title: node.title, depth });
-    for (const child of node.children) {
-      stampSectionIdsAndCollectToc(child as ResolvedContentNode, depth + 1, used, entries);
-    }
-    return;
-  }
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      stampSectionIdsAndCollectToc(child as ResolvedContentNode, depth, used, entries);
-    }
-  }
-}
-
-function stampSectionIdsInSlotMap(slots: SlotMap, entries: ResolvedTocEntry[]): void {
-  const used = new Set<string>();
-  for (const list of [slots.abstract, slots.body]) {
-    for (const node of list) {
-      stampSectionIdsAndCollectToc(node, 1, used, entries);
-    }
-  }
-}
-
-function stampListOfAndCollect(
-  node: ResolvedContentNode,
-  counts: { figure: number; table: number; equation: number },
-  used: Set<string>,
-  buckets: { figure: ResolvedListOfEntry[]; table: ResolvedListOfEntry[]; equation: ResolvedListOfEntry[] }
-): void {
-  if (node.kind === "figure") {
-    counts.figure += 1;
-    let id = node.id;
-    if (id == null || id.length === 0) {
-      let candidate = `reactdoc-fig-${counts.figure}`;
-      while (used.has(candidate)) candidate += "-x";
-      id = candidate;
-      node.id = id;
-    }
-    used.add(id);
-    buckets.figure.push({ id, caption: node.caption ?? `Figure ${counts.figure}` });
-  } else if (node.kind === "table") {
-    counts.table += 1;
-    let id = node.id;
-    if (id == null || id.length === 0) {
-      let candidate = `reactdoc-tbl-${counts.table}`;
-      while (used.has(candidate)) candidate += "-x";
-      id = candidate;
-      node.id = id;
-    }
-    used.add(id);
-    buckets.table.push({ id, caption: node.caption ?? `Table ${counts.table}` });
-  } else if (node.kind === "math") {
-    counts.equation += 1;
-    let id = node.id;
-    if (id == null || id.length === 0) {
-      let candidate = `reactdoc-eq-${counts.equation}`;
-      while (used.has(candidate)) candidate += "-x";
-      id = candidate;
-      node.id = id;
-    }
-    used.add(id);
-    buckets.equation.push({ id, caption: `Equation ${counts.equation}` });
-  }
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      stampListOfAndCollect(child as ResolvedContentNode, counts, used, buckets);
-    }
-  }
-}
-
-function collectRefEntriesFromNode(
-  node: ResolvedContentNode | ResolvedInlineNode,
-  out: Map<string, ResolvedInlineNode[]>
-): void {
-  if ("kind" in node && (node as { kind: string }).kind === "ref-entry") {
-    const entry = node as unknown as { refKey: string; children: ResolvedInlineNode[] };
-    if (!out.has(entry.refKey)) out.set(entry.refKey, entry.children);
-  }
-  if ("children" in node && Array.isArray((node as { children: unknown[] }).children)) {
-    for (const c of (node as { children: ResolvedContentNode[] }).children) {
-      collectRefEntriesFromNode(c, out);
-    }
-  }
-}
-
-function collectRefEntriesFromSlotMap(
-  slots: SlotMap,
-  out: Map<string, ResolvedInlineNode[]>
-): void {
-  for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
-    for (const node of list) {
-      collectRefEntriesFromNode(node, out);
-    }
-  }
-}
-
-function stampListOfInSlotMap(
-  slots: SlotMap,
-  buckets: { figure: ResolvedListOfEntry[]; table: ResolvedListOfEntry[]; equation: ResolvedListOfEntry[] }
-): void {
-  const counts = { figure: 0, table: 0, equation: 0 };
-  const used = new Set<string>();
-  for (const list of [slots.abstract, slots.body]) {
-    for (const node of list) {
-      stampListOfAndCollect(node, counts, used, buckets);
-    }
-  }
-}
-
-
 
 function buildSlotMap(document: DocumentNode): SlotMap {
   const title: ResolvedTitleNode[] = [
@@ -758,11 +571,11 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const citeKeys = new Set<string>();
   collectCiteKeysFromSlotMap(slots, citeKeys);
   const indexEntries = new Map<string, string[]>();
-  stampIndexAnchorsInSlotMap(slots, indexEntries);
+  assignIndexAnchorsInSlotMap(slots, indexEntries);
   const tocEntries: ResolvedTocEntry[] = [];
-  stampSectionIdsInSlotMap(slots, tocEntries);
+  assignSectionIdsInSlotMap(slots, tocEntries);
   const listOf = { figure: [] as ResolvedListOfEntry[], table: [] as ResolvedListOfEntry[], equation: [] as ResolvedListOfEntry[] };
-  stampListOfInSlotMap(slots, listOf);
+  assignAutoIdsAndCollectListOfInSlotMap(slots, listOf);
   const pageRegimes: ResolvedPageRegime[] = [];
   const regimeFlows = new Map<string, ResolvedChild[]>();
   const refEntries = new Map<string, ResolvedInlineNode[]>();
