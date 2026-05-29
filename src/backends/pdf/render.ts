@@ -66,61 +66,76 @@ export async function buildPdfFromResolved(
   return buildPdfFromHtml(html, options);
 }
 
-export async function buildPdfFromHtml(
-  html: string,
-  options: BuildPdfOptions
-): Promise<{ pdfPath: string }> {
+// Launch a headless Chromium with the platform-appropriate executable
+// path (bundled or from PUPPETEER_EXECUTABLE_PATH).
+async function launchBrowser(options: BuildPdfOptions): Promise<BrowserLike> {
   const puppeteer = await loadPuppeteer();
   const executablePath = options.executablePath ?? process.env.PUPPETEER_EXECUTABLE_PATH;
-
-  const browser = await puppeteer.launch({
+  return puppeteer.launch({
     headless: true,
     ...(executablePath != null ? { executablePath } : {}),
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
+}
 
-  // Write the HTML to a real file on disk and navigate to it via page.goto.
-  // This sets the document URL to file://, which is required for file://
-  // image src attributes to load as same-origin. setContent leaves the URL
-  // at about:blank, where cross-scheme image loads are blocked.
-  await mkdir(dirname(options.outputPath), { recursive: true });
-  const tmpHtmlPath = join(dirname(options.outputPath), `.${Date.now()}-pdf-source.html`);
+// Write `html` to a temp file in the same directory as the eventual
+// output, run `fn` with its file:// URL, then delete the temp file
+// regardless of outcome. We use a real file (rather than setContent)
+// because setContent leaves the document URL at about:blank, where
+// cross-scheme image loads (e.g. file:// images) are blocked.
+async function withTempHtmlFile<T>(
+  html: string,
+  dir: string,
+  fn: (url: string) => Promise<T>
+): Promise<T> {
+  await mkdir(dir, { recursive: true });
+  const tmpHtmlPath = join(dir, `.${Date.now()}-pdf-source.html`);
   await writeFile(tmpHtmlPath, html, "utf8");
-
   try {
-    const browserPage = await browser.newPage();
-    const url = pathToFileURL(tmpHtmlPath).href;
-    await browserPage.goto(url, { waitUntil: "networkidle0" });
+    return await fn(pathToFileURL(tmpHtmlPath).href);
+  } finally {
+    await rm(tmpHtmlPath, { force: true });
+  }
+}
 
-    // Wait for Paged.js to finish paginating. Passed as a source string to
-    // avoid tsx/esbuild helper injection (e.g. __name) leaking into the page
-    // context where they would be undefined.
-    await browserPage.evaluate(
-      `new Promise(function (resolve) {
-        var start = Date.now();
-        var timeout = 15000;
-        function check() {
-          var ready = document.querySelector('.pagedjs_pages, .pagedjs_page') != null;
-          if (ready || Date.now() - start > timeout) {
-            resolve();
-          } else {
-            setTimeout(check, 100);
-          }
-        }
-        check();
-      })`
-    );
+// Block until Paged.js has finished pagination (a .pagedjs_pages or
+// .pagedjs_page element appears in the DOM). Passed as a source
+// string so tsx/esbuild helpers (e.g. __name) don't leak into the
+// page context where they would be undefined.
+const WAIT_FOR_PAGED_JS_SOURCE = `new Promise(function (resolve) {
+  var start = Date.now();
+  var timeout = 15000;
+  function check() {
+    var ready = document.querySelector('.pagedjs_pages, .pagedjs_page') != null;
+    if (ready || Date.now() - start > timeout) {
+      resolve();
+    } else {
+      setTimeout(check, 100);
+    }
+  }
+  check();
+})`;
 
-    await browserPage.pdf({
-      path: options.outputPath,
-      format: options.format ?? "a4",
-      printBackground: true
+export async function buildPdfFromHtml(
+  html: string,
+  options: BuildPdfOptions
+): Promise<{ pdfPath: string }> {
+  const browser = await launchBrowser(options);
+  try {
+    return await withTempHtmlFile(html, dirname(options.outputPath), async (url) => {
+      const browserPage = await browser.newPage();
+      await browserPage.goto(url, { waitUntil: "networkidle0" });
+      await browserPage.evaluate(WAIT_FOR_PAGED_JS_SOURCE);
+      await browserPage.pdf({
+        path: options.outputPath,
+        format: options.format ?? "a4",
+        printBackground: true
+      });
+      await browserPage.close();
+      return { pdfPath: options.outputPath };
     });
-    await browserPage.close();
-    return { pdfPath: options.outputPath };
   } finally {
     await browser.close();
-    await rm(tmpHtmlPath, { force: true });
   }
 }
 
