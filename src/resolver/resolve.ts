@@ -1,3 +1,4 @@
+import { resolveFixedAnchor } from "./anchors.js";
 import type {
   AbstractNode,
   BlockQuoteNode,
@@ -828,39 +829,6 @@ const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
   math: "math",
   figure: "figure"
 };
-
-function resolveFixedAnchor(
-  anchor: unknown,
-  ctx: ResolveContext
-): string | { top?: string; right?: string; bottom?: string; left?: string } {
-  if (typeof anchor === "string") {
-    // Named anchor lookup in the current page-set's anchors map.
-    const named = ctx.currentAnchors?.[anchor];
-    if (named != null) {
-      return normalizeCoordinate(named);
-    }
-    // Otherwise pass through; HTML backend treats unknown strings as built-in anchor names.
-    return anchor;
-  }
-  if (anchor != null && typeof anchor === "object" && !Array.isArray(anchor)) {
-    return normalizeCoordinate(anchor as Record<string, string>);
-  }
-  return "top-left";
-}
-
-function normalizeCoordinate(
-  coord: Record<string, string | undefined>
-): { top?: string; right?: string; bottom?: string; left?: string } {
-  // Collapse inside/outside into left/right for now (two-sided handling lives in M9-followup).
-  const result: { top?: string; right?: string; bottom?: string; left?: string } = {};
-  if (coord.top != null) result.top = coord.top;
-  if (coord.bottom != null) result.bottom = coord.bottom;
-  if (coord.left != null) result.left = coord.left;
-  if (coord.right != null) result.right = coord.right;
-  if (coord.inside != null && result.left == null) result.left = coord.inside;
-  if (coord.outside != null && result.right == null) result.right = coord.outside;
-  return result;
-}
 
 function findMatchingRole(roleValue: string, elementKind: string, rules: RuleMaps): string | undefined {
   for (const rule of rules.roles) {
