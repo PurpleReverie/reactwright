@@ -3,6 +3,12 @@ import {
   resolveAbstractNode,
   resolveContentChild
 } from "./block.js";
+import {
+  assignRoleVariants,
+  buildRuleMaps,
+  findMatchingRole,
+  type RuleMaps
+} from "./rules.js";
 import type {
   AbstractNode,
   BlockQuoteNode,
@@ -122,23 +128,6 @@ import type {
 } from "./ir.js";
 
 type SlotMap = Record<SlotName, ResolvedContentNode[]>;
-
-type RoleRule = {
-  match: string;
-  apply: string;
-  on?: string;
-  breakBefore?: string;
-  breakAfter?: string;
-  breakInside?: string;
-  numbering?: { counter: string; scope?: string; format?: string };
-  dropCap?: { lines?: number; font?: string; position?: string };
-  style?: Record<string, unknown>;
-};
-
-type RuleMaps = {
-  roles: RoleRule[];
-  pages: Map<string, string>;
-};
 
 type ResolveContext = {
   currentPageSet?: string;
@@ -361,216 +350,6 @@ function stampListOfInSlotMap(
 }
 
 
-function collectRulesFromChildren(children: TemplateChild[], rules: RuleMaps): void {
-  for (const child of children) {
-    if (child.kind === "rules") {
-      for (const rule of child.children) {
-        applyRule(rule, rules);
-      }
-      continue;
-    }
-
-    if (
-      child.kind === "page" ||
-      child.kind === "page-set" ||
-      child.kind === "region" ||
-      child.kind === "stack" ||
-      child.kind === "columns" ||
-      child.kind === "column" ||
-      child.kind === "layer" ||
-      child.kind === "fixed" ||
-      child.kind === "header" ||
-      child.kind === "footer" ||
-      child.kind === "custom"
-    ) {
-      collectRulesFromChildren(child.children, rules);
-    }
-  }
-}
-
-function applyRule(rule: RulesChild, rules: RuleMaps): void {
-  switch (rule.kind) {
-    case "role-rule":
-      if (rule.match.length > 0 && rule.apply.length > 0) {
-        rules.roles.push({
-          match: rule.match,
-          apply: rule.apply,
-          ...(rule.on != null ? { on: rule.on } : {}),
-          ...(rule.breakBefore != null ? { breakBefore: rule.breakBefore } : {}),
-          ...(rule.breakAfter != null ? { breakAfter: rule.breakAfter } : {}),
-          ...(rule.breakInside != null ? { breakInside: rule.breakInside } : {}),
-          ...(rule.numbering != null ? { numbering: rule.numbering } : {}),
-          ...(rule.dropCap != null ? { dropCap: rule.dropCap } : {}),
-          ...(rule.style != null ? { style: rule.style } : {})
-        });
-      }
-      return;
-    case "page-rule":
-      if (rule.match.length > 0 && rule.use.length > 0) {
-        rules.pages.set(rule.match, rule.use);
-      }
-      return;
-  }
-}
-
-function buildRuleMaps(template: TemplateNode): RuleMaps {
-  const rules: RuleMaps = {
-    roles: [],
-    pages: new Map<string, string>()
-  };
-
-  if (
-    template.kind === "page" ||
-    template.kind === "page-set" ||
-    template.kind === "region" ||
-    template.kind === "stack" ||
-    template.kind === "columns" ||
-    template.kind === "column" ||
-    template.kind === "layer" ||
-    template.kind === "fixed" ||
-    template.kind === "header" ||
-    template.kind === "footer" ||
-    template.kind === "custom"
-  ) {
-    collectRulesFromChildren(template.children, rules);
-  }
-
-  return rules;
-}
-
-const ROLE_ON_ELEMENT_KIND: Record<string, string> = {
-  section: "section",
-  paragraph: "paragraph",
-  p: "paragraph",
-  quote: "blockquote",
-  blockquote: "blockquote",
-  list: "list",
-  defs: "defs",
-  heading: "heading",
-  math: "math",
-  figure: "figure"
-};
-
-function findMatchingRole(roleValue: string, elementKind: string, rules: RuleMaps): string | undefined {
-  for (const rule of rules.roles) {
-    if (rule.match !== roleValue) continue;
-    if (rule.on == null) {
-      return rule.apply;
-    }
-    const wantedKind = ROLE_ON_ELEMENT_KIND[rule.on] ?? rule.on;
-    if (wantedKind === elementKind) {
-      return rule.apply;
-    }
-  }
-  return undefined;
-}
-
-function applyResolvedRules<T extends ResolvedContentNode>(node: T, rules: RuleMaps): T {
-  switch (node.kind) {
-    case "section":
-      return {
-        ...node,
-        variant: node.role != null ? findMatchingRole(node.role, "section", rules) ?? node.variant : node.variant,
-        children: node.children.map((child) => applyResolvedRules(child, rules))
-      } as T;
-    case "blockquote":
-      return {
-        ...node,
-        variant:
-          node.role != null ? findMatchingRole(node.role, "blockquote", rules) ?? node.variant : node.variant,
-        children: node.children.map((child) => applyResolvedRules(child, rules))
-      } as T;
-    case "abstract":
-      return {
-        ...node,
-        children: node.children.map((child) => applyResolvedRules(child, rules))
-      } as T;
-    case "list":
-      return {
-        ...node,
-        variant: node.role != null ? findMatchingRole(node.role, "list", rules) ?? node.variant : node.variant,
-        children: node.children.map((child) => ({
-          ...child,
-          children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
-        }))
-      } as T;
-    case "defs":
-      return {
-        ...node,
-        variant:
-          node.role != null ? findMatchingRole(node.role, "defs", rules) ?? node.variant : node.variant,
-        children: node.children.map((child) => ({
-          ...child,
-          children: child.children.map((grandchild) => applyResolvedRules(grandchild, rules))
-        }))
-      } as T;
-    case "table":
-      return {
-        ...node,
-        children: node.children.map((row) => ({
-          ...row,
-          children: row.children.map((cell) => ({
-            ...cell,
-            children: cell.children.map((child) => applyResolvedRules(child, rules))
-          }))
-        }))
-      } as T;
-    case "paragraph":
-      return {
-        ...node,
-        variant:
-          node.role != null ? findMatchingRole(node.role, "paragraph", rules) ?? node.variant : node.variant
-      } as T;
-    case "figure":
-      return {
-        ...node,
-        variant: node.role != null ? findMatchingRole(node.role, "figure", rules) ?? node.variant : node.variant
-      } as T;
-    case "heading":
-      return {
-        ...node,
-        variant:
-          node.role != null ? findMatchingRole(node.role, "heading", rules) ?? node.variant : node.variant
-      } as T;
-    case "math":
-      return {
-        ...node,
-        variant:
-          node.role != null ? findMatchingRole(node.role, "math", rules) ?? node.variant : node.variant
-      } as T;
-    case "row":
-    case "cell":
-    case "code-block":
-    case "pre":
-    case "def":
-    case "refs":
-    case "ref-entry":
-    case "item":
-    case "title":
-    case "author":
-    case "em":
-    case "strong":
-    case "code":
-    case "link":
-    case "br":
-    case "sub":
-    case "sup":
-    case "img":
-    case "ref":
-    case "footnote":
-    case "m":
-    case "cite":
-    case "index":
-    case "sidenote":
-    case "refs":
-    case "ref-entry":
-    case "text":
-    case "page-break":
-    case "set-running":
-      return node;
-  }
-  return node;
-}
 
 function buildSlotMap(document: DocumentNode): SlotMap {
   const title: ResolvedTitleNode[] = [
@@ -971,10 +750,10 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const rules = buildRuleMaps(template);
   const rawSlots = buildSlotMap(document);
   const slots = {
-    title: rawSlots.title.map((node) => applyResolvedRules(node, rules)) as ResolvedTitleNode[],
-    author: rawSlots.author.map((node) => applyResolvedRules(node, rules)) as ResolvedAuthorNode[],
-    abstract: rawSlots.abstract.map((node) => applyResolvedRules(node, rules)) as ResolvedAbstractNode[],
-    body: rawSlots.body.map((node) => applyResolvedRules(node, rules))
+    title: rawSlots.title.map((node) => assignRoleVariants(node, rules)) as ResolvedTitleNode[],
+    author: rawSlots.author.map((node) => assignRoleVariants(node, rules)) as ResolvedAuthorNode[],
+    abstract: rawSlots.abstract.map((node) => assignRoleVariants(node, rules)) as ResolvedAbstractNode[],
+    body: rawSlots.body.map((node) => assignRoleVariants(node, rules))
   } satisfies SlotMap;
   const citeKeys = new Set<string>();
   collectCiteKeysFromSlotMap(slots, citeKeys);
