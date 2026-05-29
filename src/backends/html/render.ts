@@ -703,7 +703,7 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   ) {
     const flow = currentRegimeFlows[node.page];
     if (flow != null && flow.length > 0) {
-      return flow.map((c) => renderRegimeFlowChild(c, sectionHtml)).join("");
+      return flow.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
     }
   }
   return sectionHtml;
@@ -711,73 +711,26 @@ function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
 
 // Renders a regime-flow template node, substituting the body-slot marker
 // with the section's pre-rendered HTML.
-function renderRegimeFlowChild(node: ResolvedChild, sectionHtml: string): string {
+// Render a regime-flow node, substituting the body-slot marker with
+// the already-rendered section HTML. For container kinds, recurses
+// through the regime flow and feeds the substituted inner HTML to the
+// same canonical container renderers used by the main flow — no
+// parallel implementations.
+function renderRegimeFlowNode(node: ResolvedChild, sectionHtml: string): string {
   if (node.kind === "body-slot") {
     return sectionHtml;
   }
-  if (
-    node.kind === "region" ||
-    node.kind === "stack" ||
-    node.kind === "columns" ||
-    node.kind === "column" ||
-    node.kind === "fixed"
-  ) {
-    const inner = node.children.map((c) => renderRegimeFlowChild(c, sectionHtml)).join("");
-    return wrapRegimeContainer(node, inner);
-  }
-  return renderResolvedChild(node);
-}
+  const renderRegimeChildren = (children: ResolvedChild[]): string =>
+    children.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
 
-function wrapRegimeContainer(
-  node: ResolvedRegionNode | ResolvedStackNode | ResolvedColumnsNode | ResolvedColumnNode | ResolvedFixedNode,
-  inner: string
-): string {
-  if (node.kind === "region") {
-    const positioning = regionPositioningCss(node);
-    const inline = styleToInlineCss(node.style, "region");
-    const combined = positioning + inline;
-    const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
-    return `<div data-node="region"${styleAttr}>${inner}</div>`;
+  switch (node.kind) {
+    case "region":  return renderRegionNode(node,  renderRegimeChildren(node.children));
+    case "stack":   return renderStackNode(node,   renderRegimeChildren(node.children));
+    case "columns": return renderColumnsNode(node, renderRegimeChildren(node.children));
+    case "column":  return renderColumnNode(node,  renderRegimeChildren(node.children));
+    case "fixed":   return renderFixedNode(node,   renderRegimeChildren(node.children));
+    default:        return renderResolvedChild(node);
   }
-  if (node.kind === "stack") {
-    const mergedStyle: TemplateStyle = {
-      ...(node.style ?? {}),
-      ...(node.gap != null ? { gap: node.gap } : {})
-    };
-    const style = styleToInlineCss(mergedStyle, "stack");
-    const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-    return `<div data-node="stack"${styleAttr}>${inner}</div>`;
-  }
-  if (node.kind === "columns") {
-    const widths = node.widths;
-    const explicit = node.children.filter(
-      (c): c is ResolvedColumnNode => (c as ResolvedChild).kind === "column"
-    );
-    const gap = node.gap ?? "8mm";
-    let gridTemplate: string;
-    if (explicit.length > 0) {
-      gridTemplate = explicit.map((c, i) => c.width ?? widths?.[i] ?? "1fr").join(" ");
-    } else if (widths && widths.length > 0) {
-      gridTemplate = widths.join(" ");
-    } else {
-      gridTemplate = "1fr 1fr";
-    }
-    const style = `display:grid;grid-template-columns:${gridTemplate};gap:${gap};${styleToInlineCss(node.style, "region")}`;
-    return `<div data-node="columns" style="${escapeHtml(style)}">${inner}</div>`;
-  }
-  if (node.kind === "column") {
-    const style = styleToInlineCss(node.style, "region");
-    const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-    return `<div data-node="column"${styleAttr}>${inner}</div>`;
-  }
-  // fixed
-  const anchorCss =
-    typeof node.anchor === "string" ? anchorToCss(node.anchor) : coordinateAnchorToCss(node.anchor);
-  const style = ["position:absolute;", "z-index:2;", anchorCss, styleToInlineCss(node.style, "region")].join("");
-  const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
-  const anchorAttr =
-    typeof node.anchor === "string" ? ` data-anchor="${escapeHtml(node.anchor)}"` : "";
-  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${inner}</div>`;
 }
 
 function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
@@ -910,23 +863,21 @@ function regionPositioningCss(node: ResolvedRegionNode): string {
   return declarations.join("");
 }
 
-function renderRegionNode(node: ResolvedRegionNode): string {
+function renderRegionNode(node: ResolvedRegionNode, innerHtml: string): string {
   const positioning = regionPositioningCss(node);
   const inline = styleToInlineCss(node.style, "region");
   const combined = positioning + inline;
   const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
-  return `<div data-node="region"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
+  return `<div data-node="region"${styleAttr}>${innerHtml}</div>`;
 }
 
-function renderLayerNode(node: ResolvedLayerNode, zIndex: number): string {
+function renderLayerNode(node: ResolvedLayerNode, zIndex: number, innerHtml: string): string {
   const nameAttr = node.name != null ? ` data-name="${escapeHtml(node.name)}"` : "";
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
   const inline = styleToInlineCss(node.style, "region");
   const positioning = `position:absolute;inset:0;z-index:${zIndex};`;
   const combined = positioning + inline;
-  return `<div data-node="layer"${nameAttr}${whenAttr} style="${escapeHtml(combined)}">${node.children
-    .map((child) => renderResolvedChild(child))
-    .join("")}</div>`;
+  return `<div data-node="layer"${nameAttr}${whenAttr} style="${escapeHtml(combined)}">${innerHtml}</div>`;
 }
 
 function renderCustomNode(node: ResolvedCustomTemplateNode): string {
@@ -947,7 +898,7 @@ function renderCustomNode(node: ResolvedCustomTemplateNode): string {
   });
 }
 
-function renderColumnsNode(node: ResolvedColumnsNode): string {
+function renderColumnsNode(node: ResolvedColumnsNode, innerHtml: string): string {
   const widths = node.widths;
   const explicit = node.children.filter(
     (c): c is ResolvedColumnNode => (c as ResolvedChild).kind === "column"
@@ -964,23 +915,23 @@ function renderColumnsNode(node: ResolvedColumnsNode): string {
     gridTemplate = "1fr 1fr";
   }
   const style = `display:grid;grid-template-columns:${gridTemplate};gap:${gap};${styleToInlineCss(node.style, "region")}`;
-  return `<div data-node="columns" style="${escapeHtml(style)}">${node.children.map((c) => renderResolvedChild(c)).join("")}</div>`;
+  return `<div data-node="columns" style="${escapeHtml(style)}">${innerHtml}</div>`;
 }
 
-function renderColumnNode(node: ResolvedColumnNode): string {
+function renderColumnNode(node: ResolvedColumnNode, innerHtml: string): string {
   const style = styleToInlineCss(node.style, "region");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="column"${styleAttr}>${node.children.map((c) => renderResolvedChild(c)).join("")}</div>`;
+  return `<div data-node="column"${styleAttr}>${innerHtml}</div>`;
 }
 
-function renderStackNode(node: ResolvedStackNode): string {
+function renderStackNode(node: ResolvedStackNode, innerHtml: string): string {
   const mergedStyle: TemplateStyle = {
     ...(node.style ?? {}),
     ...(node.gap != null ? { gap: node.gap } : {})
   };
   const style = styleToInlineCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="stack"${styleAttr}>${node.children.map((child) => renderResolvedChild(child)).join("")}</div>`;
+  return `<div data-node="stack"${styleAttr}>${innerHtml}</div>`;
 }
 
 function coordinateAnchorToCss(
@@ -994,7 +945,14 @@ function coordinateAnchorToCss(
   return parts.join("");
 }
 
-function renderFixedNode(node: ResolvedFixedNode): string {
+// Render an array of children to a single concatenated HTML string.
+// Used at every container call-site that needs to pass its rendered
+// children into a container renderer's innerHtml parameter.
+function renderChildren(children: ResolvedChild[]): string {
+  return children.map((c) => renderResolvedChild(c)).join("");
+}
+
+function renderFixedNode(node: ResolvedFixedNode, innerHtml: string): string {
   const anchorCss =
     typeof node.anchor === "string" ? anchorToCss(node.anchor) : coordinateAnchorToCss(node.anchor);
   const style = [
@@ -1006,9 +964,7 @@ function renderFixedNode(node: ResolvedFixedNode): string {
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
   const anchorAttr =
     typeof node.anchor === "string" ? ` data-anchor="${escapeHtml(node.anchor)}"` : "";
-  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${node.children
-    .map((child) => renderResolvedChild(child))
-    .join("")}</div>`;
+  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${innerHtml}</div>`;
 }
 
 function renderResolvedChild(node: ResolvedChild): string {
@@ -1027,15 +983,15 @@ function renderResolvedChild(node: ResolvedChild): string {
         .map((c) => (c.kind === "section" ? renderSectionNode(c, 1) : renderContentNode(c)))
         .join("");
     case "region":
-      return renderRegionNode(node);
+      return renderRegionNode(node, renderChildren(node.children));
     case "stack":
-      return renderStackNode(node);
+      return renderStackNode(node, renderChildren(node.children));
     case "columns":
-      return renderColumnsNode(node);
+      return renderColumnsNode(node, renderChildren(node.children));
     case "column":
-      return renderColumnNode(node);
+      return renderColumnNode(node, renderChildren(node.children));
     case "layer":
-      return renderLayerNode(node, 0);
+      return renderLayerNode(node, 0, renderChildren(node.children));
     case "page-number":
       return renderPageNumberNode(node);
     case "page-count":
@@ -1045,7 +1001,7 @@ function renderResolvedChild(node: ResolvedChild): string {
     case "image":
       return renderImageNode(node);
     case "fixed":
-      return renderFixedNode(node);
+      return renderFixedNode(node, renderChildren(node.children));
     case "footnote-area":
       // footnote-area is extracted to @footnote margin-box CSS at the page level.
       return "";
@@ -1431,7 +1387,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
 
   const overlays = page.children
     .filter((child): child is ResolvedFixedNode => child.kind === "fixed")
-    .map((child) => renderFixedNode(child))
+    .map((child) => renderFixedNode(child, renderChildren(child.children)))
     .join("");
 
   const flowChildren = page.children.filter(
@@ -1457,7 +1413,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
         const z = before ? -10 - beforeIdx : 10 + afterIdx;
         if (before) beforeIdx += 1;
         else afterIdx += 1;
-        return renderLayerNode(child, z);
+        return renderLayerNode(child, z, renderChildren(child.children));
       }
       return renderResolvedChild(child);
     })
