@@ -1,7 +1,5 @@
-import { createRequire } from "node:module";
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
-import { getAllFonts } from "../../fonts/registry.js";
 import {
   anchorToCss,
   coordinateAnchorToCss,
@@ -12,6 +10,7 @@ import {
   normalizePageSize,
   regionPositioningCss
 } from "./utils.js";
+import { KATEX_CSS, buildFontHeadTags, hasMathNodes, renderTeX } from "./fonts.js";
 import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
@@ -52,7 +51,6 @@ import type {
   ResolvedIndexTemplateNode,
   ResolvedTocNode,
   ResolvedListOfNode,
-  ResolvedFontNode,
   ResolvedFootnoteAreaNode,
   ResolvedFootnoteNode,
   ResolvedSidenoteAreaNode,
@@ -73,57 +71,6 @@ import type {
 
 const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
 
-// KaTeX CSS bundled by the same CDN serving the Chromium-side fonts.
-const KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css";
-
-// Lazy KaTeX import so we don't pay the require cost for documents that have
-// no math. Result is cached after first use.
-let katexImpl: { renderToString: (tex: string, opts?: Record<string, unknown>) => string } | null =
-  null;
-const requireFromHere = createRequire(import.meta.url);
-function getKatex(): typeof katexImpl {
-  if (katexImpl != null) return katexImpl;
-  try {
-    // KaTeX ships as CJS; require via createRequire so the dep is optional
-    // (tolerant of missing install).
-    const mod = requireFromHere("katex") as
-      | { default?: typeof katexImpl }
-      | typeof katexImpl;
-    katexImpl = (mod as { default?: typeof katexImpl }).default ?? (mod as typeof katexImpl);
-    return katexImpl;
-  } catch {
-    return null;
-  }
-}
-
-function hasMathNodes(node: ResolvedPageNode | ResolvedChild | ResolvedContentNode | ResolvedInlineNode): boolean {
-  if ("kind" in node && (node.kind === "math" || node.kind === "m")) return true;
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const c of node.children) {
-      if (hasMathNodes(c as ResolvedChild)) return true;
-    }
-  }
-  return false;
-}
-
-function renderTeX(src: string, displayMode: boolean): string {
-  const k = getKatex();
-  if (k == null) {
-    // KaTeX unavailable; fall back to plain text so the doc still renders.
-    return escapeHtml(src);
-  }
-  try {
-    return k.renderToString(src, {
-      displayMode,
-      throwOnError: false,
-      output: "html",
-      strict: "ignore"
-    });
-  } catch {
-    return escapeHtml(src);
-  }
-}
-
 // Style keys that belong to the @page rule (page geometry) and should NOT
 // be re-emitted as inline CSS on region/stack/column elements. `columns`
 // and `columnGap` used to be in this set, but multi-column layout is per
@@ -137,92 +84,6 @@ const PAGE_GROUP_KEYS = new Set([
   "marginBottom",
   "marginLeft"
 ]);
-
-function collectUsedFontFamilies(node: ResolvedPageNode | ResolvedChild): Set<string> {
-  const families = new Set<string>();
-
-  if ("style" in node && node.style != null) {
-    const v = node.style.fontFamily;
-    if (typeof v === "string" && v.trim().length > 0) {
-      families.add(v.trim().toLowerCase());
-    }
-  }
-
-  if ("children" in node && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      for (const f of collectUsedFontFamilies(child as ResolvedChild)) {
-        families.add(f);
-      }
-    }
-  }
-
-  return families;
-}
-
-function collectTemplateFonts(page: ResolvedPageNode): ResolvedFontNode[] {
-  const out: ResolvedFontNode[] = [];
-  const walk = (n: ResolvedChild | ResolvedPageNode): void => {
-    if ("kind" in n && n.kind === "font") {
-      out.push(n as ResolvedFontNode);
-      return;
-    }
-    if ("children" in n && Array.isArray(n.children)) {
-      for (const c of n.children) walk(c as ResolvedChild);
-    }
-  };
-  walk(page);
-  return out;
-}
-
-function buildFontHeadTags(page: ResolvedPageNode): string[] {
-  const used = collectUsedFontFamilies(page);
-  const registry = getAllFonts();
-  const links: string[] = [];
-  const faces: string[] = [];
-
-  for (const family of used) {
-    const def = registry.get(family);
-    if (def?.html == null) continue;
-
-    if (def.html.kind === "link") {
-      links.push(`<link rel="stylesheet" href="${escapeHtml(def.html.href)}" />`);
-    } else {
-      const formatAttr = def.html.format != null ? ` format('${escapeHtml(def.html.format)}')` : "";
-      faces.push(
-        `@font-face{font-family:'${escapeHtml(family)}';src:url('${escapeHtml(def.html.src)}')${formatAttr};}`
-      );
-    }
-  }
-
-  // Append declarative <font/> rules from the template tree. A CSS-stylesheet
-  // URL (Google Fonts, Fontsource, etc.) gets emitted as a <link>; a direct
-  // font-file URL gets emitted as an @font-face rule.
-  const seenStylesheet = new Set<string>();
-  for (const f of collectTemplateFonts(page)) {
-    const looksLikeStylesheet =
-      f.src.includes("/css") ||
-      f.src.endsWith(".css") ||
-      f.src.includes("fonts.googleapis.com");
-    if (looksLikeStylesheet) {
-      if (seenStylesheet.has(f.src)) continue;
-      seenStylesheet.add(f.src);
-      links.push(`<link rel="stylesheet" href="${escapeHtml(f.src)}" />`);
-      continue;
-    }
-    const formatPart = f.format != null ? ` format('${escapeHtml(f.format)}')` : "";
-    const weightPart = f.weight != null ? `font-weight:${escapeHtml(f.weight)};` : "";
-    const stylePart = f.fontStyle != null ? `font-style:${escapeHtml(f.fontStyle)};` : "";
-    faces.push(
-      `@font-face{font-family:'${escapeHtml(f.family)}';src:url('${escapeHtml(f.src)}')${formatPart};${weightPart}${stylePart}}`
-    );
-  }
-
-  const tags: string[] = [...links];
-  if (faces.length > 0) {
-    tags.push(`<style>${faces.join("")}</style>`);
-  }
-  return tags;
-}
 
 function buildAtPageRule(style: TemplateStyle | undefined, name?: string): string | null {
   if (style == null) return null;
