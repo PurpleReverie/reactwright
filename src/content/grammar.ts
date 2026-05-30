@@ -106,9 +106,16 @@ export function appendSemanticChild(
   parent: SemanticContainerNode,
   child: SemanticNode
 ): void {
-  if (isWhitespaceOnlyText(child)) return;
-
   const rule = GRAMMAR[parent.kind];
+  // Whitespace-only text between *block* children (sections,
+  // paragraphs, figures…) is just JSX indentation — drop it. But
+  // when the parent accepts text as a child (paragraph, em, strong,
+  // code, link, quote, item…), the space between "TeX " and
+  // <cite/> is significant: keep it.
+  if (isWhitespaceOnlyText(child)) {
+    if (rule == null || !rule.allowed.has("text")) return;
+  }
+
   if (rule == null) {
     const message = LEAF_MESSAGES[parent.kind] ?? `\`${parent.kind}\` may not contain child nodes.`;
     throw new Error(message);
