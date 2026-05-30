@@ -52,7 +52,7 @@
     "dev": "node --import tsx -e \"import('reactwright').then(() => console.log('reactwright package entry loaded'))\"",
     "check": "tsc --noEmit",
     "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
-    "test": "node --import tsx --test tests/**/*.test.tsx",
+    "test": "node --import tsx --test 'tests/*.test.tsx' 'tests/**/*.test.tsx'",
     "prepublishOnly": "npm run -s check && npm run -s test && npm run -s mockup:ieee-strict",
     "run:file": "PUPPETEER_EXECUTABLE_PATH=\"${PUPPETEER_EXECUTABLE_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node --import tsx ./src/cli/run-file.tsx",
     "mockup:treatise": "npm run -s run:file -- ./mockups/treatise.tsx --format html,pdf --out ./build/mockups",
