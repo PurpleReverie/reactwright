@@ -16,6 +16,9 @@ import {
   collectCiteKeysFromSlotMap,
   collectRefEntriesFromSlotMap
 } from "./collect.js";
+import { collectStylesAndRules } from "./collect-styles.js";
+import { applyRulesToTree } from "../styles/apply.js";
+import type { SelectableNode } from "../styles/selector.js";
 import type {
   AbstractNode,
   BlockQuoteNode,
@@ -609,6 +612,18 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
     bodyState: { consumed: false },
     refEntries
   });
+
+  // Styles dialect: collect <styles> source blocks + <rule> bindings
+  // from the template tree, parse the stylesheet, and tag every node
+  // in the resolved tree with the classes its bindings select. The
+  // HTML emitter consumes both fields.
+  const { stylesheet, bindings } = collectStylesAndRules(template);
+  if (stylesheet.rules.length > 0 || bindings.length > 0) {
+    const classBindings = applyRulesToTree(resolved as unknown as SelectableNode, bindings);
+    (resolved as { stylesheet?: unknown }).stylesheet = stylesheet;
+    (resolved as { classBindings?: ReadonlyArray<readonly [unknown, readonly string[]]> }).classBindings =
+      [...classBindings.entries()].map(([n, c]) => [n, c] as const);
+  }
 
   if (resolved.kind !== "page") {
     throw new Error("Resolver expected a `page` result.");

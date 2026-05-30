@@ -411,8 +411,22 @@ export type ResolvedPageNode = {
   // with the section's content). Lets a page-set declare per-regime layout
   // without filtering the document-order body stream.
   regimeFlows?: Record<string, ResolvedChild[]>;
+  // Parsed <styles> blocks (all sources concatenated). Lowered to CSS
+  // at HTML emit time. See src/styles/.
+  stylesheet?: ResolvedStylesheet;
+  // Per-node class assignments computed by applyRulesToTree. Lookup
+  // by node identity; values are the list of classes the apply pass
+  // attached. Stored as an array of [node, classes] tuples because
+  // ResolvedPageNode must be JSON-serialisable for snapshot tests.
+  classBindings?: ReadonlyArray<readonly [unknown, readonly string[]]>;
   children: ResolvedChild[];
 };
+
+// Opaque parsed-stylesheet handle. The shape lives in src/styles/ir.ts;
+// re-typed here as `unknown`-equivalent to avoid pulling the styles
+// types into every resolver consumer. The lowerer reaches into the
+// real shape.
+export type ResolvedStylesheet = unknown;
 
 export type ResolvedRegionPositioning = {
   fill?: boolean;

@@ -25,7 +25,7 @@ test("single binding applies to all matching nodes", () => {
   const bindings = [bind({ kind: "paragraph" }, "body")];
   const result = applyRulesToTree(root, bindings);
 
-  const paragraphs = (root as { children: SelectableNode[] }).children;
+  const paragraphs = (root as unknown as { children: SelectableNode[] }).children;
   assert.deepEqual(result.get(paragraphs[0]!), ["body"]);
   assert.deepEqual(result.get(paragraphs[1]!), ["body"]);
 });
