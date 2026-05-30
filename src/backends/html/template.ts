@@ -88,8 +88,15 @@ export function renderColumnNode(node: ResolvedColumnNode, innerHtml: string): s
 export function renderFixedNode(node: ResolvedFixedNode, innerHtml: string): string {
   const anchorCss =
     typeof node.anchor === "string" ? anchorToCss(node.anchor) : coordinateAnchorToCss(node.anchor);
+  // position:fixed (rather than absolute) means Paged.js + CSS Paged
+  // Media clone the element onto every paginated page at the
+  // anchor-computed coordinates. This makes <fixed> behave the way
+  // its name suggests: repeating page chrome — watermarks, page
+  // borders, every-page logos. Per-regime "appears only on cover"
+  // semantics still need a future `when=` prop + Paged.js handler;
+  // see KNOWN LIMITATION in mockups/cover.tsx.
   const style = [
-    "position:absolute;",
+    "position:fixed;",
     "z-index:2;",
     anchorCss,
     styleToInlineCss(node.style, "region")
