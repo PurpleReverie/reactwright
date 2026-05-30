@@ -110,11 +110,11 @@ If no top-level `<slot name="body">` consumes body content but page-sets registe
 ## Testing / validation
 
 - **Unit tests:** `npm run test` (47 tests across `tests/*.test.tsx`)
-- **Integration tests:** `npm run mockup:all` (renders 9 mockups; PDFs are live validation)
+- **Integration tests:** `npm run mockup:all` (renders 5 mockups; PDFs are live validation)
 - **Type check:** `npm run check`
 - **Single-mockup smoke test:** `npm run mockup:story-bible` exercises every regime + role-rule + drop-cap + running-string + two-sided geometry + external font path in one ~3s run.
 
-All 9 mockups must produce healthy PDFs. Check file sizes: if a PDF drops to ~900B, that regime's content was filtered out (likely a resolver bug).
+All 5 mockups must produce healthy PDFs. Check file sizes: if a PDF drops to ~900B, that regime's content was filtered out (likely a resolver bug).
 
 For HTML-emit refactors, byte-diff `build/mockups/*.html` against a pre-refactor snapshot to confirm no behavior drift.
 

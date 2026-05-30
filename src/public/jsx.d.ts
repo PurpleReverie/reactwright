@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { Key, ReactNode } from "react";
 
 type ContentMetadataProps = {
   id?: string;
@@ -41,10 +41,14 @@ type TableProps = {
 };
 
 type RowProps = {
+  // Permitted so authors mapping over data can pass keys; React strips
+  // it at the JSX boundary so it never reaches the underlying IR.
+  key?: Key | null;
   children?: ReactNode;
 };
 
 type CellProps = {
+  key?: Key | null;
   header?: boolean;
   children?: ReactNode;
 };

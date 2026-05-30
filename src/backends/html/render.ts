@@ -83,7 +83,10 @@ const STATIC_DEFAULTS_CSS = [
   "h1,h2,h3,h4,h5,h6,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
   // Headings shouldn't inherit text-align: justify from a parent
   // region — that produces gigantic word-spacing in short titles.
-  "h1,h2,h3,h4,h5,h6{text-align:left;}",
+  // `text-align-last:left` is also required: when the parent column
+  // flow inherits `text-align: justify`, the heading's single line
+  // still computes as a "last line" and gets word-spread without it.
+  "h1,h2,h3,h4,h5,h6{text-align:left;text-align-last:left;}",
   // Last-line of justified paragraphs aligns to start (left in LTR),
   // not stretched. Without this Chrome can produce word-spread gaps
   // on the final line.

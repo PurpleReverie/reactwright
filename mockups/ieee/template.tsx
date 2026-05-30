@@ -36,7 +36,10 @@ export const IEEE_CSS = [
   ".reactwright-flow{counter-reset:ieee-section;}",
 
   // ── Nested subsection heads (h3): italic, flush left, A./B./C. ──
-  "h3.reactwright-section-title{font-size:10pt;font-weight:normal;font-style:italic;font-family:'Times New Roman',Times,serif;text-align:left;text-transform:none;letter-spacing:0;margin:6pt 0 2pt 0;break-after:avoid;counter-increment:ieee-subsection;}",
+  // `text-align-last: left` is required because the parent column-flow
+  // inherits `text-align: justify`, and without an explicit last-line
+  // override the heading line gets word-spread to fill the column.
+  "h3.reactwright-section-title{font-size:10pt;font-weight:normal;font-style:italic;font-family:'Times New Roman',Times,serif;text-align:left;text-align-last:left;text-transform:none;letter-spacing:0;margin:6pt 0 2pt 0;break-after:avoid;counter-increment:ieee-subsection;}",
   "h3.reactwright-section-title::before{content:counter(ieee-subsection,upper-alpha) '. ';}",
 
   // ── Body paragraphs: 1em first-line indent ──────────────────────
@@ -47,6 +50,19 @@ export const IEEE_CSS = [
   "figure{margin:8pt 0;text-align:center;page-break-inside:avoid;break-inside:avoid;}",
   "figure img{max-width:100%;height:auto;display:block;margin:0 auto 4pt auto;}",
   "figure figcaption{font-size:8pt;font-family:'Times New Roman',Times,serif;text-align:center;line-height:1.2;text-indent:0;}",
+
+  // ── Tables: caption "TABLE I. ..." centered above, 8pt small-caps ─
+  // `width:100%` + `table-layout:fixed` are required: without them a
+  // table whose intrinsic content width exceeds the column-width
+  // overflows and bleeds into the adjacent column.
+  ".reactwright-flow{counter-reset:ieee-section ieee-table;}",
+  "table{width:100%;table-layout:fixed;margin:8pt 0;border-collapse:collapse;font-size:8pt;page-break-inside:avoid;break-inside:avoid;counter-increment:ieee-table;}",
+  "table caption{font-size:8pt;font-family:'Times New Roman',Times,serif;text-align:center;text-align-last:center;line-height:1.2;text-indent:0;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4pt;caption-side:top;}",
+  "table caption::before{content:'Table ' counter(ieee-table, upper-roman) '. ';}",
+  "table th, table td{padding:1pt 2pt;text-align:left;text-indent:0;word-wrap:break-word;overflow-wrap:break-word;}",
+  "table th{font-weight:normal;font-style:italic;border-top:0.5pt solid #000;border-bottom:0.5pt solid #000;}",
+  "table tr:last-child td{border-bottom:0.5pt solid #000;}",
+  "table p{margin:0;text-indent:0;font-size:inherit;}",
 
   // ── Inline code: plain mono, no background box ──────────────────
   "code{background:none;padding:0;border-radius:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:0.92em;}",

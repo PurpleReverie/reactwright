@@ -93,8 +93,8 @@ export function renderFixedNode(node: ResolvedFixedNode, innerHtml: string): str
   // anchor-computed coordinates. This makes <fixed> behave the way
   // its name suggests: repeating page chrome — watermarks, page
   // borders, every-page logos. Per-regime "appears only on cover"
-  // semantics still need a future `when=` prop + Paged.js handler;
-  // see KNOWN LIMITATION in mockups/cover.tsx.
+  // semantics still need a future `when=` prop + Paged.js handler
+  // (page-set regime isolation refactor #55 Path C, pending).
   const style = [
     "position:fixed;",
     "z-index:2;",

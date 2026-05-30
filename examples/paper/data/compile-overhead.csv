@@ -1,0 +1,7 @@
+phase,mean-ms,p95-ms,share
+React reconciliation,38,52,2.1
+Resolver pass,71,94,3.9
+HTML emission,29,41,1.6
+Chromium launch,944,1180,52.0
+Paged.js layout,584,803,32.1
+PDF capture,148,212,8.2

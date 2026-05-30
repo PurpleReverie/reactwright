@@ -220,8 +220,8 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
         // named regime; min-height takes the full page so the
         // page exists for Paged.js to paginate against. Absolute
         // overlay elements (region fill, fixed) follow as siblings —
-        // they remain document-relative, not page-relative; see
-        // mockups/cover.tsx KNOWN LIMITATION for details.
+        // they remain document-relative, not page-relative
+        // (page-set regime isolation refactor #55 Path C still pending).
         return (
           `<div style="page:${escapeHtml(node.page!)};min-height:100vh;"></div>` +
           flowHtml
