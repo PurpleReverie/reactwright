@@ -74,8 +74,9 @@ export default function FieldNotes() {
       <section title="The Margin as Instrument">
         <p role="opener">
           Tufte's design treats the wide outer margin not as wasted paper but as a
-          second column for the apparatus<sidenote>Sources, asides, contrary readings, definitions of terms in transit.</sidenote>
-          of the main argument. The body holds the claim; the margin holds the
+          second column for the apparatus
+          <sidenote>Sources, asides, contrary readings, definitions of terms in transit.</sidenote>
+          {" "}of the main argument. The body holds the claim; the margin holds the
           machinery.
         </p>
 
@@ -88,8 +89,9 @@ export default function FieldNotes() {
 
         <p>
           Sidenotes<index term="sidenote" /> are also a discipline. The writer who must
-          fit each note in a finite margin learns to compress<sidenote>One sentence, sometimes two; never a paragraph.</sidenote>
-          rather than expand, and the reader is repaid for it.
+          fit each note in a finite margin learns to compress
+          <sidenote>One sentence, sometimes two; never a paragraph.</sidenote>
+          {" "}rather than expand, and the reader is repaid for it.
         </p>
       </section>
 
@@ -102,8 +104,9 @@ export default function FieldNotes() {
           <def term="Sidenote">
             <p>
               A short remark, anchored at a point in the body text but typeset in
-              the margin alongside it<sidenote>Margins are themselves a kind of meta-typography: they say what the layout is willing to admit but not commit to.</sidenote>
-              rather than below.
+              the margin alongside it
+              <sidenote>Margins are themselves a kind of meta-typography: they say what the layout is willing to admit but not commit to.</sidenote>
+              {" "}rather than below.
             </p>
           </def>
           <def term="Marginalia">
