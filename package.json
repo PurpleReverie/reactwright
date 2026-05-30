@@ -33,11 +33,7 @@
     "mockup:long-form": "npm run -s run:file -- ./mockups/long-form.tsx --format html,pdf --out ./build/mockups",
     "mockup:ieee-long": "npm run -s run:file -- ./mockups/ieee-long.tsx --format html,pdf --out ./build/mockups",
     "mockup:story-bible": "npm run -s run:file -- ./mockups/story-bible.tsx --format html,pdf --out ./build/mockups",
-    "mockup:all": "npm run -s mockup:treatise && npm run -s mockup:field-notes && npm run -s mockup:chapter-three && npm run -s mockup:newsletter && npm run -s mockup:cover && npm run -s mockup:ieee && npm run -s mockup:ieee-long && npm run -s mockup:long-form && npm run -s mockup:story-bible",
-    "example:minimal": "node --import tsx ./src/examples/minimal.tsx",
-    "example:template": "node --import tsx ./src/examples/template.tsx",
-    "example:resolve": "node --import tsx ./src/examples/resolve.tsx",
-    "example:html": "node --import tsx ./src/examples/html.tsx"
+    "mockup:all": "npm run -s mockup:treatise && npm run -s mockup:field-notes && npm run -s mockup:chapter-three && npm run -s mockup:newsletter && npm run -s mockup:cover && npm run -s mockup:ieee && npm run -s mockup:ieee-long && npm run -s mockup:long-form && npm run -s mockup:story-bible"
   },
   "dependencies": {
     "react": "^19.1.0",
