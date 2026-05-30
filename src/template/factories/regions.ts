@@ -1,5 +1,6 @@
 import {
   mergeTemplateStyleGroups,
+  readClassName,
   readFixedAnchor,
   readFixedWhen,
   readLayerWhen,
@@ -13,8 +14,14 @@ import type {
   FixedNode,
   LayerNode,
   RegionNode,
-  StackNode
+  StackNode,
+  TemplateRowNode
 } from "../ir.js";
+
+function classNameField(props: TemplateProps): { className?: string } {
+  const className = readClassName(props);
+  return className != null ? { className } : {};
+}
 
 export function regionNode(props: TemplateProps): RegionNode {
   const positioning = readRegionPositioning(props);
@@ -22,6 +29,7 @@ export function regionNode(props: TemplateProps): RegionNode {
     kind: "region",
     style: mergeTemplateStyleGroups(props),
     ...(positioning != null ? { positioning } : {}),
+    ...classNameField(props),
     children: []
   };
 }
@@ -34,6 +42,7 @@ export function layerNode(props: TemplateProps): LayerNode {
     ...(name != null ? { name } : {}),
     when: readLayerWhen(props),
     style: mergeTemplateStyleGroups(props),
+    ...classNameField(props),
     children: []
   };
 }
@@ -49,6 +58,20 @@ export function stackNode(props: TemplateProps): StackNode {
     kind: "stack",
     gap,
     style,
+    ...classNameField(props),
+    children: []
+  };
+}
+
+export function templateRowNode(props: TemplateProps): TemplateRowNode {
+  const style = mergeTemplateStyleGroups(props);
+  const inferredGap = typeof style?.gap === "string" ? style.gap : undefined;
+  const gap = readOptionalTemplateToken(props, "gap") ?? inferredGap;
+  return {
+    kind: "row",
+    gap,
+    style,
+    ...classNameField(props),
     children: []
   };
 }
@@ -66,6 +89,7 @@ export function columnsNode(props: TemplateProps): ColumnsNode {
     ...(gap != null ? { gap } : {}),
     ...(widths != null ? { widths } : {}),
     style: mergeTemplateStyleGroups(props),
+    ...classNameField(props),
     children: []
   };
 }
@@ -77,6 +101,7 @@ export function columnNode(props: TemplateProps): ColumnNode {
     kind: "column",
     ...(width != null ? { width } : {}),
     style: mergeTemplateStyleGroups(props),
+    ...classNameField(props),
     children: []
   };
 }
@@ -87,6 +112,7 @@ export function fixedNode(props: TemplateProps): FixedNode {
     anchor: readFixedAnchor(props),
     when: readFixedWhen(props),
     style: mergeTemplateStyleGroups(props),
+    ...classNameField(props),
     children: []
   };
 }

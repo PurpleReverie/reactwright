@@ -112,6 +112,17 @@ export function readOptionalTemplateToken(
   return value.trim();
 }
 
+// Optional className prop. Returns undefined when absent, the trimmed
+// string when present, throws on present-but-empty.
+export function readClassName(props: TemplateProps): string | undefined {
+  const value = (props as Record<string, unknown>).className;
+  if (value == null) return undefined;
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error("`className` must be a non-empty string when provided.");
+  }
+  return value.trim();
+}
+
 // Fixed-position anchor: either a named anchor ("top-left") or a
 // coordinate object ({ top: "20mm", right: "10mm" }).
 export function readFixedAnchor(props: TemplateProps): FixedAnchor {

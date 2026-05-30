@@ -18,6 +18,7 @@ import type {
   ResolvedRegionNode,
   ResolvedRunningNode,
   ResolvedStackNode,
+  ResolvedTemplateRowNode,
   ResolvedTocNode
 } from "../../resolver/ir.js";
 import {
@@ -57,6 +58,17 @@ export function renderStackNode(node: ResolvedStackNode, innerHtml: string): str
   const style = styleToInlineCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
   return `<div data-node="stack"${styleAttr}>${innerHtml}</div>`;
+}
+
+// Horizontal-flex layout, symmetric to renderStackNode but with
+// flex-direction: row. Emits `data-node="template-row"` so the DOM
+// distinguishes it from the content-side table row.
+export function renderTemplateRowNode(node: ResolvedTemplateRowNode, innerHtml: string): string {
+  const baseStyle = "display:flex;flex-direction:row;";
+  const gapStyle = node.gap != null ? `gap:${escapeHtml(node.gap)};` : "";
+  const extraStyle = styleToInlineCss(node.style, "region");
+  const style = `${baseStyle}${gapStyle}${extraStyle}`;
+  return `<div data-node="template-row" style="${escapeHtml(style)}">${innerHtml}</div>`;
 }
 
 export function renderColumnsNode(node: ResolvedColumnsNode, innerHtml: string): string {
@@ -255,6 +267,7 @@ export function renderResolvedChild(node: ResolvedChild): string {
         .join("");
     case "region":  return renderRegionNode(node, renderChildren(node.children));
     case "stack":   return renderStackNode(node, renderChildren(node.children));
+    case "template-row": return renderTemplateRowNode(node, renderChildren(node.children));
     case "columns": return renderColumnsNode(node, renderChildren(node.children));
     case "column":  return renderColumnNode(node, renderChildren(node.children));
     case "layer":   return renderLayerNode(node, 0, renderChildren(node.children));
@@ -289,6 +302,7 @@ export function renderResolvedChild(node: ResolvedChild): string {
     case "abstract":
     case "section":
     case "figure":
+    case "caption":
     case "table":
     case "row":
     case "cell":

@@ -112,33 +112,47 @@ export type ResolvedDefsNode = {
   children: ResolvedDefNode[];
 };
 
+export type ResolvedCaptionNode = {
+  kind: "caption";
+  id?: string;
+  role?: string;
+  className?: string;
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedFigureNode = {
   kind: "figure";
   id?: string;
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   src: string;
   alt?: string;
-  caption?: string;
+  caption?: string;            // legacy string form
+  captionNode?: ResolvedCaptionNode;
   width?: string;
 };
 
 export type ResolvedCellNode = {
   kind: "cell";
   header?: boolean;
+  className?: string;
   children: ResolvedContentChild[];
 };
 
 export type ResolvedRowNode = {
   kind: "row";
+  className?: string;
   children: ResolvedCellNode[];
 };
 
 export type ResolvedTableNode = {
   kind: "table";
   id?: string;
+  className?: string;
   caption?: string;
+  captionNode?: ResolvedCaptionNode;
   children: ResolvedRowNode[];
 };
 
@@ -430,6 +444,16 @@ export type ResolvedStackNode = {
   children: ResolvedChild[];
 };
 
+// Template-side horizontal flex container, symmetric to ResolvedStackNode.
+// Distinct kind from the content-side table-row (ResolvedRowNode) so that
+// the discriminated union over ResolvedChild remains unambiguous.
+export type ResolvedTemplateRowNode = {
+  kind: "template-row";
+  gap?: string;
+  style?: TemplateStyle;
+  children: ResolvedChild[];
+};
+
 export type ResolvedColumnsNode = {
   kind: "columns";
   gap?: string;
@@ -494,6 +518,7 @@ export type ResolvedContentNode =
   | ResolvedAbstractNode
   | ResolvedSectionNode
   | ResolvedFigureNode
+  | ResolvedCaptionNode
   | ResolvedTableNode
   | ResolvedRowNode
   | ResolvedCellNode
@@ -567,6 +592,7 @@ export type ResolvedTemplateNode =
   | ResolvedBodyStreamNode
   | ResolvedRegionNode
   | ResolvedStackNode
+  | ResolvedTemplateRowNode
   | ResolvedColumnsNode
   | ResolvedColumnNode
   | ResolvedLayerNode

@@ -1,3 +1,5 @@
+import type { Match } from "../styles/ir.js";
+
 export type TemplateStyle = Record<string, unknown>;
 
 export type TemplatePageProps = {
@@ -119,7 +121,22 @@ export type PageRuleNode = {
   use: string;
 };
 
-export type RulesChild = RoleRuleNode | PageRuleNode;
+// New-style rule binding: a Match selector and a className. Lives
+// alongside legacy <role>-rules under <rules> (and as a direct sibling).
+// Declarations live in a <styles> block keyed by className.
+export type RuleNode = {
+  kind: "rule";
+  match: Match;
+  className: string;
+};
+
+// A block of styles-dialect text. Compiled at HTML emit time.
+export type StylesNode = {
+  kind: "styles";
+  source: string;
+};
+
+export type RulesChild = RoleRuleNode | PageRuleNode | RuleNode;
 
 export type RulesNode = {
   kind: "rules";
@@ -129,6 +146,7 @@ export type RulesNode = {
 export type PageNode = {
   kind: "page";
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -137,6 +155,7 @@ export type PageSetNode = {
   name: string;
   style?: TemplateStyle;
   anchors?: Record<string, CoordinateAnchor>;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -151,6 +170,7 @@ export type RegionNode = {
   kind: "region";
   style?: TemplateStyle;
   positioning?: RegionPositioning;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -161,6 +181,7 @@ export type LayerNode = {
   name?: string;
   when?: LayerWhen;
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -168,6 +189,18 @@ export type StackNode = {
   kind: "stack";
   gap?: string;
   style?: TemplateStyle;
+  className?: string;
+  children: TemplateChild[];
+};
+
+// Horizontal-flex layout primitive, symmetric to <stack>. Renderer
+// emits `display:flex; flex-direction:row` plus `gap`. Used for
+// side-by-side layout that isn't multi-column text flow.
+export type TemplateRowNode = {
+  kind: "row";
+  gap?: string;
+  style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -176,6 +209,7 @@ export type ColumnsNode = {
   gap?: string;
   widths?: string[];
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -183,6 +217,7 @@ export type ColumnNode = {
   kind: "column";
   width?: string;
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -216,6 +251,7 @@ export type FixedNode = {
   anchor: FixedAnchor;
   when?: FixedWhen;
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -334,6 +370,7 @@ export type HeaderNode = {
   anchor: MarginAnchor;
   when?: MarginMatterWhen;
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -342,6 +379,7 @@ export type FooterNode = {
   anchor: MarginAnchor;
   when?: MarginMatterWhen;
   style?: TemplateStyle;
+  className?: string;
   children: TemplateChild[];
 };
 
@@ -368,6 +406,7 @@ export type TemplateNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | TemplateRowNode
   | ColumnsNode
   | ColumnNode
   | LayerNode
@@ -389,6 +428,7 @@ export type TemplateNode =
   | CustomTemplateNode
   | RulesNode
   | RulesChild
+  | StylesNode
   | TemplateTextNode;
 
 export type TemplateContainerNode =
@@ -396,6 +436,7 @@ export type TemplateContainerNode =
   | PageSetNode
   | RegionNode
   | StackNode
+  | TemplateRowNode
   | ColumnsNode
   | ColumnNode
   | LayerNode
@@ -419,4 +460,6 @@ export type TemplateChild =
   | ListOfNode
   | FontNode
   | SlotNode
+  | StylesNode
+  | RuleNode
   | TemplateTextNode;

@@ -8,6 +8,7 @@ import {
 } from "../shared/prop-readers.js";
 
 import type {
+  CaptionNode,
   CellNode,
   CodeBlockNode,
   FigureNode,
@@ -32,17 +33,25 @@ function readMetadata(props: ContentProps): {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
 } {
   const id = getNonEmptyStringIfPresent(props, "id");
   const role = getNonEmptyStringIfPresent(props, "role");
   const page = getNonEmptyStringIfPresent(props, "page");
   const variant = getNonEmptyStringIfPresent(props, "variant");
+  const className = getNonEmptyStringIfPresent(props, "className");
   return {
     ...(id != null ? { id } : {}),
     ...(role != null ? { role } : {}),
     ...(page != null ? { page } : {}),
-    ...(variant != null ? { variant } : {})
+    ...(variant != null ? { variant } : {}),
+    ...(className != null ? { className } : {})
   };
+}
+
+function readClassName(props: ContentProps): { className?: string } {
+  const className = getNonEmptyStringIfPresent(props, "className");
+  return className != null ? { className } : {};
 }
 
 function documentNode(props: ContentProps): SemanticNode {
@@ -114,21 +123,35 @@ function tableNode(props: ContentProps): SemanticNode {
   return {
     kind: "table",
     ...(id != null ? { id } : {}),
+    ...readClassName(props),
     caption: getString(props, "caption"),
     children: []
   } satisfies TableNode;
 }
 
-function rowNode(_props: ContentProps): SemanticNode {
-  return { kind: "row", children: [] } satisfies RowNode;
+function rowNode(props: ContentProps): SemanticNode {
+  return { kind: "row", ...readClassName(props), children: [] } satisfies RowNode;
 }
 
 function cellNode(props: ContentProps): SemanticNode {
   return {
     kind: "cell",
     header: getBoolean(props, "header") === true ? true : undefined,
+    ...readClassName(props),
     children: []
   } satisfies CellNode;
+}
+
+function captionNode(props: ContentProps): SemanticNode {
+  const id = getNonEmptyStringIfPresent(props, "id");
+  const role = getNonEmptyStringIfPresent(props, "role");
+  return {
+    kind: "caption",
+    ...(id != null ? { id } : {}),
+    ...(role != null ? { role } : {}),
+    ...readClassName(props),
+    children: []
+  } satisfies CaptionNode;
 }
 
 function quoteNode(props: ContentProps): SemanticNode {
@@ -189,16 +212,16 @@ function defNode(props: ContentProps): SemanticNode {
   return { kind: "def", term, children: [] };
 }
 
-function emNode(_props: ContentProps): SemanticNode {
-  return { kind: "em", children: [] };
+function emNode(props: ContentProps): SemanticNode {
+  return { kind: "em", ...readClassName(props), children: [] };
 }
 
-function strongNode(_props: ContentProps): SemanticNode {
-  return { kind: "strong", children: [] };
+function strongNode(props: ContentProps): SemanticNode {
+  return { kind: "strong", ...readClassName(props), children: [] };
 }
 
-function codeNode(_props: ContentProps): SemanticNode {
-  return { kind: "code", children: [] };
+function codeNode(props: ContentProps): SemanticNode {
+  return { kind: "code", ...readClassName(props), children: [] };
 }
 
 function brNode(_props: ContentProps): SemanticNode {
@@ -210,16 +233,17 @@ function footnoteNode(props: ContentProps): SemanticNode {
   return {
     kind: "footnote",
     ...(marker != null ? { marker } : {}),
+    ...readClassName(props),
     children: []
   };
 }
 
-function sidenoteNode(_props: ContentProps): SemanticNode {
-  return { kind: "sidenote", children: [] };
+function sidenoteNode(props: ContentProps): SemanticNode {
+  return { kind: "sidenote", ...readClassName(props), children: [] };
 }
 
-function refsNode(_props: ContentProps): SemanticNode {
-  return { kind: "refs", children: [] };
+function refsNode(props: ContentProps): SemanticNode {
+  return { kind: "refs", ...readClassName(props), children: [] };
 }
 
 function refEntryNode(props: ContentProps): SemanticNode {
@@ -230,7 +254,7 @@ function refEntryNode(props: ContentProps): SemanticNode {
   if (refKey == null) {
     throw new Error("`ref-entry` requires a non-empty `refKey` (or `key`).");
   }
-  return { kind: "ref-entry", refKey, children: [] };
+  return { kind: "ref-entry", refKey, ...readClassName(props), children: [] };
 }
 
 function refNode(props: ContentProps): SemanticNode {
@@ -239,7 +263,7 @@ function refNode(props: ContentProps): SemanticNode {
     throw new Error("`ref` requires a non-empty `to`.");
   }
   const show = getEnum(props, "show", ["number", "page", "title", "number-and-page"] as const);
-  return { kind: "ref", to, ...(show != null ? { show } : {}) };
+  return { kind: "ref", to, ...(show != null ? { show } : {}), ...readClassName(props) };
 }
 
 function mathNode(props: ContentProps): SemanticNode {
@@ -267,7 +291,7 @@ function citeNode(props: ContentProps): SemanticNode {
   if (key == null) {
     throw new Error("`cite` requires a non-empty `cite` key.");
   }
-  return { kind: "cite", cite: key };
+  return { kind: "cite", cite: key, ...readClassName(props) };
 }
 
 function indexNode(props: ContentProps): SemanticNode {
@@ -275,7 +299,7 @@ function indexNode(props: ContentProps): SemanticNode {
   if (term == null) {
     throw new Error("`index` requires a non-empty `term`.");
   }
-  return { kind: "index", term };
+  return { kind: "index", term, ...readClassName(props) };
 }
 
 function imgNode(props: ContentProps): SemanticNode {
@@ -310,6 +334,7 @@ function linkNode(props: ContentProps): SemanticNode {
     kind: "link",
     href,
     ...(title != null ? { title } : {}),
+    ...readClassName(props),
     children: []
   } satisfies LinkNode;
 }
@@ -340,6 +365,7 @@ const FACTORIES: Record<string, (props: ContentProps) => SemanticNode> = {
   heading: headingNode,
   p: paragraphNode,
   figure: figureNode,
+  caption: captionNode,
   table: tableNode,
   row: rowNode,
   cell: cellNode,

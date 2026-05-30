@@ -1,6 +1,7 @@
 import type {
   AbstractNode,
   BlockQuoteNode,
+  CaptionNode,
   CellNode,
   CodeBlockNode,
   DefNode,
@@ -21,6 +22,7 @@ import type {
 import type {
   ResolvedAbstractNode,
   ResolvedBlockQuoteNode,
+  ResolvedCaptionNode,
   ResolvedCellNode,
   ResolvedCodeBlockNode,
   ResolvedContentChild,
@@ -63,10 +65,22 @@ export function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     src: node.src,
     alt: node.alt,
     caption: node.caption,
+    ...(node.captionNode != null ? { captionNode: resolveCaptionNode(node.captionNode) } : {}),
     width: node.width
+  };
+}
+
+export function resolveCaptionNode(node: CaptionNode): ResolvedCaptionNode {
+  return {
+    kind: "caption",
+    ...(node.id != null ? { id: node.id } : {}),
+    ...(node.role != null ? { role: node.role } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
   };
 }
 
@@ -74,19 +88,26 @@ export function resolveCellNode(node: CellNode): ResolvedCellNode {
   return {
     kind: "cell",
     ...(node.header === true ? { header: true } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
 
 export function resolveRowNode(node: RowNode): ResolvedRowNode {
-  return { kind: "row", children: node.children.map(resolveCellNode) };
+  return {
+    kind: "row",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveCellNode)
+  };
 }
 
 export function resolveTableNode(node: TableNode): ResolvedTableNode {
   return {
     kind: "table",
     ...(node.id != null ? { id: node.id } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     ...(node.caption != null ? { caption: node.caption } : {}),
+    ...(node.captionNode != null ? { captionNode: resolveCaptionNode(node.captionNode) } : {}),
     children: node.children.map(resolveRowNode)
   };
 }

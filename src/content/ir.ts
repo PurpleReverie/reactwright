@@ -7,21 +7,25 @@ export type LinkNode = {
   kind: "link";
   href: string;
   title?: string;
+  className?: string;
   children: InlineNode[];
 };
 
 export type EmNode = {
   kind: "em";
+  className?: string;
   children: InlineNode[];
 };
 
 export type StrongNode = {
   kind: "strong";
+  className?: string;
   children: InlineNode[];
 };
 
 export type CodeNode = {
   kind: "code";
+  className?: string;
   children: TextNode[];
 };
 
@@ -31,11 +35,13 @@ export type BreakNode = {
 
 export type SubNode = {
   kind: "sub";
+  className?: string;
   children: InlineNode[];
 };
 
 export type SupNode = {
   kind: "sup";
+  className?: string;
   children: InlineNode[];
 };
 
@@ -45,6 +51,7 @@ export type InlineImgNode = {
   alt?: string;
   width?: string;
   height?: string;
+  className?: string;
 };
 
 export type RefShow = "number" | "page" | "title" | "number-and-page";
@@ -53,11 +60,13 @@ export type RefNode = {
   kind: "ref";
   to: string;
   show?: RefShow;
+  className?: string;
 };
 
 export type FootnoteNode = {
   kind: "footnote";
   marker?: string;
+  className?: string;
   children: InlineNode[];
 };
 
@@ -68,36 +77,43 @@ export type MathNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
 };
 
 export type InlineMathNode = {
   kind: "m";
   src: string;
+  className?: string;
 };
 
 export type CiteNode = {
   kind: "cite";
   cite: string;
+  className?: string;
 };
 
 export type IndexNode = {
   kind: "index";
   term: string;
+  className?: string;
 };
 
 export type SidenoteNode = {
   kind: "sidenote";
+  className?: string;
   children: InlineNode[];
 };
 
 export type RefEntryNode = {
   kind: "ref-entry";
   refKey: string;
+  className?: string;
   children: InlineNode[];
 };
 
 export type RefsNode = {
   kind: "refs";
+  className?: string;
   children: RefEntryNode[];
 };
 
@@ -107,6 +123,7 @@ export type ParagraphNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: InlineNode[];
 };
 
@@ -114,13 +131,29 @@ export type CodeBlockNode = {
   kind: "code-block";
   id?: string;
   language?: string;
+  className?: string;
   children: TextNode[];
 };
 
 export type PreNode = {
   kind: "pre";
   id?: string;
+  className?: string;
   children: TextNode[];
+};
+
+// `caption` is a first-class IR node. Figures and tables accept exactly
+// one optional caption child; renderers position it (above for tables,
+// below for figures, by IEEE convention; templates may override).
+// Backwards compat: figure/table also accept `caption?: string` props;
+// the resolver normalises a string-form caption into a CaptionNode
+// child if no child caption is present.
+export type CaptionNode = {
+  kind: "caption";
+  id?: string;
+  role?: string;
+  className?: string;
+  children: InlineNode[];
 };
 
 export type FigureNode = {
@@ -129,27 +162,33 @@ export type FigureNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   src: string;
   alt?: string;
-  caption?: string;
+  caption?: string;          // legacy string form
+  captionNode?: CaptionNode; // node form set by JSX child or resolver normalisation
   width?: string;
 };
 
 export type CellNode = {
   kind: "cell";
   header?: boolean;
+  className?: string;
   children: SemanticBlockChild[];
 };
 
 export type RowNode = {
   kind: "row";
+  className?: string;
   children: CellNode[];
 };
 
 export type TableNode = {
   kind: "table";
   id?: string;
-  caption?: string;
+  className?: string;
+  caption?: string;          // legacy string form
+  captionNode?: CaptionNode; // node form set by JSX child or resolver normalisation
   children: RowNode[];
 };
 
@@ -160,11 +199,13 @@ export type BlockQuoteNode = {
   page?: string;
   variant?: string;
   speaker?: string;
+  className?: string;
   children: SemanticBlockChild[];
 };
 
 export type ListItemNode = {
   kind: "item";
+  className?: string;
   children: SemanticBlockChild[];
 };
 
@@ -175,12 +216,14 @@ export type ListNode = {
   page?: string;
   variant?: string;
   ordered: boolean;
+  className?: string;
   children: ListItemNode[];
 };
 
 export type DefNode = {
   kind: "def";
   term: string;
+  className?: string;
   children: SemanticBlockChild[];
 };
 
@@ -190,6 +233,7 @@ export type DefsNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: DefNode[];
 };
 
@@ -200,6 +244,7 @@ export type SectionNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: SemanticBlockChild[];
 };
 
@@ -211,6 +256,7 @@ export type HeadingNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
 };
 
 export type PageBreakNode = {
@@ -227,6 +273,7 @@ export type AbstractNode = {
   kind: "abstract";
   page?: string;
   variant?: string;
+  className?: string;
   children: SemanticBlockChild[];
 };
 
@@ -234,6 +281,7 @@ export type DocumentNode = {
   kind: "document";
   title: string;
   author?: string;
+  className?: string;
   children: DocumentChild[];
 };
 
@@ -278,6 +326,7 @@ export type SemanticNode =
   | SectionNode
   | ParagraphNode
   | FigureNode
+  | CaptionNode
   | TableNode
   | RowNode
   | CellNode
@@ -316,6 +365,7 @@ export type SemanticContainerNode =
   | SectionNode
   | ParagraphNode
   | FigureNode
+  | CaptionNode
   | TableNode
   | RowNode
   | CellNode

@@ -125,6 +125,7 @@ import type {
   ResolvedSectionNode,
   ResolvedSetRunningNode,
   ResolvedStackNode,
+  ResolvedTemplateRowNode,
   ResolvedStrongNode,
   ResolvedSubNode,
   ResolvedSupNode,
@@ -215,6 +216,7 @@ function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveC
     case "page":
     case "region":
     case "stack":
+    case "row":
     case "columns":
     case "column":
     case "layer":
@@ -265,6 +267,11 @@ function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveC
       return chrome;
     }
     case "rules":
+    case "rule":
+    case "styles":
+      // Rule/style definitions are collected separately by the
+      // rule-collection pass; they contribute nothing to the rendered
+      // flow.
       return [];
     case "text":
       return [{ kind: "text", value: child.value }];
@@ -481,6 +488,13 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         style: node.style,
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedStackNode;
+    case "row":
+      return {
+        kind: "template-row",
+        gap: node.gap,
+        style: node.style,
+        children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
+      } satisfies ResolvedTemplateRowNode;
     case "columns":
       return {
         kind: "columns",
@@ -534,6 +548,8 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
       // Page-sets are flattened by expandTemplateChild (chrome hoisted,
       // body flow stored in regimeFlows); never reached here.
     case "rules":
+    case "rule":
+    case "styles":
     case "page-number":
     case "page-count":
     case "running":

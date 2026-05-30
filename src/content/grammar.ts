@@ -68,9 +68,11 @@ const GRAMMAR: Partial<Record<Kind, GrammarRule>> = {
 
   "ref-entry": { allowed: REF_ENTRY_INLINE_KINDS, message: "`ref-entry` may only contain inline primitives." },
 
-  table: { allowed: new Set(["row"]),  message: "`table` may only contain `row` children." },
-  row:   { allowed: new Set(["cell"]), message: "`row` may only contain `cell` children." },
-  cell:  { allowed: BLOCK_KINDS,       message: "`cell` may only contain block primitives." },
+  table:   { allowed: new Set(["row", "caption"]), message: "`table` may only contain `row` or `caption` children." },
+  row:     { allowed: new Set(["cell"]),           message: "`row` may only contain `cell` children." },
+  cell:    { allowed: BLOCK_KINDS,                 message: "`cell` may only contain block primitives." },
+  caption: { allowed: INLINE_KINDS,                message: "`caption` may only contain inline primitives." },
+  figure:  { allowed: new Set(["caption"]),        message: "`figure` may only contain a `caption` child." },
 
   list:  { allowed: new Set(["item"]), message: "`list` may only contain `item` children." },
   item:  { allowed: BLOCK_KINDS,       message: "`item` may only contain block primitives." },
@@ -88,9 +90,7 @@ const GRAMMAR: Partial<Record<Kind, GrammarRule>> = {
   // "absent from GRAMMAR" default.
 };
 
-const LEAF_MESSAGES: Partial<Record<Kind, string>> = {
-  figure: "`figure` may not contain child nodes."
-};
+const LEAF_MESSAGES: Partial<Record<Kind, string>> = {};
 
 function isWhitespaceOnlyText(node: SemanticNode): boolean {
   return node.kind === "text" && node.value.trim().length === 0;
@@ -122,6 +122,14 @@ export function appendSemanticChild(
   }
   if (!rule.allowed.has(child.kind)) {
     throw new Error(rule.message);
+  }
+
+  // figure and table store their caption child on `captionNode` rather
+  // than in `children`, so the existing renderers (which expect figure
+  // to be a leaf and table.children to be RowNodes) keep working.
+  if (child.kind === "caption" && (parent.kind === "figure" || parent.kind === "table")) {
+    (parent as { captionNode?: SemanticNode }).captionNode = child;
+    return;
   }
 
   // The parent's `children` array is one of several typed unions; from
