@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 
-test("consumer-style TypeScript fixture type-checks with public reactdoc typings", () => {
+test("consumer-style TypeScript fixture type-checks with public reactwright typings", () => {
   const result = spawnSync(
     process.execPath,
     ["./node_modules/typescript/bin/tsc", "-p", "fixtures/intellisense-consumer/tsconfig.json", "--noEmit"],

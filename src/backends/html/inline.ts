@@ -35,7 +35,7 @@ export function renderInlineImgNode(node: ResolvedInlineImgNode): string {
 }
 
 function refClassFor(show: string): string {
-  return `reactdoc-ref reactdoc-ref-${show}`;
+  return `reactwright-ref reactwright-ref-${show}`;
 }
 
 export function renderRefNode(node: ResolvedRefNode): string {
@@ -46,16 +46,16 @@ export function renderRefNode(node: ResolvedRefNode): string {
 export function renderFootnoteNode(node: ResolvedFootnoteNode): string {
   const markerAttr = node.marker != null ? ` data-marker="${escapeHtml(node.marker)}"` : "";
   const inner = node.children.map(renderInlineNode).join("");
-  return `<span data-node="footnote"${markerAttr} class="reactdoc-footnote">${inner}</span>`;
+  return `<span data-node="footnote"${markerAttr} class="reactwright-footnote">${inner}</span>`;
 }
 
 export function renderSidenoteNode(node: ResolvedSidenoteNode): string {
   const inner = node.children.map(renderInlineNode).join("");
-  return `<span data-node="sidenote" class="reactdoc-sidenote">${inner}</span>`;
+  return `<span data-node="sidenote" class="reactwright-sidenote">${inner}</span>`;
 }
 
 export function renderInlineMathNode(node: ResolvedInlineMathNode): string {
-  return `<span data-node="math-inline" class="reactdoc-math reactdoc-math-inline">${renderTeX(node.src, false)}</span>`;
+  return `<span data-node="math-inline" class="reactwright-math reactwright-math-inline">${renderTeX(node.src, false)}</span>`;
 }
 
 export function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
@@ -63,8 +63,8 @@ export function renderIndexEntryNode(node: ResolvedIndexEntryNode): string {
 }
 
 export function renderCiteNode(node: ResolvedCiteNode): string {
-  const href = `#${escapeHtml("reactdoc-bib-" + node.cite)}`;
-  return `<a data-node="cite" data-cite-key="${escapeHtml(node.cite)}" class="reactdoc-cite" href="${href}"></a>`;
+  const href = `#${escapeHtml("reactwright-bib-" + node.cite)}`;
+  return `<a data-node="cite" data-cite-key="${escapeHtml(node.cite)}" class="reactwright-cite" href="${href}"></a>`;
 }
 
 export function renderInlineNode(node: ResolvedInlineNode): string {

@@ -27,7 +27,7 @@ template React tree ─┘
 
 ```bash
 npm install
-npm run run:file -- ./playground/paper.tsx --format html --out ./build/reactdoc-run
+npm run run:file -- ./playground/paper.tsx --format html --out ./build/reactwright-run
 ```
 
 The runner accepts a `.tsx` file exporting `default` (or `Content` / `content`) as the content component and optionally `Template` (or `template`) as the template component. If no template is exported, a built-in starter template is used.
@@ -37,9 +37,9 @@ The runner accepts a `.tsx` file exporting `default` (or `Content` / `content`) 
 For consumer projects:
 
 ```tsx
-import "reactdoc/jsx";
-import { ArticleTemplate } from "reactdoc/templates";
-import type { ContentComponent, TemplateComponent } from "reactdoc";
+import "reactwright/jsx";
+import { ArticleTemplate } from "reactwright/templates";
+import type { ContentComponent, TemplateComponent } from "reactwright";
 
 export const Template: TemplateComponent = () => <ArticleTemplate />;
 

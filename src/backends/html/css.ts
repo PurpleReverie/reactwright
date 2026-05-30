@@ -56,10 +56,18 @@ const cssPropertyMap: Record<string, string> = {
   fontSize: "font-size",
   fontWeight: "font-weight",
   fontStyle: "font-style",
+  fontVariant: "font-variant",
   lineHeight: "line-height",
+  letterSpacing: "letter-spacing",
+  wordSpacing: "word-spacing",
   textAlign: "text-align",
+  textTransform: "text-transform",
+  textDecoration: "text-decoration",
+  textIndent: "text-indent",
   columns: "column-count",
   columnGap: "column-gap",
+  columnSpan: "column-span",
+  columnFill: "column-fill",
   color: "color",
   backgroundColor: "background-color",
   border: "border",
@@ -141,7 +149,7 @@ export function buildAtPageRule(
   return `${selector}{${declarations.join("")}}`;
 }
 
-// Body-text rule emitted as `.reactdoc-flow { ... }`. Covers the
+// Body-text rule emitted as `.reactwright-flow { ... }`. Covers the
 // document-wide typography choices that don't belong on @page.
 export function buildBodyTextRule(style: TemplateStyle | undefined): string | null {
   if (style == null) return null;
@@ -159,7 +167,7 @@ export function buildBodyTextRule(style: TemplateStyle | undefined): string | nu
   if (style.columnGap != null) declarations.push(`column-gap:${String(style.columnGap)};`);
 
   if (declarations.length === 0) return null;
-  return `.reactdoc-flow{${declarations.join("")}}`;
+  return `.reactwright-flow{${declarations.join("")}}`;
 }
 
 // Running-string wiring: built-in title strings plus per-name <set>
@@ -168,12 +176,12 @@ export function buildRunningStringsCss(names: Set<string>): string {
   if (names.size === 0) return "";
   const rules: string[] = [];
 
-  rules.push("h1.reactdoc-document-title{string-set:document-title content();}");
-  rules.push("h2.reactdoc-section-title{string-set:section-title content();}");
-  rules.push("h2.reactdoc-chapter-title{string-set:chapter-title content();}");
+  rules.push("h1.reactwright-document-title{string-set:document-title content();}");
+  rules.push("h2.reactwright-section-title{string-set:section-title content();}");
+  rules.push("h2.reactwright-chapter-title{string-set:chapter-title content();}");
 
   for (const name of names) {
-    const cls = `reactdoc-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+    const cls = `reactwright-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
     rules.push(`.${cls}-source{string-set:${name} content();}`);
     rules.push(`.${cls}::before{content:string(${name});}`);
   }
@@ -263,7 +271,7 @@ export function buildFootnoteAreaCss(page: ResolvedPageNode): string {
   );
   if (area == null) return "";
   const rules: string[] = [];
-  rules.push(".reactdoc-footnote{float:footnote;}");
+  rules.push(".reactwright-footnote{float:footnote;}");
   rules.push("@page{@footnote{border-top:1px solid #999;padding-top:0.25em;}}");
   if (area.separator === false) {
     rules.push("@page{@footnote{border-top:none;}}");
@@ -358,8 +366,8 @@ export function buildSidenoteAreaCss(page: ResolvedPageNode): string {
           ? `left:calc(-1 * (${width} + ${gap}));`
           : `right:calc(-1 * (${width} + ${gap}));`;
   return [
-    `.reactdoc-sidenote{position:absolute;${sideRule}width:${width};font-size:0.85em;line-height:1.3;}`,
-    ".reactdoc-flow{position:relative;}"
+    `.reactwright-sidenote{position:absolute;${sideRule}width:${width};font-size:0.85em;line-height:1.3;}`,
+    ".reactwright-flow{position:relative;}"
   ].join("");
 }
 

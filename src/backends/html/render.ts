@@ -41,44 +41,44 @@ const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
 // block. They are opinionated and would force every template to
 // fight the engine. Templates that want a "looks reasonable out of
 // the box" baseline can opt into `defaultTypography` from
-// reactdoc/typography via customCss.
+// reactwright/typography via customCss.
 const STATIC_DEFAULTS_CSS = [
   // ── machinery: page chrome and counters ───────────────────────
   "body{margin:0;}",
-  ".reactdoc-flow{box-sizing:border-box;position:relative;}",
-  ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
-  ".reactdoc-page-number::before{content:counter(page);}",
-  ".reactdoc-page-count::before{content:counter(pages);}",
+  ".reactwright-flow{box-sizing:border-box;position:relative;}",
+  ".reactwright-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
+  ".reactwright-page-number::before{content:counter(page);}",
+  ".reactwright-page-count::before{content:counter(pages);}",
   // ── machinery: cross-references and citations ────────────────
-  ".reactdoc-ref-number::after{content:target-counter(attr(href url), reactdoc-ref);}",
-  ".reactdoc-ref-page::after{content:target-counter(attr(href url), page);}",
-  ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
-  ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' ' target-counter(attr(href url), page);}",
-  ".reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib);}",
+  ".reactwright-ref-number::after{content:target-counter(attr(href url), reactwright-ref);}",
+  ".reactwright-ref-page::after{content:target-counter(attr(href url), page);}",
+  ".reactwright-ref-title::after{content:target-text(attr(href url));}",
+  ".reactwright-ref-number-and-page::after{content:target-counter(attr(href url), reactwright-ref) ' ' target-counter(attr(href url), page);}",
+  ".reactwright-cite::after{content:target-counter(attr(href url), reactwright-bib);}",
   // Bibliography counter wiring lives in CSS rules (not inline
   // styles on the <li>) so that target-counter() resolves
   // correctly across Paged.js page chunks.
-  ".reactdoc-bibliography{counter-reset:reactdoc-bib;}",
-  ".reactdoc-bibliography ol > li{counter-increment:reactdoc-bib;}",
-  // reactdoc-ref counter: incremented on every id-bearing element
+  ".reactwright-bibliography{counter-reset:reactwright-bib;}",
+  ".reactwright-bibliography ol > li{counter-increment:reactwright-bib;}",
+  // reactwright-ref counter: incremented on every id-bearing element
   // that can be the target of <ref show="number">. Same constraint
-  // as reactdoc-bib — must be a CSS rule, not inline, so Paged.js
+  // as reactwright-bib — must be a CSS rule, not inline, so Paged.js
   // resolves target-counter() across pages. Single shared counter
   // returns ordinal position; per-kind counters (figure number vs
   // section number) would require a richer ref API.
-  ".reactdoc-flow{counter-reset:reactdoc-ref;}",
-  ".reactdoc-flow section[id],.reactdoc-flow figure[id],.reactdoc-flow table[id],.reactdoc-flow [data-node='math-block'][id]{counter-increment:reactdoc-ref;}",
-  ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
-  ".reactdoc-index-pagerefs a + a::before{content:', ';}",
+  ".reactwright-flow{counter-reset:reactwright-ref;}",
+  ".reactwright-flow section[id],.reactwright-flow figure[id],.reactwright-flow table[id],.reactwright-flow [data-node='math-block'][id]{counter-increment:reactwright-ref;}",
+  ".reactwright-index-pageref::after{content:target-counter(attr(href url), page);}",
+  ".reactwright-index-pagerefs a + a::before{content:', ';}",
   // ── machinery: TOC / list-of leader formatting ────────────────
-  ".reactdoc-toc ol{list-style:none;padding-left:0;}",
-  ".reactdoc-toc-entry{display:flex;justify-content:space-between;}",
-  ".reactdoc-toc-link,.reactdoc-toc-page{text-decoration:none;color:inherit;}",
-  ".reactdoc-toc-page::after{content:target-counter(attr(href url), page);}",
-  ".reactdoc-list-of ol{list-style:none;padding-left:0;}",
-  ".reactdoc-list-of-entry{display:flex;justify-content:space-between;}",
-  ".reactdoc-list-of-link,.reactdoc-list-of-page{text-decoration:none;color:inherit;}",
-  ".reactdoc-list-of-page::after{content:target-counter(attr(href url), page);}",
+  ".reactwright-toc ol{list-style:none;padding-left:0;}",
+  ".reactwright-toc-entry{display:flex;justify-content:space-between;}",
+  ".reactwright-toc-link,.reactwright-toc-page{text-decoration:none;color:inherit;}",
+  ".reactwright-toc-page::after{content:target-counter(attr(href url), page);}",
+  ".reactwright-list-of ol{list-style:none;padding-left:0;}",
+  ".reactwright-list-of-entry{display:flex;justify-content:space-between;}",
+  ".reactwright-list-of-link,.reactwright-list-of-page{text-decoration:none;color:inherit;}",
+  ".reactwright-list-of-page::after{content:target-counter(attr(href url), page);}",
   // ── reset: block elements have no UA margin ───────────────────
   "h1,h2,h3,h4,h5,h6,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
   // Headings shouldn't inherit text-align: justify from a parent
@@ -87,7 +87,7 @@ const STATIC_DEFAULTS_CSS = [
   // Last-line of justified paragraphs aligns to start (left in LTR),
   // not stretched. Without this Chrome can produce word-spread gaps
   // on the final line.
-  ".reactdoc-flow p{text-align-last:left;}",
+  ".reactwright-flow p{text-align-last:left;}",
   // Inline code: monospace font only. No background, padding, or
   // border — those are opinionated cosmetics.
   "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;}",
@@ -96,10 +96,10 @@ const STATIC_DEFAULTS_CSS = [
   "table{border-collapse:collapse;width:100%;}",
   "figure img{max-width:100%;height:auto;}",
   // ── machinery: math block centering ───────────────────────────
-  ".reactdoc-math-block{position:relative;text-align:center;margin:0.6em 0;}",
-  ".reactdoc-math-block .katex-display{margin:0;text-align:center;}",
-  ".reactdoc-math-block .katex-display>.katex{display:inline-block;text-align:initial;}",
-  ".reactdoc-math-block[data-variant]::before{position:absolute;right:0;top:50%;transform:translateY(-50%);font-style:normal;text-align:right;}"
+  ".reactwright-math-block{position:relative;text-align:center;margin:0.6em 0;}",
+  ".reactwright-math-block .katex-display{margin:0;text-align:center;}",
+  ".reactwright-math-block .katex-display>.katex{display:inline-block;text-align:initial;}",
+  ".reactwright-math-block[data-variant]::before{position:absolute;right:0;top:50%;transform:translateY(-50%);font-style:normal;text-align:right;}"
 ].join("");
 
 // Render a resolved page IR to a complete HTML document for Paged.js.
@@ -209,8 +209,8 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "</head>",
     "<body>",
     marginMatterHtml,
-    overlays.length > 0 ? `<div class="reactdoc-overlay">${overlays}</div>` : "",
-    `<div class="reactdoc-flow">${flowBody}</div>`,
+    overlays.length > 0 ? `<div class="reactwright-overlay">${overlays}</div>` : "",
+    `<div class="reactwright-flow">${flowBody}</div>`,
     "</body>",
     "</html>"
   ]

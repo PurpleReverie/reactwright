@@ -67,7 +67,7 @@ test("resolver applies role rules and stores page-set body flow as a per-regime 
         <p role="lead">World copy.</p>
         <figure
           role="map"
-          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          src={resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png")}
           caption="Map"
           width="20mm"
         />

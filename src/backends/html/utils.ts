@@ -110,7 +110,7 @@ export function coordinateAnchorToCss(
 // CSS class fragment for a running-string source/sink with the given
 // user-facing name. Non-identifier characters become underscores.
 export function runningClassFor(name: string): string {
-  return `reactdoc-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+  return `reactwright-running-${name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 }
 
 // Region positioning flags (fill, center) → CSS declarations.

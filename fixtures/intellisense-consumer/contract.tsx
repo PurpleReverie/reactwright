@@ -1,6 +1,6 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
-import { defineRoles, type Role } from "reactdoc/contract";
+import { defineRoles, type Role } from "reactwright/contract";
 
 export const BookRoles = defineRoles(["opener", "epigraph", "scene-heading", "callout"] as const);
 export type BookRole = Role<typeof BookRoles>;

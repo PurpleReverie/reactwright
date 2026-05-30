@@ -1,8 +1,8 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
+const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
 
 // Cover + frontmatter — page regimes, layered backgrounds, fixed ornaments.
 // Exercises: <layer> backgrounds, <fixed> at named + coordinate anchors,

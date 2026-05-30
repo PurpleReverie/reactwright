@@ -1,4 +1,4 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 import { resolve } from "node:path";
 
@@ -11,7 +11,7 @@ import { Template, createBibliography, IEEEFrontMatter } from "./ieee/index.js";
 
 export { Template };
 
-const FIGURE_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
+const FIGURE_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
 
 const refs = createBibliography({
   kernighan1976: {

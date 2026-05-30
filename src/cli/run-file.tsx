@@ -63,7 +63,7 @@ type ExternalDocumentModule =
 function usage(): string {
   return [
     "Usage:",
-    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,pdf] [--out ./build/reactdoc-run]",
+    "  node --import tsx ./src/cli/run-file.ts <input.tsx> [--format html,pdf] [--out ./build/reactwright-run]",
     "",
     "Examples:",
     "  node --import tsx ./src/cli/run-file.ts ./playground/paper.tsx --format html",
@@ -135,7 +135,7 @@ async function writeHtmlOutput(outDir: string, baseName: string, html: string): 
 
 export async function runExternalFile(options: RunExternalFileOptions): Promise<RunExternalFileResult> {
   const absoluteInputPath = resolve(options.inputPath);
-  const outDir = resolve(options.outDir ?? "build/reactdoc-run");
+  const outDir = resolve(options.outDir ?? "build/reactwright-run");
   const baseName = basename(absoluteInputPath, extname(absoluteInputPath));
 
   await mkdir(outDir, { recursive: true });

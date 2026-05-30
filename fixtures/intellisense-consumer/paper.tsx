@@ -1,6 +1,6 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
-import type { ContentComponent, TemplateComponent } from "reactdoc";
+import type { ContentComponent, TemplateComponent } from "reactwright";
 
 // Consumers ship their own templates. The engine only provides primitives.
 export const Template: TemplateComponent = () => (

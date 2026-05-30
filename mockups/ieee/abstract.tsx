@@ -1,4 +1,4 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 import React from "react";
 
 // IEEE abstract block helper. Wraps the engine's <abstract> and

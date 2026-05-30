@@ -112,11 +112,11 @@ export function renderLayerNode(node: ResolvedLayerNode, zIndex: number, innerHt
 // --- Decoration-style renderers (no children) ------------------------
 
 export function renderPageNumberNode(_node: ResolvedPageNumberNode): string {
-  return '<span data-node="page-number" class="reactdoc-page-number"></span>';
+  return '<span data-node="page-number" class="reactwright-page-number"></span>';
 }
 
 export function renderPageCountNode(_node: ResolvedPageCountNode): string {
-  return '<span data-node="page-count" class="reactdoc-page-count"></span>';
+  return '<span data-node="page-count" class="reactwright-page-count"></span>';
 }
 
 export function renderRunningNode(node: ResolvedRunningNode): string {
@@ -149,47 +149,47 @@ export function renderImageNode(node: ResolvedImageNode): string {
 // each of them — putting the page span inside the title <a> meant
 // the page span had no href and target-counter returned 0.
 export function renderListOfNode(node: ResolvedListOfNode): string {
-  const title = node.title != null ? `<h2 class="reactdoc-list-of-title">${escapeHtml(node.title)}</h2>` : "";
+  const title = node.title != null ? `<h2 class="reactwright-list-of-title">${escapeHtml(node.title)}</h2>` : "";
   const items = node.entries
     .map((e) => {
       const href = `#${escapeHtml(e.id)}`;
-      return `<li class="reactdoc-list-of-entry"><a class="reactdoc-list-of-link" href="${href}"><span class="reactdoc-list-of-text">${escapeHtml(e.caption)}</span></a><a class="reactdoc-list-of-page" href="${href}"></a></li>`;
+      return `<li class="reactwright-list-of-entry"><a class="reactwright-list-of-link" href="${href}"><span class="reactwright-list-of-text">${escapeHtml(e.caption)}</span></a><a class="reactwright-list-of-page" href="${href}"></a></li>`;
     })
     .join("");
-  return `<nav data-node="list-of" data-of="${escapeHtml(node.of)}" class="reactdoc-list-of">${title}<ol>${items}</ol></nav>`;
+  return `<nav data-node="list-of" data-of="${escapeHtml(node.of)}" class="reactwright-list-of">${title}<ol>${items}</ol></nav>`;
 }
 
 export function renderTocNode(node: ResolvedTocNode): string {
-  const title = node.title != null ? `<h2 class="reactdoc-toc-title">${escapeHtml(node.title)}</h2>` : "";
+  const title = node.title != null ? `<h2 class="reactwright-toc-title">${escapeHtml(node.title)}</h2>` : "";
   const items = node.entries
     .map((e) => {
-      const depthClass = ` class="reactdoc-toc-entry reactdoc-toc-depth-${e.depth}"`;
+      const depthClass = ` class="reactwright-toc-entry reactwright-toc-depth-${e.depth}"`;
       const numberedAttr = node.numbered === true ? ` data-numbered="true"` : "";
       const href = `#${escapeHtml(e.id)}`;
-      return `<li${depthClass}${numberedAttr}><a class="reactdoc-toc-link" href="${href}"><span class="reactdoc-toc-text">${escapeHtml(e.title)}</span></a><a class="reactdoc-toc-page" href="${href}"></a></li>`;
+      return `<li${depthClass}${numberedAttr}><a class="reactwright-toc-link" href="${href}"><span class="reactwright-toc-text">${escapeHtml(e.title)}</span></a><a class="reactwright-toc-page" href="${href}"></a></li>`;
     })
     .join("");
-  return `<nav data-node="toc" class="reactdoc-toc">${title}<ol>${items}</ol></nav>`;
+  return `<nav data-node="toc" class="reactwright-toc">${title}<ol>${items}</ol></nav>`;
 }
 
 export function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string {
-  const title = node.title != null ? `<h2 class="reactdoc-index-title">${escapeHtml(node.title)}</h2>` : "";
+  const title = node.title != null ? `<h2 class="reactwright-index-title">${escapeHtml(node.title)}</h2>` : "";
   const items = node.entries
     .map((e) => {
       const refs = e.anchorIds
-        .map((id) => `<a class="reactdoc-index-pageref" href="#${escapeHtml(id)}"></a>`)
+        .map((id) => `<a class="reactwright-index-pageref" href="#${escapeHtml(id)}"></a>`)
         .join(", ");
-      return `<li data-index-term="${escapeHtml(e.term)}">${escapeHtml(e.term)}<span class="reactdoc-index-pagerefs"> ${refs}</span></li>`;
+      return `<li data-index-term="${escapeHtml(e.term)}">${escapeHtml(e.term)}<span class="reactwright-index-pagerefs"> ${refs}</span></li>`;
     })
     .join("");
-  return `<section data-node="index" class="reactdoc-index">${title}<ul>${items}</ul></section>`;
+  return `<section data-node="index" class="reactwright-index">${title}<ul>${items}</ul></section>`;
 }
 
 export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
-  const title = node.title != null ? `<h2 class="reactdoc-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
+  const title = node.title != null ? `<h2 class="reactwright-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
   // Bibliography counter wiring: counter-reset on the section and
   // counter-increment per <li> are emitted via STATIC_DEFAULTS_CSS
-  // class rules (.reactdoc-bibliography / .reactdoc-bibliography ol > li)
+  // class rules (.reactwright-bibliography / .reactwright-bibliography ol > li)
   // rather than inline styles. Paged.js's target-counter() does not
   // see inline-style counter-increments when resolving cross-page
   // <cite> references — using CSS rules fixes that.
@@ -200,10 +200,10 @@ export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
         e.inline != null && e.inline.length > 0
           ? e.inline.map((c) => renderInlineNode(c)).join("")
           : escapeHtml(e.text ?? e.key);
-      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${body}</li>`;
+      return `<li id="reactwright-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${body}</li>`;
     })
     .join("");
-  return `<section data-node="bibliography" class="reactdoc-bibliography">${title}<ol>${items}</ol></section>`;
+  return `<section data-node="bibliography" class="reactwright-bibliography">${title}<ol>${items}</ol></section>`;
 }
 
 // --- Custom intrinsic --------------------------------------------------
@@ -327,7 +327,7 @@ export function collectMarginMatter(page: ResolvedPageNode): MarginMatterEntry[]
   const visit = (children: ResolvedChild[]): void => {
     for (const child of children) {
       if (child.kind === "header" || child.kind === "footer") {
-        const flowName = `reactdoc-${child.kind}-${counter}`;
+        const flowName = `reactwright-${child.kind}-${counter}`;
         counter += 1;
         const inner = child.children.map((c) => renderResolvedChild(c)).join("");
         const html = `<div class="${flowName}" data-margin-flow="${flowName}">${inner}</div>`;

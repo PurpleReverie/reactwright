@@ -1,8 +1,8 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 import { resolve } from "node:path";
 
-const DIAGRAM = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
+const DIAGRAM = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
 
 // Story Bible — tests three distinct page regimes routing in one document.
 //

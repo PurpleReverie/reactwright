@@ -37,7 +37,7 @@ test("HTML backend emits CSS Paged Media @page rule and Paged.js script", () => 
   );
   assert.match(html, /@page\{size:A4;margin:25mm;\}/);
   assert.match(html, /pagedjs/);
-  assert.match(html, /class="reactdoc-flow"/);
+  assert.match(html, /class="reactwright-flow"/);
 });
 
 test("HTML backend emits running-string CSS for set and running primitives", () => {
@@ -67,8 +67,8 @@ test("HTML backend emits running-string CSS for set and running primitives", () 
   assert.match(html, /content:string\(scene-location\)/);
   assert.match(html, /data-running-name="scene-location"/);
   assert.match(html, /data-node="set-running"/);
-  assert.match(html, /reactdoc-document-title/);
-  assert.match(html, /reactdoc-section-title/);
+  assert.match(html, /reactwright-document-title/);
+  assert.match(html, /reactwright-section-title/);
 });
 
 test("header/footer compile to CSS Paged Media margin boxes with running elements", () => {
@@ -90,11 +90,11 @@ test("header/footer compile to CSS Paged Media margin boxes with running element
     resolveDocument(renderContentToIR(minimalPaper()), renderTemplateToIR(template))
   );
 
-  assert.match(html, /position:running\(reactdoc-header-0\)/);
-  assert.match(html, /@page\{@bottom-center\{content:element\(reactdoc-footer-1\);\}\}/);
+  assert.match(html, /position:running\(reactwright-header-0\)/);
+  assert.match(html, /@page\{@bottom-center\{content:element\(reactwright-footer-1\);\}\}/);
   assert.match(html, /@page :first\{@top-center\{content:none;\}\}/);
-  assert.match(html, /reactdoc-page-number/);
-  assert.match(html, /reactdoc-page-count/);
+  assert.match(html, /reactwright-page-number/);
+  assert.match(html, /reactwright-page-count/);
   assert.match(html, /counter\(page\)/);
   assert.match(html, /counter\(pages\)/);
 });

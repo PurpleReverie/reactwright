@@ -358,7 +358,7 @@ PascalCase wrappers are the primary extension mechanism. Custom template intrins
 ## Worked example: novel template
 
 ```tsx
-import type { TemplateComponent } from "reactdoc";
+import type { TemplateComponent } from "reactwright";
 
 export const Template: TemplateComponent = () => (
   <>

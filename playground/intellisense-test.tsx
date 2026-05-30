@@ -1,6 +1,6 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
-import type { ContentComponent, TemplateComponent } from "reactdoc";
+import type { ContentComponent, TemplateComponent } from "reactwright";
 
 export const Template: TemplateComponent = () => (
   <page style={{ size: "a4", margin: "25mm", fontFamily: "serif", fontSize: "11pt" }}>

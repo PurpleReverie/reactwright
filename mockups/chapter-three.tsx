@@ -1,4 +1,4 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 // Chapter Three — novel chapter, two-sided book.
 // Exercises: twoSided page, mirror anchors (top-inside / top-outside),

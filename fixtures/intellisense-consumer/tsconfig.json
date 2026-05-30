@@ -10,9 +10,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "reactdoc": ["../../src/index.ts"],
-      "reactdoc/jsx": ["../../src/public/jsx.d.ts"],
-      "reactdoc/contract": ["../../src/public/contract.ts"]
+      "reactwright": ["../../src/index.ts"],
+      "reactwright/jsx": ["../../src/public/jsx.d.ts"],
+      "reactwright/contract": ["../../src/public/contract.ts"]
     },
     "types": ["node", "react"]
   },

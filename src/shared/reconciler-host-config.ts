@@ -12,7 +12,7 @@ import { DefaultEventPriority } from "react-reconciler/constants";
 // HostContext so React DevTools / error messages stay distinguishable.
 export function createReconcilerHostConfigBase(scope: string): ReconcilerHostConfigBase {
   return {
-    rendererPackageName: `reactdoc-${scope}`,
+    rendererPackageName: `reactwright-${scope}`,
     rendererVersion: "0.0.0",
     supportsMutation: true,
     isPrimaryRenderer: false,

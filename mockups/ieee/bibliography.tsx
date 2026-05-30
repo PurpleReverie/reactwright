@@ -1,4 +1,4 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 import React from "react";
 
 // Type-safe IEEE-style bibliography helpers.

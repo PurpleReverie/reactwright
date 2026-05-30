@@ -1,8 +1,8 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
+const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
 
 // Treatise — academic paper mockup.
 // Exercises: abstract, sections with ids, figures with auto-numbered captions

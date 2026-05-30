@@ -29,7 +29,7 @@ function createPaper() {
           Visit <link href="https://example.com">the notes</link>.
         </p>
         <figure
-          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          src={resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png")}
           alt="Tiny test swatch"
           caption="A tiny figure used to validate image support."
           width="35mm"
@@ -97,7 +97,7 @@ test("HTML backend emits expected content", () => {
   assert.match(html, /<em>end-to-end<\/em>/);
   assert.match(html, /<h2[^>]*>Intro<\/h2>/);
   assert.match(html, /<figure[^>]*>/);
-  assert.match(html, /reactdoc-swatch\.png/);
+  assert.match(html, /reactwright-swatch\.png/);
   assert.match(html, /href="https:\/\/example\.com"/);
   assert.match(html, /<pre[^>]*data-language="txt"><code>plain-text block<\/code><\/pre>/);
   assert.match(html, /<blockquote[^>]*>/);
@@ -155,12 +155,12 @@ test("list-of template primitive collects figures with auto-generated ids", () =
     <document title="ListOf Test">
       <section title="Body">
         <figure
-          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          src={resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png")}
           caption="Tiny swatch one"
           width="20mm"
         />
         <figure
-          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          src={resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png")}
           caption="Tiny swatch two"
           width="20mm"
           id="fig-named"
@@ -181,7 +181,7 @@ test("list-of template primitive collects figures with auto-generated ids", () =
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
   assert.match(html, /data-node="list-of" data-of="figure"/);
-  assert.match(html, /href="#reactdoc-fig-1"/);
+  assert.match(html, /href="#reactwright-fig-1"/);
   assert.match(html, /href="#fig-named"/);
   assert.match(html, /Tiny swatch one/);
 });
@@ -213,10 +213,10 @@ test("toc template primitive collects sections with auto-generated ids", () => {
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
   assert.match(html, /data-node="toc"/);
-  assert.match(html, /href="#reactdoc-sec-introduction"/);
+  assert.match(html, /href="#reactwright-sec-introduction"/);
   assert.match(html, /href="#body"/);
   assert.match(html, /Subsection/);
-  assert.match(html, /reactdoc-toc-page::after\{content:target-counter/);
+  assert.match(html, /reactwright-toc-page::after\{content:target-counter/);
 });
 
 test("index entries collect to back-matter index with anchor refs", () => {
@@ -249,9 +249,9 @@ test("index entries collect to back-matter index with anchor refs", () => {
 
   assert.match(html, /data-node="index"/);
   assert.match(html, /data-node="index-entry"/);
-  assert.match(html, /id="reactdoc-idx-magic-1"/);
-  assert.match(html, /id="reactdoc-idx-magic-2"/);
-  assert.match(html, /id="reactdoc-idx-aspect-1"/);
+  assert.match(html, /id="reactwright-idx-magic-1"/);
+  assert.match(html, /id="reactwright-idx-magic-2"/);
+  assert.match(html, /id="reactwright-idx-aspect-1"/);
   assert.match(html, /data-index-term="magic"/);
 });
 
@@ -285,7 +285,7 @@ test("cite + bibliography collect cited keys and emit a bibliography section", (
 
   assert.match(html, /data-node="cite"/);
   assert.match(html, /data-node="bibliography"/);
-  assert.match(html, /id="reactdoc-bib-smith-2024"/);
+  assert.match(html, /id="reactwright-bib-smith-2024"/);
   assert.match(html, /data-bib-key="smith-2024" data-used="true"/);
   assert.match(html, /data-bib-key="unused"/);
   assert.ok(!/data-bib-key="unused" data-used/.test(html));

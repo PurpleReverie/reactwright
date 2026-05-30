@@ -1,5 +1,5 @@
 {
-  "name": "reactdoc",
+  "name": "reactwright",
   "version": "0.0.0",
   "private": true,
   "description": "React-authored document engine prototype",
@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "dev": "node --import tsx -e \"import('reactdoc').then(() => console.log('reactdoc package entry loaded'))\"",
+    "dev": "node --import tsx -e \"import('reactwright').then(() => console.log('reactwright package entry loaded'))\"",
     "check": "tsc --noEmit",
     "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
     "test": "node --import tsx --test tests/**/*.test.tsx",

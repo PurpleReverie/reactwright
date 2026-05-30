@@ -60,7 +60,7 @@ export function assignIndexAnchorsAndCollect(
     const slug = termToSlug(node.term);
     const n = (counts.get(slug) ?? 0) + 1;
     counts.set(slug, n);
-    const anchorId = `reactdoc-idx-${slug}-${n}`;
+    const anchorId = `reactwright-idx-${slug}-${n}`;
     node.anchorId = anchorId;
     const list = indexEntries.get(node.term) ?? [];
     list.push(anchorId);
@@ -95,11 +95,11 @@ export function assignSectionIdsAndCollectToc(
     let id = node.id;
     if (id == null || id.length === 0) {
       const base = titleToSlug(node.title) || "section";
-      let candidate = `reactdoc-sec-${base}`;
+      let candidate = `reactwright-sec-${base}`;
       let n = 1;
       while (used.has(candidate)) {
         n += 1;
-        candidate = `reactdoc-sec-${base}-${n}`;
+        candidate = `reactwright-sec-${base}-${n}`;
       }
       id = candidate;
       node.id = id;
@@ -146,7 +146,7 @@ export function assignAutoIdsAndCollectListOf(
     counts.figure += 1;
     let id = node.id;
     if (id == null || id.length === 0) {
-      id = mintId("reactdoc-fig", counts.figure);
+      id = mintId("reactwright-fig", counts.figure);
       node.id = id;
     }
     used.add(id);
@@ -155,7 +155,7 @@ export function assignAutoIdsAndCollectListOf(
     counts.table += 1;
     let id = node.id;
     if (id == null || id.length === 0) {
-      id = mintId("reactdoc-tbl", counts.table);
+      id = mintId("reactwright-tbl", counts.table);
       node.id = id;
     }
     used.add(id);
@@ -164,7 +164,7 @@ export function assignAutoIdsAndCollectListOf(
     counts.equation += 1;
     let id = node.id;
     if (id == null || id.length === 0) {
-      id = mintId("reactdoc-eq", counts.equation);
+      id = mintId("reactwright-eq", counts.equation);
       node.id = id;
     }
     used.add(id);

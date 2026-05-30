@@ -1,4 +1,4 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 // Field Notes — Tufte-style essay with sidenotes in the outside margin.
 // Exercises: <sidenote> + <sidenote-area>, <defs>/<def>, <ref>, <toc>,

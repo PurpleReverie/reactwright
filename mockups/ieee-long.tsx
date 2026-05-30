@@ -1,8 +1,8 @@
-import "reactdoc/jsx";
+import "reactwright/jsx";
 
 import { resolve } from "node:path";
 
-const SWATCH = resolve(process.cwd(), "tests/fixtures/reactdoc-diagram.svg");
+const SWATCH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
 
 // IEEE — long form, two-column conference paper.
 //

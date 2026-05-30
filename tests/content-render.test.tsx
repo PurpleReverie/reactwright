@@ -13,7 +13,7 @@ test("content renderer creates semantic IR for a minimal document", () => {
           Hello <em>world</em> with <strong>emphasis</strong> and <code>inline-code</code>.
         </p>
         <figure
-          src={resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png")}
+          src={resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png")}
           alt="Tiny test swatch"
           caption="A tiny figure used to validate the figure primitive."
           width="40mm"
@@ -45,7 +45,7 @@ test("content renderer creates semantic IR for a minimal document", () => {
           },
           {
             kind: "figure",
-            src: resolve(process.cwd(), "tests/fixtures/reactdoc-swatch.png"),
+            src: resolve(process.cwd(), "tests/fixtures/reactwright-swatch.png"),
             alt: "Tiny test swatch",
             caption: "A tiny figure used to validate the figure primitive.",
             width: "40mm"

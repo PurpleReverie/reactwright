@@ -94,11 +94,11 @@ export function renderPreNode(node: ResolvedPreNode): string {
 
 export function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactdoc-math reactdoc-math-block">${renderTeX(node.src, true)}</div>`;
+  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactwright-math reactwright-math-block">${renderTeX(node.src, true)}</div>`;
 }
 
 export function renderSetRunningNode(node: ResolvedSetRunningNode): string {
-  return `<span data-node="set-running" data-running-name="${escapeHtml(node.name)}" class="reactdoc-set ${runningClassFor(node.name)}-source" hidden>${escapeHtml(node.value)}</span>`;
+  return `<span data-node="set-running" data-running-name="${escapeHtml(node.name)}" class="reactwright-set ${runningClassFor(node.name)}-source" hidden>${escapeHtml(node.value)}</span>`;
 }
 
 export function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
@@ -138,14 +138,14 @@ export function renderAbstractNode(node: ResolvedAbstractNode): string {
   // abstract at all, APA wants a particular placement) — so the
   // heading is composed at the content or template layer instead.
   return [
-    '<section data-slot="abstract" class="reactdoc-abstract">',
+    '<section data-slot="abstract" class="reactwright-abstract">',
     ...node.children.map((child) => renderContentNode(child)),
     "</section>"
   ].join("");
 }
 
 export function renderTitleNode(node: ResolvedTitleNode): string {
-  return `<h1 class="reactdoc-document-title">${escapeHtml(node.value)}</h1>`;
+  return `<h1 class="reactwright-document-title">${escapeHtml(node.value)}</h1>`;
 }
 
 export function renderHeadingNode(node: ResolvedHeadingNode): string {
@@ -160,8 +160,8 @@ export function renderAuthorNode(node: ResolvedAuthorNode): string {
 
 export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  const classes = ["reactdoc-section-title"];
-  if (depth === 1) classes.push("reactdoc-chapter-title");
+  const classes = ["reactwright-section-title"];
+  if (depth === 1) classes.push("reactwright-chapter-title");
   const classAttr = ` class="${classes.join(" ")}"`;
   // Heading tag mirrors nesting depth: depth 1 → h2, depth 2 → h3,
   // depth 3 → h4, capped at h6. Depth 1 is h2 rather than h1 because
