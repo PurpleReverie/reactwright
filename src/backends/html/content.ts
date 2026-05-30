@@ -43,7 +43,14 @@ export function setRenderScopeRegimeFlows(
   flows: Record<string, ResolvedChild[]> | undefined
 ): void {
   renderScopeRegimeFlows = flows;
+  renderScopeLastSectionPage = undefined;
 }
+
+// Tracks the most recent depth-1 section's `page` value across the
+// render pass so renderSectionNode can emit a break-before:page
+// marker when consecutive sections use different page regimes.
+// Reset at the start of each renderResolvedToHTML invocation.
+let renderScopeLastSectionPage: string | undefined;
 
 export function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
@@ -188,18 +195,60 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   // <page-set> can declare per-regime layout (e.g. a script regime
   // that wraps each scene in a monospace block) while sections still
   // stream in document order.
-  if (
+  //
+  // When this depth-1 section uses a page regime AND the previous
+  // depth-1 section used a different regime (or none), emit a
+  // forced page break before the regime flow so each named-page
+  // regime starts on its own page. Skip when the previous section
+  // used the same regime — those should flow continuously.
+  const useRegimeFlow =
     depth === 1 &&
     typeof node.page === "string" &&
     node.page.length > 0 &&
-    renderScopeRegimeFlows != null
-  ) {
-    const flow = renderScopeRegimeFlows[node.page];
+    renderScopeRegimeFlows != null;
+  let regimeBreak = "";
+  if (depth === 1 && typeof node.page === "string" && node.page.length > 0) {
+    if (renderScopeLastSectionPage !== node.page) {
+      regimeBreak = '<div aria-hidden="true" style="break-before:page;height:0;"></div>';
+    }
+    renderScopeLastSectionPage = node.page;
+  } else if (depth === 1) {
+    renderScopeLastSectionPage = undefined;
+  }
+  if (useRegimeFlow) {
+    const flow = renderScopeRegimeFlows![node.page!];
     if (flow != null && flow.length > 0) {
-      return flow.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
+      const flowHtml = flow.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
+      // If the regime declares no body-slot AND the section has no
+      // children of its own, the rendered flow consists only of
+      // absolute-positioned overlays (fixed/layer/region fill) with
+      // no flow content. Paged.js needs at least one flow element to
+      // generate a page, so wrap the regime output in a min-height
+      // filler that takes the entire page. Otherwise overlay-only
+      // covers and chapter title pages collapse into the next page.
+      const regimeHasBodySlot = (function hasBodySlot(children: ResolvedChild[]): boolean {
+        for (const c of children) {
+          if (c.kind === "body-slot") return true;
+          if ("children" in c && Array.isArray((c as { children?: unknown }).children)) {
+            if (hasBodySlot((c as { children: ResolvedChild[] }).children)) return true;
+          }
+        }
+        return false;
+      })(flow);
+      if (!regimeHasBodySlot && node.children.length === 0) {
+        // Filler carries `page:<name>` so Paged.js routes it to the
+        // named regime; min-height takes the full page so the overlay
+        // elements (region fill, fixed) render on top of it.
+        return (
+          regimeBreak +
+          `<div style="page:${escapeHtml(node.page!)};min-height:100vh;"></div>` +
+          flowHtml
+        );
+      }
+      return regimeBreak + flowHtml;
     }
   }
-  return sectionHtml;
+  return regimeBreak + sectionHtml;
 }
 
 // Dispatcher for content-IR nodes. Inline kinds fall through to
