@@ -30,60 +30,57 @@ export { styleToCss };
 
 const PAGED_JS_SCRIPT = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
 
-// Static CSS defaults applied to every document. Kept here (rather
-// than in css.ts) because they aren't computed from any page IR — they
-// are a fixed reset / typography baseline. If a default needs to vary
-// by document configuration, lift it into a `build*Css` function in
-// css.ts.
+// Static CSS defaults applied to every document. Strictly machinery
+// (counter wiring, target-counter / target-text functions, page
+// number/count counters, math-block centering geometry) plus a
+// minimal typography reset (margin: 0 on block elements, headings
+// don't inherit justify, paragraphs don't stretch their last line).
+//
+// Cosmetic defaults — heading font sizes, paragraph/section spacing,
+// code styling, table borders, blockquote bars — are NOT in this
+// block. They are opinionated and would force every template to
+// fight the engine. Templates that want a "looks reasonable out of
+// the box" baseline can opt into `defaultTypography` from
+// reactdoc/typography via customCss.
 const STATIC_DEFAULTS_CSS = [
+  // ── machinery: page chrome and counters ───────────────────────
   "body{margin:0;}",
   ".reactdoc-flow{box-sizing:border-box;position:relative;}",
   ".reactdoc-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}",
   ".reactdoc-page-number::before{content:counter(page);}",
   ".reactdoc-page-count::before{content:counter(pages);}",
+  // ── machinery: cross-references and citations ────────────────
   ".reactdoc-ref-number::after{content:target-counter(attr(href url), reactdoc-ref);}",
   ".reactdoc-ref-page::after{content:target-counter(attr(href url), page);}",
   ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
-  ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' on p. ' target-counter(attr(href url), page);}",
-  ".reactdoc-cite::before{content:'[';}",
-  ".reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib) ']';}",
-  ".reactdoc-bibliography ol{padding-left:1.5em;}",
+  ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' ' target-counter(attr(href url), page);}",
+  ".reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib);}",
   ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
   ".reactdoc-index-pagerefs a + a::before{content:', ';}",
+  // ── machinery: TOC / list-of leader formatting ────────────────
   ".reactdoc-toc ol{list-style:none;padding-left:0;}",
   ".reactdoc-toc-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
   ".reactdoc-toc-page::after{content:target-counter(attr(href url, '#'), page);}",
-  ".reactdoc-toc-depth-2{padding-left:1.5em;}",
-  ".reactdoc-toc-depth-3{padding-left:3em;}",
-  ".reactdoc-toc-depth-4{padding-left:4.5em;}",
   ".reactdoc-list-of ol{list-style:none;padding-left:0;}",
   ".reactdoc-list-of-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
   ".reactdoc-list-of-page::after{content:target-counter(attr(href url, '#'), page);}",
+  // ── reset: block elements have no UA margin ───────────────────
   "h1,h2,h3,h4,h5,h6,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
-  // Headings should never inherit text-align: justify from a parent
+  // Headings shouldn't inherit text-align: justify from a parent
   // region — that produces gigantic word-spacing in short titles.
-  // Default to left alignment unless a role rule explicitly opts in.
   "h1,h2,h3,h4,h5,h6{text-align:left;}",
   // Last-line of justified paragraphs aligns to start (left in LTR),
-  // not stretched. Without this Chrome can produce "word    word"
-  // gaps on the final line. Same for figure captions and list items.
-  "p,figcaption,li{text-align-last:auto;}",
+  // not stretched. Without this Chrome can produce word-spread gaps
+  // on the final line.
   ".reactdoc-flow p{text-align-last:left;}",
-  "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
-  "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
-  "h3{font-size:1.05em;font-weight:bold;margin-top:0.8em;margin-bottom:0.2em;}",
-  "p + p{margin-top:0.6em;}",
-  "section + section{margin-top:1em;}",
-  "blockquote{padding-left:1.5em;border-left:2px solid #cbd5e1;}",
-  "ul,ol{padding-left:1.5em;}",
-  "li + li{margin-top:0.25em;}",
-  "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;background:#f1f5f9;padding:0.1em 0.25em;border-radius:0.2em;}",
+  // Inline code: monospace font only. No background, padding, or
+  // border — those are opinionated cosmetics.
+  "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;}",
+  // Table cells need border-collapse for any border styling to
+  // compose; width:100% is a sensible default. No cell borders.
   "table{border-collapse:collapse;width:100%;}",
-  "th,td{border:1px solid #cbd5e1;padding:0.25em 0.5em;text-align:left;}",
   "figure img{max-width:100%;height:auto;}",
-  // Math block centering is robust against parent text-align:justify
-  // by pinning the inner .katex-display to a centered block. The
-  // numbered-equation ::before counter floats at the right margin.
+  // ── machinery: math block centering ───────────────────────────
   ".reactdoc-math-block{position:relative;text-align:center;margin:0.6em 0;}",
   ".reactdoc-math-block .katex-display{margin:0;text-align:center;}",
   ".reactdoc-math-block .katex-display>.katex{display:inline-block;text-align:initial;}",
