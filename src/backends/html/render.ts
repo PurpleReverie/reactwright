@@ -2,6 +2,9 @@ import type {
   ResolvedFixedNode,
   ResolvedPageNode
 } from "../../resolver/ir.js";
+import { lowerStylesheet } from "../../styles/lower.js";
+import type { StylesheetAst } from "../../styles/ir.js";
+import { setRenderScopeClassBindings } from "./class-bindings.js";
 import {
   buildAtPageRule,
   buildBodyTextRule,
@@ -111,6 +114,7 @@ const STATIC_DEFAULTS_CSS = [
 // in dedicated modules; this function is composition only.
 export function renderResolvedToHTML(page: ResolvedPageNode): string {
   setRenderScopeRegimeFlows(page.regimeFlows);
+  setRenderScopeClassBindings(page.classBindings);
 
   // 1. Compute the per-document CSS pieces.
   const atPageRule = buildAtPageRule(page.style);
@@ -178,9 +182,14 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   // 5. Font and KaTeX head tags.
   const fontTags = buildFontHeadTags(page);
 
-  // 6. Assemble the style block. Template-supplied `customCss` lands
-  // last so it can override engine defaults (heading sizes, etc.).
+  // 6. Assemble the style block. Order matters for cascade:
+  //   1. machinery (engine defaults)
+  //   2. template-applied styles dialect (named classes from <styles>)
+  //   3. template-supplied customCss (last so it can override)
   const customCss = typeof page.style?.customCss === "string" ? page.style.customCss : "";
+  const stylesCss = page.stylesheet != null
+    ? lowerStylesheet(page.stylesheet as StylesheetAst)
+    : "";
   const styleRules = [
     atPageRule ?? "",
     pageRegimesCss,
@@ -192,6 +201,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     sidenoteAreaCss,
     variantRulesCss,
     STATIC_DEFAULTS_CSS,
+    stylesCss,
     customCss
   ]
     .filter((s) => s.length > 0)
@@ -221,5 +231,6 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     .join("");
 
   setRenderScopeRegimeFlows(undefined);
+  setRenderScopeClassBindings(undefined);
   return html;
 }

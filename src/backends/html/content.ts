@@ -2,6 +2,7 @@ import type {
   ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
+  ResolvedCaptionNode,
   ResolvedCellNode,
   ResolvedChild,
   ResolvedCodeBlockNode,
@@ -26,6 +27,7 @@ import { escapeHtml, idAttr, normalizeImageSrc, runningClassFor } from "./utils.
 import { renderTeX } from "./fonts.js";
 import { renderInlineNode } from "./inline.js";
 import { renderRegimeFlowNode } from "./regime-flow.js";
+import { classAttr, classAttrWithBase } from "./class-bindings.js";
 
 // Render-scoped regime-flow table. Set at the top of renderResolvedToHTML
 // and cleared in a finally-shaped reset at the bottom. Lives at module
@@ -48,7 +50,12 @@ export function setRenderScopeRegimeFlows(
 export function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<p${idAttr(node.id)}${variantAttr}>${inner}</p>`;
+  return `<p${idAttr(node.id)}${variantAttr}${classAttr(node)}>${inner}</p>`;
+}
+
+export function renderCaptionNode(node: ResolvedCaptionNode): string {
+  const inner = node.children.map(renderInlineNode).join("");
+  return `<figcaption${idAttr(node.id)}${classAttr(node)}>${inner}</figcaption>`;
 }
 
 export function renderFigureNode(node: ResolvedFigureNode): string {
@@ -57,37 +64,49 @@ export function renderFigureNode(node: ResolvedFigureNode): string {
   // the figcaption text. Callers that want an explicit accessibility
   // description should set `alt` themselves.
   const alt = escapeHtml(node.alt ?? "");
+  // Prefer node-form caption when present; fall back to legacy string
+  // caption prop. Node form lets template rules style it via <rule
+  // match={{ kind: "caption" }}>.
   const caption =
-    node.caption != null ? `<figcaption>${escapeHtml(node.caption)}</figcaption>` : "";
-  return `<figure${idAttr(node.id)}><img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle} />${caption}</figure>`;
+    node.captionNode != null
+      ? renderCaptionNode(node.captionNode)
+      : node.caption != null
+        ? `<figcaption>${escapeHtml(node.caption)}</figcaption>`
+        : "";
+  return `<figure${idAttr(node.id)}${classAttr(node)}><img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle} />${caption}</figure>`;
 }
 
 export function renderCellNode(node: ResolvedCellNode): string {
   const tag = node.header === true ? "th" : "td";
-  return `<${tag}>${node.children.map((child) => renderContentNode(child)).join("")}</${tag}>`;
+  return `<${tag}${classAttr(node)}>${node.children.map((child) => renderContentNode(child)).join("")}</${tag}>`;
 }
 
 export function renderRowNode(node: ResolvedRowNode): string {
-  return `<tr>${node.children.map((child) => renderCellNode(child)).join("")}</tr>`;
+  return `<tr${classAttr(node)}>${node.children.map((child) => renderCellNode(child)).join("")}</tr>`;
 }
 
 export function renderTableNode(node: ResolvedTableNode): string {
-  const caption = node.caption != null ? `<caption>${escapeHtml(node.caption)}</caption>` : "";
-  return `<table${idAttr(node.id)}>${caption}<tbody>${node.children.map((child) => renderRowNode(child)).join("")}</tbody></table>`;
+  const caption =
+    node.captionNode != null
+      ? renderCaptionNode(node.captionNode)
+      : node.caption != null
+        ? `<caption>${escapeHtml(node.caption)}</caption>`
+        : "";
+  return `<table${idAttr(node.id)}${classAttr(node)}>${caption}<tbody>${node.children.map((child) => renderRowNode(child)).join("")}</tbody></table>`;
 }
 
 export function renderCodeBlockNode(node: ResolvedCodeBlockNode): string {
   const dataAttr = node.language != null ? ` data-language="${escapeHtml(node.language)}"` : "";
-  return `<pre${idAttr(node.id)}${dataAttr}><code>${node.children.map((c) => escapeHtml(c.value)).join("")}</code></pre>`;
+  return `<pre${idAttr(node.id)}${dataAttr}${classAttr(node)}><code>${node.children.map((c) => escapeHtml(c.value)).join("")}</code></pre>`;
 }
 
 export function renderPreNode(node: ResolvedPreNode): string {
-  return `<pre${idAttr(node.id)} data-node="pre">${node.children.map((c) => escapeHtml(c.value)).join("")}</pre>`;
+  return `<pre${idAttr(node.id)} data-node="pre"${classAttr(node)}>${node.children.map((c) => escapeHtml(c.value)).join("")}</pre>`;
 }
 
 export function renderMathNode(node: ResolvedMathNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr} class="reactwright-math reactwright-math-block">${renderTeX(node.src, true)}</div>`;
+  return `<div data-node="math-block"${idAttr(node.id)}${variantAttr}${classAttrWithBase(node, "reactwright-math", "reactwright-math-block")}>${renderTeX(node.src, true)}</div>`;
 }
 
 export function renderSetRunningNode(node: ResolvedSetRunningNode): string {
@@ -97,7 +116,7 @@ export function renderSetRunningNode(node: ResolvedSetRunningNode): string {
 export function renderBlockQuoteNode(node: ResolvedBlockQuoteNode): string {
   const children = node.children.map((child) => renderContentNode(child)).join("");
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<blockquote${idAttr(node.id)}${variantAttr}>${children}</blockquote>`;
+  return `<blockquote${idAttr(node.id)}${variantAttr}${classAttr(node)}>${children}</blockquote>`;
 }
 
 export function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
@@ -105,24 +124,24 @@ export function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
 }
 
 export function renderListItemNode(node: ResolvedListItemNode): string {
-  return `<li>${node.children.map((child) => renderContentNode(child)).join("")}</li>`;
+  return `<li${classAttr(node)}>${node.children.map((child) => renderContentNode(child)).join("")}</li>`;
 }
 
 export function renderListNode(node: ResolvedListNode): string {
   const tag = node.ordered ? "ol" : "ul";
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<${tag}${idAttr(node.id)}${variantAttr}>${node.children.map(renderListItemNode).join("")}</${tag}>`;
+  return `<${tag}${idAttr(node.id)}${variantAttr}${classAttr(node)}>${node.children.map(renderListItemNode).join("")}</${tag}>`;
 }
 
 export function renderDefNode(node: ResolvedDefNode): string {
   const term = `<dt>${escapeHtml(node.term)}</dt>`;
-  const body = `<dd>${node.children.map((child) => renderContentNode(child)).join("")}</dd>`;
+  const body = `<dd${classAttr(node)}>${node.children.map((child) => renderContentNode(child)).join("")}</dd>`;
   return `${term}${body}`;
 }
 
 export function renderDefsNode(node: ResolvedDefsNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  return `<dl${idAttr(node.id)}${variantAttr}>${node.children.map(renderDefNode).join("")}</dl>`;
+  return `<dl${idAttr(node.id)}${variantAttr}${classAttr(node)}>${node.children.map(renderDefNode).join("")}</dl>`;
 }
 
 export function renderAbstractNode(node: ResolvedAbstractNode): string {
@@ -131,31 +150,35 @@ export function renderAbstractNode(node: ResolvedAbstractNode): string {
   // abstract at all, APA wants a particular placement) — so the
   // heading is composed at the content or template layer instead.
   return [
-    '<section data-slot="abstract" class="reactwright-abstract">',
+    `<section data-slot="abstract"${classAttrWithBase(node, "reactwright-abstract")}>`,
     ...node.children.map((child) => renderContentNode(child)),
     "</section>"
   ].join("");
 }
 
 export function renderTitleNode(node: ResolvedTitleNode): string {
-  return `<h1 class="reactwright-document-title">${escapeHtml(node.value)}</h1>`;
+  return `<h1${classAttrWithBase(node, "reactwright-document-title")}>${escapeHtml(node.value)}</h1>`;
 }
 
 export function renderHeadingNode(node: ResolvedHeadingNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   const tag = `h${node.level}`;
-  return `<${tag}${idAttr(node.id)}${variantAttr}>${escapeHtml(node.title)}</${tag}>`;
+  return `<${tag}${idAttr(node.id)}${variantAttr}${classAttr(node)}>${escapeHtml(node.title)}</${tag}>`;
 }
 
 export function renderAuthorNode(node: ResolvedAuthorNode): string {
-  return `<p>${escapeHtml(node.value)}</p>`;
+  return `<p${classAttr(node)}>${escapeHtml(node.value)}</p>`;
 }
 
 export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  const classes = ["reactwright-section-title"];
-  if (depth === 1) classes.push("reactwright-chapter-title");
-  const classAttr = ` class="${classes.join(" ")}"`;
+  const baseClasses = ["reactwright-section-title"];
+  if (depth === 1) baseClasses.push("reactwright-chapter-title");
+  // No node-specific lookup for the section title element itself —
+  // the section node carries the className, the heading is a derived
+  // tag inside it. Authors style the heading by selecting on `section`
+  // and class-cascading to the title, or by using `:has(section)`.
+  const headingClassAttr = ` class="${baseClasses.join(" ")}"`;
   // Heading tag mirrors nesting depth: depth 1 → h2, depth 2 → h3,
   // depth 3 → h4, capped at h6. Depth 1 is h2 rather than h1 because
   // the document title (rendered separately) already occupies h1.
@@ -171,10 +194,10 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
       : "";
   const titleHeading =
     node.title.length > 0
-      ? `<${headingTag}${classAttr}${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
+      ? `<${headingTag}${headingClassAttr}${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
       : "";
   const sectionHtml = [
-    `<section${idAttr(node.id)}${regimeStyle}>`,
+    `<section${idAttr(node.id)}${regimeStyle}${classAttr(node)}>`,
     titleHeading,
     ...node.children.map((child) =>
       child.kind === "section"
@@ -243,6 +266,7 @@ export function renderContentNode(node: ResolvedContentNode): string {
     case "abstract":   return renderAbstractNode(node);
     case "section":    return renderSectionNode(node);
     case "figure":     return renderFigureNode(node);
+    case "caption":    return renderCaptionNode(node);
     case "table":      return renderTableNode(node);
     case "code-block": return renderCodeBlockNode(node);
     case "pre":        return renderPreNode(node);

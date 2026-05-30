@@ -81,6 +81,7 @@ export type ResolvedParagraphNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
@@ -88,18 +89,21 @@ export type ResolvedCodeBlockNode = {
   kind: "code-block";
   id?: string;
   language?: string;
+  className?: string;
   children: ResolvedTextNode[];
 };
 
 export type ResolvedPreNode = {
   kind: "pre";
   id?: string;
+  className?: string;
   children: ResolvedTextNode[];
 };
 
 export type ResolvedDefNode = {
   kind: "def";
   term: string;
+  className?: string;
   children: ResolvedContentChild[];
 };
 
@@ -109,6 +113,7 @@ export type ResolvedDefsNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: ResolvedDefNode[];
 };
 
@@ -163,11 +168,13 @@ export type ResolvedBlockQuoteNode = {
   page?: string;
   variant?: string;
   speaker?: string;
+  className?: string;
   children: ResolvedContentChild[];
 };
 
 export type ResolvedListItemNode = {
   kind: "item";
+  className?: string;
   children: ResolvedContentChild[];
 };
 
@@ -178,6 +185,7 @@ export type ResolvedListNode = {
   page?: string;
   variant?: string;
   ordered: boolean;
+  className?: string;
   children: ResolvedListItemNode[];
 };
 
@@ -188,12 +196,14 @@ export type ResolvedSectionNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
   children: ResolvedContentChild[];
 };
 
 export type ResolvedHeadingNode = {
   kind: "heading";
   id?: string;
+  className?: string;
   level: 1 | 2 | 3 | 4 | 5 | 6;
   title: string;
   role?: string;
@@ -337,16 +347,19 @@ export type ResolvedAbstractNode = {
   kind: "abstract";
   page?: string;
   variant?: string;
+  className?: string;
   children: ResolvedContentChild[];
 };
 
 export type ResolvedTitleNode = {
   kind: "title";
+  className?: string;
   value: string;
 };
 
 export type ResolvedAuthorNode = {
   kind: "author";
+  className?: string;
   value: string;
 };
 

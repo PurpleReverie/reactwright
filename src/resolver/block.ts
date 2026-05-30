@@ -54,6 +54,7 @@ export function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveInlineNode)
   };
 }
@@ -117,6 +118,7 @@ export function resolveCodeBlockNode(node: CodeBlockNode): ResolvedCodeBlockNode
     kind: "code-block",
     ...(node.id != null ? { id: node.id } : {}),
     ...(node.language != null ? { language: node.language } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveTextNode)
   };
 }
@@ -125,6 +127,7 @@ export function resolvePreNode(node: PreNode): ResolvedPreNode {
   return {
     kind: "pre",
     ...(node.id != null ? { id: node.id } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveTextNode)
   };
 }
@@ -133,6 +136,7 @@ export function resolveDefNode(node: DefNode): ResolvedDefNode {
   return {
     kind: "def",
     term: node.term,
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
@@ -145,7 +149,8 @@ export function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
     ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
-    ...(node.variant != null ? { variant: node.variant } : {})
+    ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {})
   };
 }
 
@@ -156,6 +161,7 @@ export function resolveDefsNode(node: DefsNode): ResolvedDefsNode {
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveDefNode)
   };
 }
@@ -168,12 +174,17 @@ export function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteN
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
     ...(node.speaker != null ? { speaker: node.speaker } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
 
 export function resolveListItemNode(node: ListItemNode): ResolvedListItemNode {
-  return { kind: "item", children: node.children.map(resolveContentChild) };
+  return {
+    kind: "item",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveContentChild)
+  };
 }
 
 export function resolveListNode(node: ListNode): ResolvedListNode {
@@ -183,6 +194,7 @@ export function resolveListNode(node: ListNode): ResolvedListNode {
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     ordered: node.ordered,
     children: node.children.map(resolveListItemNode)
   };
@@ -196,6 +208,7 @@ export function resolveSectionNode(node: SectionNode): ResolvedSectionNode {
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
@@ -213,6 +226,7 @@ export function resolveAbstractNode(node: AbstractNode): ResolvedAbstractNode {
     kind: "abstract",
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
