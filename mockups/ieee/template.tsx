@@ -8,6 +8,11 @@ import "reactwright/jsx";
 // and either drop the Template into their content `.tsx` or compose
 // IEEE_CSS into their own customCss to inherit just the typography.
 //
+// Slice-1 migration: the rules below that use ONLY pass-through CSS
+// properties have been moved to a <styles> block + <rule> bindings.
+// The rules that still need promoted concepts (numbering, prefix,
+// break-inside, table-layout) stay in IEEE_CSS until slices 2–3 land.
+//
 // IEEE rules captured:
 //   • US Letter paper, IEEE margins (0.75" top, 1.0" bottom, 0.625" L/R)
 //   • Title block spans both columns at top of page 1 (24pt Times)
@@ -21,12 +26,46 @@ import "reactwright/jsx";
 //   • Running header (page 2+): document title, italic 8pt centered
 //   • Footer: page number centered, 8pt
 
-export const IEEE_CSS = [
-  // ── Title block ──────────────────────────────────────────────────
-  "h1.reactwright-document-title{font-size:24pt;font-weight:normal;font-family:'Times New Roman',Times,serif;text-align:center;margin:0 0 12pt 0;line-height:1.1;}",
+// Styles dialect block — migrated from customCss in slice 1.9. Every
+// rule below is expressible via pass-through CSS + the rule-class
+// binding system; no engine-internal class names are mentioned.
+export const IEEE_STYLES = `
+  .ieee-title {
+    font-size: 24pt;
+    font-weight: normal;
+    font-family: 'Times New Roman', Times, serif;
+    text-align: center;
+    margin: 0 0 12pt 0;
+    line-height: 1.1;
+  }
 
-  // ── Abstract / Index Terms (9pt bold-italic block) ──────────────
-  ".reactwright-abstract{font-size:9pt;font-weight:bold;font-style:italic;text-align:justify;margin:0 0 8pt 0;}",
+  .ieee-abstract {
+    font-size: 9pt;
+    font-weight: bold;
+    font-style: italic;
+    text-align: justify;
+    margin: 0 0 8pt 0;
+  }
+
+  .ieee-code-inline {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+    font-size: 0.92em;
+  }
+
+  .ieee-bibliography {
+    font-size: 8pt;
+  }
+`;
+
+// The remaining rules still need slice 2/3 concepts (numbering,
+// prefix/suffix, break-inside, table-layout) — stay in customCss
+// until those land.
+export const IEEE_CSS = [
+  // ── Abstract paragraph layout (uses sibling combinator and indent
+  //    behaviour the dialect doesn't yet model). ─────────────────────
   ".reactwright-abstract p{margin:0;text-indent:0;}",
   ".reactwright-abstract p + p{margin-top:6pt;}",
 
@@ -64,16 +103,12 @@ export const IEEE_CSS = [
   "table tr:last-child td{border-bottom:0.5pt solid #000;}",
   "table p{margin:0;text-indent:0;font-size:inherit;}",
 
-  // ── Inline code: plain mono, no background box ──────────────────
-  "code{background:none;padding:0;border-radius:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:0.92em;}",
-
   // ── Citations: IEEE-style [N] brackets, black inline text ───────
   "a.reactwright-cite{color:inherit;text-decoration:none;}",
   "a.reactwright-cite::before{content:'[';}",
   "a.reactwright-cite::after{content:target-counter(attr(href url), reactwright-bib) ']';}",
 
   // ── References list ─────────────────────────────────────────────
-  ".reactwright-bibliography{font-size:8pt;}",
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
   ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}",
   ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;margin-bottom:2pt;text-align:justify;}",
@@ -101,6 +136,12 @@ export function Template() {
       }}
       style={{ customCss: IEEE_CSS }}
     >
+      <styles>{IEEE_STYLES}</styles>
+      <rule match={{ kind: "title" }} className="ieee-title" />
+      <rule match={{ kind: "abstract" }} className="ieee-abstract" />
+      <rule match={{ kind: "code" }} className="ieee-code-inline" />
+      <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
+
       <rules>
         <role
           on="figure"
