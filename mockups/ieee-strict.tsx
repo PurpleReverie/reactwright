@@ -37,7 +37,7 @@ const IEEE_CSS = [
   ".reactdoc-abstract p + p{margin-top:6pt;}",
 
   // ── Top-level section heads: ROMAN NUMERAL, centered, small-caps ─
-  "h2.reactdoc-section-title{font-size:10pt;font-weight:normal;font-style:normal;font-family:'Times New Roman',Times,serif;text-align:center;text-transform:uppercase;letter-spacing:0.04em;margin:12pt 0 4pt 0;break-after:avoid;counter-increment:ieee-section;counter-reset:ieee-subsection;}",
+  "h2.reactdoc-section-title{font-size:10pt;font-weight:normal;font-style:normal;font-family:'Times New Roman',Times,serif;text-align:center;text-align-last:center;text-transform:uppercase;letter-spacing:0.04em;margin:12pt 0 4pt 0;break-after:avoid;counter-increment:ieee-section;counter-reset:ieee-subsection;}",
   "h2.reactdoc-section-title::before{content:counter(ieee-section,upper-roman) '. ';}",
   ".reactdoc-flow{counter-reset:ieee-section;}",
 
@@ -59,8 +59,8 @@ const IEEE_CSS = [
   "code{background:none;padding:0;border-radius:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:0.92em;}",
 
   // ── References list ─────────────────────────────────────────────
-  ".reactdoc-bibliography{font-size:8pt;break-before:column;}",
-  ".reactdoc-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;margin:12pt 0 6pt 0;}",
+  ".reactdoc-bibliography{font-size:8pt;}",
+  ".reactdoc-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
   ".reactdoc-bibliography ol{list-style:none;padding-left:0;margin:0;}",
   ".reactdoc-bibliography li{text-indent:-1.4em;padding-left:1.4em;margin-bottom:2pt;text-align:justify;}",
   ".reactdoc-bibliography li::before{content:'[' counter(reactdoc-bib) '] ';}",
