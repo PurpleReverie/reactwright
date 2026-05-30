@@ -1,15 +1,23 @@
 import type { Key, ReactNode } from "react";
 
+// Shared mixin — every selectable IR node accepts `className` so authors
+// can reference a class defined in a <styles> block.
+type WithClassName = {
+  className?: string;
+};
+
 type ContentMetadataProps = {
   id?: string;
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
 };
 
 type DocumentProps = {
   title: string;
   author?: string;
+  className?: string;
   children?: ReactNode;
 };
 
@@ -37,82 +45,106 @@ type FigureProps = ContentMetadataProps & {
 type TableProps = {
   id?: string;
   caption?: string;
+  className?: string;
   children?: ReactNode;
 };
 
+// New caption JSX intrinsic — first-class IR node for figure/table captions.
+type CaptionProps = WithClassName & {
+  id?: string;
+  role?: string;
+  children?: ReactNode;
+};
+
+// `<row>` is overloaded: content-side (inside <table>) is a table row;
+// template-side (inside a layout container) is a horizontal-flex
+// container symmetric to <stack>. The intrinsic type merges both
+// shapes — fields not relevant in one context are ignored by the
+// other.
 type RowProps = {
   // Permitted so authors mapping over data can pass keys; React strips
   // it at the JSX boundary so it never reaches the underlying IR.
   key?: Key | null;
+  className?: string;
+  gap?: string;
+  // Template-side style groups (no-op on content-side):
+  style?: Record<string, unknown>;
+  typography?: TemplateTypographyProps;
+  paragraph?: TemplateParagraphProps;
+  box?: TemplateBoxProps;
+  layout?: TemplateLayoutProps;
+  breaks?: TemplateBreaksProps;
   children?: ReactNode;
 };
 
 type CellProps = {
   key?: Key | null;
   header?: boolean;
+  className?: string;
   children?: ReactNode;
 };
 
 type AbstractProps = {
   page?: string;
   variant?: string;
+  className?: string;
   children?: ReactNode;
 };
 
-type EmProps = {
+type EmProps = WithClassName & {
   children?: ReactNode;
 };
 
-type StrongProps = {
+type StrongProps = WithClassName & {
   children?: ReactNode;
 };
 
-type LinkProps = {
+type LinkProps = WithClassName & {
   href: string;
   titleText?: string;
   children?: ReactNode;
 };
 
-type CodeProps = {
+type CodeProps = WithClassName & {
   children?: ReactNode;
 };
 
 type BreakElementProps = Record<string, never>;
 
-type SubProps = {
+type SubProps = WithClassName & {
   children?: ReactNode;
 };
 
-type SupProps = {
+type SupProps = WithClassName & {
   children?: ReactNode;
 };
 
-type InlineImgProps = {
+type InlineImgProps = WithClassName & {
   src: string;
   alt?: string;
   width?: string;
   height?: string;
 };
 
-type RefProps = {
+type RefProps = WithClassName & {
   to: string;
   show?: "number" | "page" | "title" | "number-and-page";
 };
 
-type FootnoteProps = {
+type FootnoteProps = WithClassName & {
   marker?: string;
   children?: ReactNode;
 };
 
-type FootnoteAreaProps = Omit<TemplateStyleBag, "children"> & {
+type FootnoteAreaProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   separator?: boolean;
 };
 
-type SidenoteProps = {
+type SidenoteProps = WithClassName & {
   children?: ReactNode;
 };
 
-type SidenoteAreaProps = Omit<TemplateStyleBag, "children"> & {
+type SidenoteAreaProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   side?: "outside" | "inside" | "left" | "right";
   width?: string;
   gap?: string;
@@ -122,28 +154,28 @@ type MathProps = ContentMetadataProps & {
   src: string;
 };
 
-type InlineMathProps = {
+type InlineMathProps = WithClassName & {
   src: string;
 };
 
-type CiteProps = {
+type CiteProps = WithClassName & {
   cite: string;
 };
 
-type IndexProps = Omit<TemplateStyleBag, "children"> & {
+type IndexProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   // Content-side: marks a term to include in the index (required there).
   // Template-side: declares the back-matter index; accepts optional title.
   term?: string;
   title?: string;
 };
 
-type TocProps = Omit<TemplateStyleBag, "children"> & {
+type TocProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   title?: string;
   depth?: number;
   numbered?: boolean;
 };
 
-type ListOfProps = Omit<TemplateStyleBag, "children"> & {
+type ListOfProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   of: "figure" | "table" | "equation";
   title?: string;
 };
@@ -161,16 +193,16 @@ type BibliographyEntryProp = {
   text: string;
 };
 
-type BibliographyProps = Omit<TemplateStyleBag, "children"> & {
+type BibliographyProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   title?: string;
   entries?: BibliographyEntryProp[];
 };
 
-type RefsProps = {
+type RefsProps = WithClassName & {
   children?: ReactNode;
 };
 
-type RefEntryProps = {
+type RefEntryProps = WithClassName & {
   refKey?: string;
   key?: string;
   children?: ReactNode;
@@ -181,13 +213,13 @@ type QuoteProps = ContentMetadataProps & {
   children?: ReactNode;
 };
 
-type CodeBlockProps = {
+type CodeBlockProps = WithClassName & {
   id?: string;
   language?: string;
   children?: ReactNode;
 };
 
-type PreProps = {
+type PreProps = WithClassName & {
   id?: string;
   children?: ReactNode;
 };
@@ -197,7 +229,7 @@ type ListProps = ContentMetadataProps & {
   children?: ReactNode;
 };
 
-type ItemProps = {
+type ItemProps = WithClassName & {
   children?: ReactNode;
 };
 
@@ -205,7 +237,7 @@ type DefsProps = ContentMetadataProps & {
   children?: ReactNode;
 };
 
-type DefProps = {
+type DefProps = WithClassName & {
   term: string;
   children?: ReactNode;
 };
@@ -323,6 +355,7 @@ type TemplateStyleBag = {
   box?: TemplateBoxProps;
   layout?: TemplateLayoutProps;
   breaks?: TemplateBreaksProps;
+  className?: string;
   children?: ReactNode;
 };
 
@@ -450,6 +483,49 @@ type RoleRuleProps = {
   style?: Record<string, unknown>;
 };
 
+// Styles-dialect block. Children are a single string of CSS-superset
+// text; the engine parses at HTML emit time.
+type StylesProps = {
+  children: string;
+};
+
+// Pattern→class binding. The `match` shape is intentionally typed
+// loosely for v1 (a recursive selector object — see Match in
+// src/styles/ir.ts). Slice 2+ may narrow it via discriminated unions.
+type StylesMatchProp = {
+  kind?: string;
+  role?: string;
+  variant?: string;
+  depth?: number | { gte?: number; lte?: number };
+  index?: "first" | "last" | number;
+  id?: string;
+  attr?: Record<string, unknown>;
+  class?: string;
+  follows?: StylesMatchProp;
+  precedes?: StylesMatchProp;
+  parent?: StylesMatchProp;
+  within?: StylesMatchProp;
+  has?: StylesMatchProp;
+  slot?: "title" | "author" | "abstract" | "body";
+  not?: StylesMatchProp;
+  and?: StylesMatchProp[];
+  or?: StylesMatchProp[];
+};
+
+type RuleProps = {
+  match: StylesMatchProp;
+  className: string;
+};
+
+// Template-side <row> — horizontal-flex container, symmetric to
+// <stack>. Distinct from content-side table <row>; JSX shares the
+// intrinsic name (the active reconciler picks which factory to use
+// based on parent grammar). The intrinsic type below merges both
+// shapes; unused fields are ignored by the wrong-context factory.
+type TemplateRowProps = TemplateStyleBag & {
+  gap?: string;
+};
+
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
@@ -511,6 +587,9 @@ declare module "react" {
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
+      rule: RuleProps;
+      styles: StylesProps;
+      caption: CaptionProps;
     }
   }
 }
@@ -576,6 +655,9 @@ declare module "react/jsx-runtime" {
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
+      rule: RuleProps;
+      styles: StylesProps;
+      caption: CaptionProps;
     }
   }
 }
@@ -641,6 +723,9 @@ declare module "react/jsx-dev-runtime" {
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
+      rule: RuleProps;
+      styles: StylesProps;
+      caption: CaptionProps;
     }
   }
 }
@@ -706,6 +791,9 @@ declare global {
       slot: SlotProps;
       rules: RulesProps;
       role: RoleRuleProps;
+      rule: RuleProps;
+      styles: StylesProps;
+      caption: CaptionProps;
     }
   }
 }
