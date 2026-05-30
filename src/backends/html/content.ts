@@ -156,6 +156,11 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   const classes = ["reactdoc-section-title"];
   if (depth === 1) classes.push("reactdoc-chapter-title");
   const classAttr = ` class="${classes.join(" ")}"`;
+  // Heading tag mirrors nesting depth: depth 1 → h2, depth 2 → h3,
+  // depth 3 → h4, capped at h6. Depth 1 is h2 rather than h1 because
+  // the document title (rendered separately) already occupies h1.
+  const headingLevel = Math.min(depth + 1, 6);
+  const headingTag = `h${headingLevel}`;
   // Route the section to a named CSS Paged Media regime when
   // `page=<name>` was set. Paged.js honours `page: <name>` to put the
   // element on a page of that type, and inserts the appropriate
@@ -166,7 +171,7 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
       : "";
   const titleHeading =
     node.title.length > 0
-      ? `<h2${classAttr}${variantAttr}>${escapeHtml(node.title)}</h2>`
+      ? `<${headingTag}${classAttr}${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
       : "";
   const sectionHtml = [
     `<section${idAttr(node.id)}${regimeStyle}>`,
