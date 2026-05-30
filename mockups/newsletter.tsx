@@ -25,7 +25,10 @@ export function Template() {
         Issue #4 — <page-number /> / <page-count />
       </footer>
 
-      <stack gap="6mm" style={{ paddingTop: "24mm" }}>
+      {/* paddingTop clears the <fixed> masthead at top-left:
+          8mm top padding + ~24pt h1 (~9mm) + 8mm bottom padding
+          ≈ 25mm. We add a 6mm safety margin. */}
+      <stack gap="6mm" style={{ paddingTop: "32mm" }}>
         <region>
           <slot name="abstract" />
         </region>
@@ -61,7 +64,7 @@ export default function Newsletter() {
         <p>
           The deepest part of any newsletter is usually the part that the editor
           almost cut. This issue's lead is a piece we nearly held until next week,
-          on the strange afterlife of formulas like H<sub>2</sub>SO<sub>4</sub>
+          on the strange afterlife of formulas like H<sub>2</sub>SO<sub>4</sub>{" "}
           in popular memory.
         </p>
 
