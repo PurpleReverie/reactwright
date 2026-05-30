@@ -92,17 +92,24 @@ Outputs `./out/paper.html` and `./out/paper.pdf`.
 ## What's in the box
 
 **Content primitives.** `document`, `section`, `p`, `em`, `strong`,
-`code`, `link`, `quote`, `list` / `item`, `figure`, `table` /
-`row` / `cell`, `code-block`, `defs` / `def`, `math`, `cite`,
-`footnote`, `sidenote`, `index`, `ref`, `set running` /
-`running`, plus `refs` / `ref-entry` for bibliography registration.
+`code`, `link`, `quote`, `list` / `item`, `figure` (+ `caption`),
+`table` (+ `caption`) / `row` / `cell`, `code-block`, `defs` / `def`,
+`math`, `cite`, `footnote`, `sidenote`, `index`, `ref`, `set running`
+/ `running`, plus `refs` / `ref-entry` for bibliography registration.
 
 **Template primitives.** `page`, `page-set` (named-page regimes),
-`region`, `stack`, `columns` / `column`, `layer` (backgrounds),
-`fixed` (overlays), `slot`, `header`, `footer`, `footnote-area`,
-`sidenote-area`, `font` (font-face), `rules` containing `role`
-(semantic→presentation routing) and `page` rules, plus back-matter
-generators `toc`, `list-of`, `bibliography`, `index`.
+`region`, `stack` (vertical-flex), `row` (horizontal-flex), `columns`
+/ `column`, `layer` (backgrounds), `fixed` (overlays), `slot`,
+`header`, `footer`, `footnote-area`, `sidenote-area`, `font`
+(font-face), `rules` containing `role` (semantic→presentation
+routing) and `page` rules, plus back-matter generators `toc`,
+`list-of`, `bibliography`, `index`.
+
+**Styling primitives.** `styles` (CSS-dialect block over the IR),
+`rule` (selector + className binding). Author writes a CSS-superset
+dialect targeting our typed selectors (`kind`, `role`, `depth`,
+`follows`, `within`, `has`, …) instead of HTML element names. See
+[docs/styling-spec.md](docs/styling-spec.md).
 
 **Output formats.** `html` (Paged.js-ready), `pdf` (headless
 Chromium print), `png` (one image per page, useful for visual
@@ -115,8 +122,9 @@ resolver, an HTML emitter, and a Chromium printing harness. Each
 piece is a few hundred lines; together they replace a corpus of TeX
 that took thirty years to write.
 
-See [docs/spec.md](docs/spec.md) for the full specification and
-[docs/names.md](docs/names.md) for the project's name history.
+See [docs/spec.md](docs/spec.md) for the full specification,
+[docs/styling-spec.md](docs/styling-spec.md) for the styling system,
+and [docs/names.md](docs/names.md) for the project's name history.
 
 ## Pre-built templates
 
