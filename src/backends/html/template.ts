@@ -32,6 +32,7 @@ import {
 import { renderInlineNode } from "./inline.js";
 import { styleToCss, styleToInlineCss, type MarginMatterEntry } from "./css.js";
 import { renderContentNode, renderSectionNode } from "./content.js";
+import { classAttr } from "./class-bindings.js";
 
 // Render an array of children to a single HTML string. Used at every
 // container call-site that needs to pass its rendered children into a
@@ -47,7 +48,7 @@ export function renderRegionNode(node: ResolvedRegionNode, innerHtml: string): s
   const inline = styleToInlineCss(node.style, "region");
   const combined = positioning + inline;
   const styleAttr = combined.length > 0 ? ` style="${escapeHtml(combined)}"` : "";
-  return `<div data-node="region"${styleAttr}>${innerHtml}</div>`;
+  return `<div data-node="region"${styleAttr}${classAttr(node)}>${innerHtml}</div>`;
 }
 
 export function renderStackNode(node: ResolvedStackNode, innerHtml: string): string {
@@ -57,7 +58,7 @@ export function renderStackNode(node: ResolvedStackNode, innerHtml: string): str
   };
   const style = styleToInlineCss(mergedStyle, "stack");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="stack"${styleAttr}>${innerHtml}</div>`;
+  return `<div data-node="stack"${styleAttr}${classAttr(node)}>${innerHtml}</div>`;
 }
 
 // Horizontal-flex layout, symmetric to renderStackNode but with
@@ -68,7 +69,7 @@ export function renderTemplateRowNode(node: ResolvedTemplateRowNode, innerHtml: 
   const gapStyle = node.gap != null ? `gap:${escapeHtml(node.gap)};` : "";
   const extraStyle = styleToInlineCss(node.style, "region");
   const style = `${baseStyle}${gapStyle}${extraStyle}`;
-  return `<div data-node="template-row" style="${escapeHtml(style)}">${innerHtml}</div>`;
+  return `<div data-node="template-row" style="${escapeHtml(style)}"${classAttr(node)}>${innerHtml}</div>`;
 }
 
 export function renderColumnsNode(node: ResolvedColumnsNode, innerHtml: string): string {
@@ -88,13 +89,13 @@ export function renderColumnsNode(node: ResolvedColumnsNode, innerHtml: string):
     gridTemplate = "1fr 1fr";
   }
   const style = `display:grid;grid-template-columns:${gridTemplate};gap:${gap};${styleToInlineCss(node.style, "region")}`;
-  return `<div data-node="columns" style="${escapeHtml(style)}">${innerHtml}</div>`;
+  return `<div data-node="columns" style="${escapeHtml(style)}"${classAttr(node)}>${innerHtml}</div>`;
 }
 
 export function renderColumnNode(node: ResolvedColumnNode, innerHtml: string): string {
   const style = styleToInlineCss(node.style, "region");
   const styleAttr = style.length > 0 ? ` style="${escapeHtml(style)}"` : "";
-  return `<div data-node="column"${styleAttr}>${innerHtml}</div>`;
+  return `<div data-node="column"${styleAttr}${classAttr(node)}>${innerHtml}</div>`;
 }
 
 export function renderFixedNode(node: ResolvedFixedNode, innerHtml: string): string {
@@ -116,7 +117,7 @@ export function renderFixedNode(node: ResolvedFixedNode, innerHtml: string): str
   const whenAttr = node.when != null ? ` data-when="${escapeHtml(node.when)}"` : "";
   const anchorAttr =
     typeof node.anchor === "string" ? ` data-anchor="${escapeHtml(node.anchor)}"` : "";
-  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}">${innerHtml}</div>`;
+  return `<div data-node="fixed"${whenAttr}${anchorAttr} style="${escapeHtml(style)}"${classAttr(node)}>${innerHtml}</div>`;
 }
 
 export function renderLayerNode(node: ResolvedLayerNode, zIndex: number, innerHtml: string): string {
@@ -125,7 +126,7 @@ export function renderLayerNode(node: ResolvedLayerNode, zIndex: number, innerHt
   const inline = styleToInlineCss(node.style, "region");
   const positioning = `position:absolute;inset:0;z-index:${zIndex};`;
   const combined = positioning + inline;
-  return `<div data-node="layer"${nameAttr}${whenAttr} style="${escapeHtml(combined)}">${innerHtml}</div>`;
+  return `<div data-node="layer"${nameAttr}${whenAttr} style="${escapeHtml(combined)}"${classAttr(node)}>${innerHtml}</div>`;
 }
 
 // --- Decoration-style renderers (no children) ------------------------

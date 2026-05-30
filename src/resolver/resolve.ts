@@ -473,6 +473,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         kind: "region",
         style: node.style,
         ...(node.positioning != null ? { positioning: node.positioning } : {}),
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedRegionNode;
     case "layer":
@@ -482,6 +483,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         ...(node.when != null ? { when: node.when } : {}),
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedLayerNode;
     case "stack":
@@ -489,6 +491,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         kind: "stack",
         gap: node.gap,
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedStackNode;
     case "row":
@@ -496,6 +499,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         kind: "template-row",
         gap: node.gap,
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedTemplateRowNode;
     case "columns":
@@ -504,6 +508,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         ...(node.gap != null ? { gap: node.gap } : {}),
         ...(node.widths != null ? { widths: node.widths } : {}),
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedColumnsNode;
     case "column":
@@ -511,6 +516,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         kind: "column",
         ...(node.width != null ? { width: node.width } : {}),
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedColumnNode;
     case "fixed":
@@ -519,6 +525,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         anchor: resolveFixedAnchor(node.anchor, ctx),
         when: node.when,
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedFixedNode;
     case "header":
@@ -528,6 +535,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         when: node.when,
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedHeaderNode;
     case "footer":
@@ -537,6 +545,7 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
         when: node.when,
         ...(ctx.currentPageSet != null ? { regime: ctx.currentPageSet } : {}),
         style: node.style,
+        ...(node.className != null ? { className: node.className } : {}),
         children: node.children.flatMap((child) => expandTemplateChild(child, slots, ctx))
       } satisfies ResolvedFooterNode;
     case "custom":

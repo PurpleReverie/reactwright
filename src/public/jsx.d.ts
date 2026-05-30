@@ -40,6 +40,7 @@ type FigureProps = ContentMetadataProps & {
   alt?: string;
   caption?: string;
   width?: string;
+  children?: ReactNode;
 };
 
 type TableProps = {

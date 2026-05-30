@@ -452,6 +452,7 @@ export type ResolvedRegionNode = {
   kind: "region";
   style?: TemplateStyle;
   positioning?: ResolvedRegionPositioning;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -461,6 +462,7 @@ export type ResolvedLayerNode = {
   when?: string;
   regime?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -468,6 +470,7 @@ export type ResolvedStackNode = {
   kind: "stack";
   gap?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -478,6 +481,7 @@ export type ResolvedTemplateRowNode = {
   kind: "template-row";
   gap?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -486,6 +490,7 @@ export type ResolvedColumnsNode = {
   gap?: string;
   widths?: string[];
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -493,6 +498,7 @@ export type ResolvedColumnNode = {
   kind: "column";
   width?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -508,6 +514,7 @@ export type ResolvedFixedNode = {
   anchor: string | ResolvedAnchorCoordinate;
   when?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -527,6 +534,7 @@ export type ResolvedHeaderNode = {
   when?: string;
   regime?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
@@ -536,6 +544,7 @@ export type ResolvedFooterNode = {
   when?: string;
   regime?: string;
   style?: TemplateStyle;
+  className?: string;
   children: ResolvedChild[];
 };
 
