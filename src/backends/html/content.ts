@@ -43,14 +43,7 @@ export function setRenderScopeRegimeFlows(
   flows: Record<string, ResolvedChild[]> | undefined
 ): void {
   renderScopeRegimeFlows = flows;
-  renderScopeLastSectionPage = undefined;
 }
-
-// Tracks the most recent depth-1 section's `page` value across the
-// render pass so renderSectionNode can emit a break-before:page
-// marker when consecutive sections use different page regimes.
-// Reset at the start of each renderResolvedToHTML invocation.
-let renderScopeLastSectionPage: string | undefined;
 
 export function renderParagraphNode(node: ResolvedParagraphNode): string {
   const inner = node.children.map(renderInlineNode).join("");
@@ -194,27 +187,14 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   // Wrap depth-1 sections in their regime's flow template so a
   // <page-set> can declare per-regime layout (e.g. a script regime
   // that wraps each scene in a monospace block) while sections still
-  // stream in document order.
-  //
-  // When this depth-1 section uses a page regime AND the previous
-  // depth-1 section used a different regime (or none), emit a
-  // forced page break before the regime flow so each named-page
-  // regime starts on its own page. Skip when the previous section
-  // used the same regime — those should flow continuously.
+  // stream in document order. CSS Paged Media's `page:` property on
+  // each section already implies a page break when the named page
+  // changes, so no explicit break marker is needed here.
   const useRegimeFlow =
     depth === 1 &&
     typeof node.page === "string" &&
     node.page.length > 0 &&
     renderScopeRegimeFlows != null;
-  let regimeBreak = "";
-  if (depth === 1 && typeof node.page === "string" && node.page.length > 0) {
-    if (renderScopeLastSectionPage !== node.page) {
-      regimeBreak = '<div aria-hidden="true" style="break-before:page;height:0;"></div>';
-    }
-    renderScopeLastSectionPage = node.page;
-  } else if (depth === 1) {
-    renderScopeLastSectionPage = undefined;
-  }
   if (useRegimeFlow) {
     const flow = renderScopeRegimeFlows![node.page!];
     if (flow != null && flow.length > 0) {
@@ -240,15 +220,14 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
         // named regime; min-height takes the full page so the overlay
         // elements (region fill, fixed) render on top of it.
         return (
-          regimeBreak +
           `<div style="page:${escapeHtml(node.page!)};min-height:100vh;"></div>` +
           flowHtml
         );
       }
-      return regimeBreak + flowHtml;
+      return flowHtml;
     }
   }
-  return regimeBreak + sectionHtml;
+  return sectionHtml;
 }
 
 // Dispatcher for content-IR nodes. Inline kinds fall through to
