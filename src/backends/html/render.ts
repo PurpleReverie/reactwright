@@ -55,6 +55,11 @@ const STATIC_DEFAULTS_CSS = [
   ".reactdoc-ref-title::after{content:target-text(attr(href url));}",
   ".reactdoc-ref-number-and-page::after{content:target-counter(attr(href url), reactdoc-ref) ' ' target-counter(attr(href url), page);}",
   ".reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib);}",
+  // Bibliography counter wiring lives in CSS rules (not inline
+  // styles on the <li>) so that target-counter() resolves
+  // correctly across Paged.js page chunks.
+  ".reactdoc-bibliography{counter-reset:reactdoc-bib;}",
+  ".reactdoc-bibliography ol > li{counter-increment:reactdoc-bib;}",
   ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
   ".reactdoc-index-pagerefs a + a::before{content:', ';}",
   // ── machinery: TOC / list-of leader formatting ────────────────

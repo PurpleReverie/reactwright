@@ -180,10 +180,12 @@ export function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string
 
 export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
   const title = node.title != null ? `<h2 class="reactdoc-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
-  // Each entry carries an explicit reactdoc-bib counter increment so
-  // that <cite> can resolve to the right number via
-  // target-counter(url, reactdoc-bib). Implicit list-item counters do
-  // not survive Paged.js chunking reliably.
+  // Bibliography counter wiring: counter-reset on the section and
+  // counter-increment per <li> are emitted via STATIC_DEFAULTS_CSS
+  // class rules (.reactdoc-bibliography / .reactdoc-bibliography ol > li)
+  // rather than inline styles. Paged.js's target-counter() does not
+  // see inline-style counter-increments when resolving cross-page
+  // <cite> references — using CSS rules fixes that.
   const items = node.entries
     .map((e) => {
       const usedAttr = e.used ? ` data-used="true"` : "";
@@ -191,10 +193,10 @@ export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
         e.inline != null && e.inline.length > 0
           ? e.inline.map((c) => renderInlineNode(c)).join("")
           : escapeHtml(e.text ?? e.key);
-      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr} style="counter-increment:reactdoc-bib;">${body}</li>`;
+      return `<li id="reactdoc-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${body}</li>`;
     })
     .join("");
-  return `<section data-node="bibliography" class="reactdoc-bibliography" style="counter-reset:reactdoc-bib;">${title}<ol>${items}</ol></section>`;
+  return `<section data-node="bibliography" class="reactdoc-bibliography">${title}<ol>${items}</ol></section>`;
 }
 
 // --- Custom intrinsic --------------------------------------------------
