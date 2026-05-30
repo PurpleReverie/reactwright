@@ -20,6 +20,7 @@ type PageLike = {
   evaluate<T>(fn: (() => T) | string): Promise<T>;
   pdf(options: { path?: string; format?: string; printBackground?: boolean }): Promise<Uint8Array>;
   $$(selector: string): Promise<ElementLike[]>;
+  setViewport(viewport: { width: number; height: number; deviceScaleFactor?: number }): Promise<void>;
   close(): Promise<void>;
 };
 
@@ -154,8 +155,14 @@ export type BuildPngsOptions = {
 // `<outputDir>/<baseName>-page-NN.png`. Useful as a programmatic
 // inspection surface: drop a tsx mockup into runExternalFile with
 // --format png and the resulting PNGs are readable artifacts you can
-// diff visually or load into a vision-aware LLM. At Paged.js's
-// default 96dpi a letter page is ~816x1056px and weighs ~50-150KB.
+// diff visually or load into a vision-aware LLM.
+//
+// deviceScaleFactor 0.5 halves the rendered resolution (letter →
+// ~408x528px instead of 816x1056px) so each PNG is ~60-80KB instead
+// of ~250-300KB. Layout and text are still legible at that size for
+// inspection purposes. Bump back to 1.0 if you need higher fidelity.
+const SNAPSHOT_DEVICE_SCALE = 0.5;
+
 export async function buildPngsFromHtml(
   html: string,
   options: BuildPngsOptions
@@ -164,6 +171,7 @@ export async function buildPngsFromHtml(
   try {
     return await withTempHtmlFile(html, options.outputDir, async (url) => {
       const browserPage = await browser.newPage();
+      await browserPage.setViewport({ width: 1024, height: 1280, deviceScaleFactor: SNAPSHOT_DEVICE_SCALE });
       await browserPage.goto(url, { waitUntil: "networkidle0" });
       await browserPage.evaluate(WAIT_FOR_PAGED_JS_SOURCE);
       const pageEls = await browserPage.$$(".pagedjs_page");
