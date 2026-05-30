@@ -126,9 +126,12 @@ export function renderDefsNode(node: ResolvedDefsNode): string {
 }
 
 export function renderAbstractNode(node: ResolvedAbstractNode): string {
+  // The engine doesn't auto-emit a label. Different document formats
+  // disagree (IEEE uses an inline "Abstract—" prefix, novels have no
+  // abstract at all, APA wants a particular placement) — so the
+  // heading is composed at the content or template layer instead.
   return [
-    '<section data-slot="abstract">',
-    "<h2>Abstract</h2>",
+    '<section data-slot="abstract" class="reactdoc-abstract">',
     ...node.children.map((child) => renderContentNode(child)),
     "</section>"
   ].join("");
