@@ -64,6 +64,11 @@ const STATIC_DEFAULTS_CSS = [
   // region — that produces gigantic word-spacing in short titles.
   // Default to left alignment unless a role rule explicitly opts in.
   "h1,h2,h3,h4,h5,h6{text-align:left;}",
+  // Last-line of justified paragraphs aligns to start (left in LTR),
+  // not stretched. Without this Chrome can produce "word    word"
+  // gaps on the final line. Same for figure captions and list items.
+  "p,figcaption,li{text-align-last:auto;}",
+  ".reactdoc-flow p{text-align-last:left;}",
   "h1{font-size:1.6em;font-weight:bold;margin-bottom:0.4em;}",
   "h2{font-size:1.2em;font-weight:bold;margin-top:1em;margin-bottom:0.25em;}",
   "h3{font-size:1.05em;font-weight:bold;margin-top:0.8em;margin-bottom:0.2em;}",
@@ -158,7 +163,9 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
   // 5. Font and KaTeX head tags.
   const fontTags = buildFontHeadTags(page);
 
-  // 6. Assemble the style block.
+  // 6. Assemble the style block. Template-supplied `customCss` lands
+  // last so it can override engine defaults (heading sizes, etc.).
+  const customCss = typeof page.style?.customCss === "string" ? page.style.customCss : "";
   const styleRules = [
     atPageRule ?? "",
     pageRegimesCss,
@@ -169,7 +176,8 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     footnoteAreaCss,
     sidenoteAreaCss,
     variantRulesCss,
-    STATIC_DEFAULTS_CSS
+    STATIC_DEFAULTS_CSS,
+    customCss
   ]
     .filter((s) => s.length > 0)
     .join("");
