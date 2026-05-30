@@ -58,6 +58,13 @@ const IEEE_CSS = [
   // ── Inline code: plain mono, no background box ──────────────────
   "code{background:none;padding:0;border-radius:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:0.92em;}",
 
+  // ── Citations: IEEE-style [N] brackets, black inline text ───────
+  // The engine emits only the counter value via .reactdoc-cite::after;
+  // wrap it in brackets here and suppress the default link styling.
+  "a.reactdoc-cite{color:inherit;text-decoration:none;}",
+  "a.reactdoc-cite::before{content:'[';}",
+  "a.reactdoc-cite::after{content:target-counter(attr(href url), reactdoc-bib) ']';}",
+
   // ── References list ─────────────────────────────────────────────
   ".reactdoc-bibliography{font-size:8pt;}",
   ".reactdoc-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
