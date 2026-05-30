@@ -217,8 +217,11 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
       })(flow);
       if (!regimeHasBodySlot && node.children.length === 0) {
         // Filler carries `page:<name>` so Paged.js routes it to the
-        // named regime; min-height takes the full page so the overlay
-        // elements (region fill, fixed) render on top of it.
+        // named regime; min-height takes the full page so the
+        // page exists for Paged.js to paginate against. Absolute
+        // overlay elements (region fill, fixed) follow as siblings —
+        // they remain document-relative, not page-relative; see
+        // mockups/cover.tsx KNOWN LIMITATION for details.
         return (
           `<div style="page:${escapeHtml(node.page!)};min-height:100vh;"></div>` +
           flowHtml
