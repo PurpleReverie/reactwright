@@ -5,36 +5,79 @@ ReactDoc is a React-authored document engine for paginated output (HTML via Page
 ## Architecture at a glance
 
 ```
-content JSX ──[render.ts]──► contentIR
-template JSX ──[render.ts]──► templateIR
+content JSX ──[content/]──► contentIR
+template JSX ──[template/]──► templateIR
                               ↓
-                        [resolve.ts] ──► ResolvedPageNode
+                        [resolver/] ──► ResolvedPageNode
                               ↓
-                        [html/render.ts] ──► HTML
+                        [backends/html/] ──► HTML
                               ↓
-                        Paged.js ──► PDF (via puppeteer-core)
+                        Paged.js ──► PDF (via backends/pdf/)
 ```
 
 Two independent React reconcilers (content + template) produce intermediate representations. Resolver merges them by substituting `<slot>` with content regions. HTML backend emits for Paged.js (CSS Paged Media + GCPM polyfill).
 
-## Key modules
+## Project structure
 
-| File | Purpose |
-|------|---------|
-| `src/content/render.ts` | JSX→contentIR: semantic blocks (section, p, figure, etc.) |
-| `src/template/render.ts` | JSX→templateIR: layout primitives (page, stack, region, page-set, etc.) |
-| `src/resolver/resolve.ts` | contentIR + templateIR → ResolvedPageNode (joins via slots) |
-| `src/resolver/ir.ts` | ResolvedPageNode type (source of truth for resolved tree) |
-| `src/backends/html/render.ts` | ResolvedPageNode → HTML for Paged.js (1500 lines; see sections below) |
-| `src/backends/pdf/render.ts` | HTML → PDF (headless Chromium, file:// URLs for images) |
+Each concern is a directory under `src/`. The directory name carries the verb; files inside name the sub-concern. `render.ts` is always the orchestrator. `ir.ts` is always the type definitions.
+
+```
+src/
+├── shared/                      cross-cutting helpers
+│   ├── prop-readers.ts            getString, getRequiredString, …
+│   ├── reconciler-host-config.ts  createReconcilerHostConfigBase
+│   └── insert-before.ts           insertBeforeInList<T>
+├── content/                     JSX → content IR
+│   ├── render.ts                  orchestrator: renderContentToIR
+│   ├── host-config.ts             reconciler wiring
+│   ├── grammar.ts                 parent→allowed-children table + appendSemanticChild
+│   ├── factories.ts               per-intrinsic node constructors (dispatch table)
+│   └── ir.ts
+├── template/                    JSX → template IR
+│   ├── render.ts                  orchestrator: renderTemplateToIR
+│   ├── host-config.ts
+│   ├── prop-readers.ts            template-specific readers (anchors, when, …)
+│   ├── registry.ts                custom-intrinsic registry
+│   ├── factories/                 per-intrinsic constructors
+│   │   ├── index.ts                 dispatch table + createTemplateNode
+│   │   ├── page.ts                  page, page-set
+│   │   ├── regions.ts               region, layer, stack, columns, column, fixed
+│   │   ├── margin-matter.ts         header, footer
+│   │   ├── reference.ts             bibliography, toc, list-of, index
+│   │   ├── decorations.ts           font, image, running, page-number, page-count
+│   │   ├── footnotes.ts             footnote-area, sidenote-area
+│   │   ├── rules.ts                 role-rule + four prop helpers
+│   │   └── slot.ts                  slot + validateSlotName
+│   └── ir.ts
+├── resolver/                    content IR + template IR → resolved IR
+│   ├── resolve.ts                 orchestrator: resolveDocument + template-tree dispatch
+│   ├── inline.ts                  per-inline-kind resolvers
+│   ├── block.ts                   per-block-kind resolvers + resolveContentChild
+│   ├── rules.ts                   RuleMaps, withVariant, assignRoleVariants
+│   ├── collect.ts                 assign* (ids) + collect* (cite keys, ref entries)
+│   ├── anchors.ts                 resolveFixedAnchor + normalizeCoordinate
+│   └── ir.ts
+└── backends/
+    ├── html/                    resolved IR → HTML for Paged.js
+    │   ├── render.ts              orchestrator: renderResolvedToHTML
+    │   ├── content.ts             per-content-kind renderers + renderSectionNode
+    │   ├── inline.ts              per-inline-kind renderers
+    │   ├── template.ts            container renderers + renderResolvedChild dispatch
+    │   ├── regime-flow.ts         renderRegimeFlowNode (substitutes body-slot)
+    │   ├── css.ts                 build*Css + styleToInlineCss + cssPropertyMap
+    │   ├── fonts.ts               KaTeX glue + buildFontHeadTags
+    │   └── utils.ts               escapeHtml, anchorToCss, idAttr, …
+    └── pdf/
+        └── render.ts              buildPdfFromHtml + launchBrowser + withTempHtmlFile
+```
 
 ## Key patterns
 
 **Page-set (regime declaration):**
-A `<page-set name="X">` declares one CSS Paged Media regime: geometry (size, margin), chrome (header/footer), and body flow template. Its `<slot name="body">` is a marker. When resolver processes it, body flow gets stored in `regimeFlows[X]` and chrome is hoisted as direct page children. At render time, each `<section page="X">` is wrapped in its regime's flow template.
+A `<page-set name="X">` declares one CSS Paged Media regime: geometry (size, margin), chrome (header/footer), and body flow template. Its `<slot name="body">` is a marker. When the resolver processes it, body flow gets stored in `regimeFlows[X]` and chrome is hoisted as direct page children. At render time, each `<section page="X">` is wrapped in its regime's flow template (`renderRegimeFlowNode`).
 
 **Role rules (semantic routing):**
-`<role match="X" apply="Y" style={...} breakBefore="...">` maps content `role="X"` to presentation variant `Y`. Style pass-through lets templates define what variants look like without engine baking in role names.
+`<role match="X" apply="Y" style={...} breakBefore="...">` maps content `role="X"` to presentation variant `Y`. Style pass-through lets templates define what variants look like without the engine baking in role names. Resolved by `assignRoleVariants` (formerly `applyResolvedRules`) using the `withVariant` helper.
 
 **Running strings (`<set>` + `<running>`):**
 Content: `<set running="chapter-title" value="..." />` captures metadata. Template: `<running name="chapter-title" />` emits it. Wired via CSS string-set + margin boxes.
@@ -42,39 +85,56 @@ Content: `<set running="chapter-title" value="..." />` captures metadata. Templa
 **Body-stream auto-emit:**
 If no top-level `<slot name="body">` consumes body content but page-sets registered flows, the resolver appends a synthetic `body-stream` node. Lets authors wire content by placing slot inside page-set alone.
 
+**Dispatch tables:**
+`createContentNode`, `createTemplateNode`, and `renderResolvedChild` are all dispatch maps (`Record<kind, handler>`), not switches. Adding a primitive = adding one entry plus its factory/renderer.
+
 ## Where to add / modify
 
 | Task | Files |
 |------|-------|
-| New content primitive | `src/content/ir.ts` + `src/content/render.ts` + resolver slot handling |
-| New template primitive | `src/template/ir.ts` + `src/template/render.ts` + resolver + `src/backends/html/render.ts` |
-| New page-set behavior | `src/resolver/resolve.ts` (page-set case) + `src/resolver/ir.ts` (regimeFlows type) |
-| CSS Paged Media details | `src/backends/html/render.ts` (buildPageRegimesCss, buildMarginMatterCss, etc.) |
-| Styling / directMap | `src/backends/html/render.ts` (styleToInlineCss directMap) |
+| New content primitive | `content/ir.ts` (type) + `content/factories.ts` (constructor + dispatch entry) + `content/grammar.ts` (allowed-children rule) + `resolver/{inline,block}.ts` (resolver) + `backends/html/{content,inline}.ts` (renderer) |
+| New template primitive | `template/ir.ts` + `template/factories/<category>.ts` (constructor) + `template/factories/index.ts` (dispatch entry) + `resolver/resolve.ts` (template-tree dispatch) + `backends/html/template.ts` (renderer) |
+| New page-set behavior | `resolver/resolve.ts` (page-set case of `expandTemplateChild`) + `resolver/ir.ts` (regimeFlows type) |
+| CSS Paged Media details | `backends/html/css.ts` |
+| New style key | `backends/html/css.ts` (`cssPropertyMap`) |
+| New role-rule attribute | `template/factories/rules.ts` (reader) + `resolver/rules.ts` (RoleRule + withVariant) + `backends/html/css.ts` (`buildRoleVariantCss`) |
+
+## Conventions
+
+- **Naming verbs:** `render*` (IR → HTML) · `resolve*` (IR → resolved IR) · `build*` (CSS strings) · `collect*` (tree walk → list) · `assign*` (tree walk → mutate ids) · `read*` / `get*` (props extraction) · `*ToCss` / `*ToInlineCss` (style serialization).
+- **One entry-point per concern:** `<dir>/render.ts` is always the orchestrator for that dir.
+- **Subdirectory threshold:** flat up to ~4 files in a concern; subdirectory beyond that (see `template/factories/`).
+- **`index.ts` only re-exports.** No logic.
+- **Cross-cutting helpers live in `src/shared/`.** Keep small.
 
 ## Testing / validation
 
-- **Unit tests:** `npm run test` (47 tests in `tests/*.test.tsx`)
+- **Unit tests:** `npm run test` (47 tests across `tests/*.test.tsx`)
 - **Integration tests:** `npm run mockup:all` (renders 9 mockups; PDFs are live validation)
 - **Type check:** `npm run check`
+- **Single-mockup smoke test:** `npm run mockup:story-bible` exercises every regime + role-rule + drop-cap + running-string + two-sided geometry + external font path in one ~3s run.
 
 All 9 mockups must produce healthy PDFs. Check file sizes: if a PDF drops to ~900B, that regime's content was filtered out (likely a resolver bug).
 
+For HTML-emit refactors, byte-diff `build/mockups/*.html` against a pre-refactor snapshot to confirm no behavior drift.
+
+## Test files
+
+- `tests/content-render.test.tsx` — content reconciler unit tests
+- `tests/template-render.test.tsx` — template reconciler unit tests
+- `tests/resolver-integration.test.tsx` — slot fill + role rules + regimeFlows
+- `tests/html-css.test.tsx` — @page rules, margin matter, role variant CSS, fonts, columns
+- `tests/html-emission.test.tsx` — content emission, custom intrinsic, fixed overlay, toc / list-of / index / bibliography
+- `tests/run-file.test.tsx` — CLI
+
 ## Spec vs. source
 
-**The spec (`docs/spec.md`) is canonical.** When spec and code disagree, trust the spec. Recent refactorings (page-set as pure declaration, body-stream auto-emit) have aligned source closer to spec intent.
-
-## Key recent changes (last commit)
-
-- Deleted `ResolvedPageSetNode` from flow tree (page-sets now hoist chrome, store body flow).
-- Removed `matchesPageSet` filtering (body-slot no longer groups content by regime; document order preserved).
-- Added `regimeFlows: Record<string, ResolvedChild[]>` on `ResolvedPageNode` (per-regime body templates).
-- Added `body-stream` auto-emit so writers can place `<slot name="body">` inside `<page-set>` intuitively.
-- Section wrapping in regime templates happens at render time (`renderSectionNode` checks `regimeFlows`).
+**The spec (`docs/spec.md`) is canonical.** When spec and code disagree, trust the spec.
 
 ## Context-saving notes
 
-- Don't re-read spec; trust it over code when they conflict.
-- `npm run mockup:all` is fast (~3s); use it after structural changes.
-- Audit by PDF file size. A 900B PDF means content was silently dropped (resolver bug).
-- `regimeFlows` map is the key novel piece; everything else follows from it.
+- The codebase is now uniformly small files (most < 350 lines). Use the project-structure tree above to navigate; don't re-read large files speculatively.
+- `regimeFlows` map is the load-bearing concept: per-regime body templates, instantiated per section at render time.
+- Don't thread an explicit `RenderCtx` through the HTML renderers — `renderScopeRegimeFlows` is a documented module-level variable in `backends/html/content.ts` because the call chain through 15+ functions made threading not worth it.
+- `npm run mockup:all` is fast (~5s); run after any structural change.
+- `npm run mockup:story-bible` is the single best end-to-end smoke test (3s).
