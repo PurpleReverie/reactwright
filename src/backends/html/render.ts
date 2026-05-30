@@ -60,15 +60,25 @@ const STATIC_DEFAULTS_CSS = [
   // correctly across Paged.js page chunks.
   ".reactdoc-bibliography{counter-reset:reactdoc-bib;}",
   ".reactdoc-bibliography ol > li{counter-increment:reactdoc-bib;}",
+  // reactdoc-ref counter: incremented on every id-bearing element
+  // that can be the target of <ref show="number">. Same constraint
+  // as reactdoc-bib — must be a CSS rule, not inline, so Paged.js
+  // resolves target-counter() across pages. Single shared counter
+  // returns ordinal position; per-kind counters (figure number vs
+  // section number) would require a richer ref API.
+  ".reactdoc-flow{counter-reset:reactdoc-ref;}",
+  ".reactdoc-flow section[id],.reactdoc-flow figure[id],.reactdoc-flow table[id],.reactdoc-flow [data-node='math-block'][id]{counter-increment:reactdoc-ref;}",
   ".reactdoc-index-pageref::after{content:target-counter(attr(href url), page);}",
   ".reactdoc-index-pagerefs a + a::before{content:', ';}",
   // ── machinery: TOC / list-of leader formatting ────────────────
   ".reactdoc-toc ol{list-style:none;padding-left:0;}",
-  ".reactdoc-toc-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
-  ".reactdoc-toc-page::after{content:target-counter(attr(href url, '#'), page);}",
+  ".reactdoc-toc-entry{display:flex;justify-content:space-between;}",
+  ".reactdoc-toc-link,.reactdoc-toc-page{text-decoration:none;color:inherit;}",
+  ".reactdoc-toc-page::after{content:target-counter(attr(href url), page);}",
   ".reactdoc-list-of ol{list-style:none;padding-left:0;}",
-  ".reactdoc-list-of-link{display:flex;justify-content:space-between;text-decoration:none;color:inherit;}",
-  ".reactdoc-list-of-page::after{content:target-counter(attr(href url, '#'), page);}",
+  ".reactdoc-list-of-entry{display:flex;justify-content:space-between;}",
+  ".reactdoc-list-of-link,.reactdoc-list-of-page{text-decoration:none;color:inherit;}",
+  ".reactdoc-list-of-page::after{content:target-counter(attr(href url), page);}",
   // ── reset: block elements have no UA margin ───────────────────
   "h1,h2,h3,h4,h5,h6,p,figure,table,blockquote,ul,ol,pre{margin:0;}",
   // Headings shouldn't inherit text-align: justify from a parent

@@ -142,13 +142,19 @@ export function renderImageNode(node: ResolvedImageNode): string {
 
 // --- Reference renderers --------------------------------------------
 
+// TOC and list-of entries split the row into two sibling anchors:
+// one wraps the title text, one is the empty page-number node whose
+// ::after content reads via target-counter(attr(href url), page).
+// Both anchors must carry the href so attr(href url) resolves on
+// each of them — putting the page span inside the title <a> meant
+// the page span had no href and target-counter returned 0.
 export function renderListOfNode(node: ResolvedListOfNode): string {
   const title = node.title != null ? `<h2 class="reactdoc-list-of-title">${escapeHtml(node.title)}</h2>` : "";
   const items = node.entries
-    .map(
-      (e) =>
-        `<li class="reactdoc-list-of-entry"><a class="reactdoc-list-of-link" href="#${escapeHtml(e.id)}"><span class="reactdoc-list-of-text">${escapeHtml(e.caption)}</span><span class="reactdoc-list-of-page"></span></a></li>`
-    )
+    .map((e) => {
+      const href = `#${escapeHtml(e.id)}`;
+      return `<li class="reactdoc-list-of-entry"><a class="reactdoc-list-of-link" href="${href}"><span class="reactdoc-list-of-text">${escapeHtml(e.caption)}</span></a><a class="reactdoc-list-of-page" href="${href}"></a></li>`;
+    })
     .join("");
   return `<nav data-node="list-of" data-of="${escapeHtml(node.of)}" class="reactdoc-list-of">${title}<ol>${items}</ol></nav>`;
 }
@@ -159,7 +165,8 @@ export function renderTocNode(node: ResolvedTocNode): string {
     .map((e) => {
       const depthClass = ` class="reactdoc-toc-entry reactdoc-toc-depth-${e.depth}"`;
       const numberedAttr = node.numbered === true ? ` data-numbered="true"` : "";
-      return `<li${depthClass}${numberedAttr}><a class="reactdoc-toc-link" href="#${escapeHtml(e.id)}"><span class="reactdoc-toc-text">${escapeHtml(e.title)}</span><span class="reactdoc-toc-page"></span></a></li>`;
+      const href = `#${escapeHtml(e.id)}`;
+      return `<li${depthClass}${numberedAttr}><a class="reactdoc-toc-link" href="${href}"><span class="reactdoc-toc-text">${escapeHtml(e.title)}</span></a><a class="reactdoc-toc-page" href="${href}"></a></li>`;
     })
     .join("");
   return `<nav data-node="toc" class="reactdoc-toc">${title}<ol>${items}</ol></nav>`;
