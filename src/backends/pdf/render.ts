@@ -10,11 +10,16 @@ type BrowserLike = {
   close(): Promise<void>;
 };
 
+type ElementLike = {
+  screenshot(options?: { path?: string; type?: "png" | "jpeg"; omitBackground?: boolean }): Promise<Uint8Array>;
+};
+
 type PageLike = {
   setContent(html: string, options?: { waitUntil?: string }): Promise<void>;
   goto(url: string, options?: { waitUntil?: string }): Promise<unknown>;
   evaluate<T>(fn: (() => T) | string): Promise<T>;
   pdf(options: { path?: string; format?: string; printBackground?: boolean }): Promise<Uint8Array>;
+  $$(selector: string): Promise<ElementLike[]>;
   close(): Promise<void>;
 };
 
@@ -68,9 +73,9 @@ export async function buildPdfFromResolved(
 
 // Launch a headless Chromium with the platform-appropriate executable
 // path (bundled or from PUPPETEER_EXECUTABLE_PATH).
-async function launchBrowser(options: BuildPdfOptions): Promise<BrowserLike> {
+async function launchBrowser(executablePathOpt?: string): Promise<BrowserLike> {
   const puppeteer = await loadPuppeteer();
-  const executablePath = options.executablePath ?? process.env.PUPPETEER_EXECUTABLE_PATH;
+  const executablePath = executablePathOpt ?? process.env.PUPPETEER_EXECUTABLE_PATH;
   return puppeteer.launch({
     headless: true,
     ...(executablePath != null ? { executablePath } : {}),
@@ -120,7 +125,7 @@ export async function buildPdfFromHtml(
   html: string,
   options: BuildPdfOptions
 ): Promise<{ pdfPath: string }> {
-  const browser = await launchBrowser(options);
+  const browser = await launchBrowser(options.executablePath);
   try {
     return await withTempHtmlFile(html, dirname(options.outputPath), async (url) => {
       const browserPage = await browser.newPage();
@@ -133,6 +138,44 @@ export async function buildPdfFromHtml(
       });
       await browserPage.close();
       return { pdfPath: options.outputPath };
+    });
+  } finally {
+    await browser.close();
+  }
+}
+
+export type BuildPngsOptions = {
+  outputDir: string;
+  baseName: string;
+  executablePath?: string;
+};
+
+// Render Paged.js'd HTML to one PNG per page, written to
+// `<outputDir>/<baseName>-page-NN.png`. Useful as a programmatic
+// inspection surface: drop a tsx mockup into runExternalFile with
+// --format png and the resulting PNGs are readable artifacts you can
+// diff visually or load into a vision-aware LLM. At Paged.js's
+// default 96dpi a letter page is ~816x1056px and weighs ~50-150KB.
+export async function buildPngsFromHtml(
+  html: string,
+  options: BuildPngsOptions
+): Promise<{ pngPaths: string[] }> {
+  const browser = await launchBrowser(options.executablePath);
+  try {
+    return await withTempHtmlFile(html, options.outputDir, async (url) => {
+      const browserPage = await browser.newPage();
+      await browserPage.goto(url, { waitUntil: "networkidle0" });
+      await browserPage.evaluate(WAIT_FOR_PAGED_JS_SOURCE);
+      const pageEls = await browserPage.$$(".pagedjs_page");
+      const pngPaths: string[] = [];
+      for (let i = 0; i < pageEls.length; i += 1) {
+        const num = String(i + 1).padStart(2, "0");
+        const pngPath = join(options.outputDir, `${options.baseName}-page-${num}.png`);
+        await pageEls[i].screenshot({ path: pngPath, type: "png" });
+        pngPaths.push(pngPath);
+      }
+      await browserPage.close();
+      return { pngPaths };
     });
   } finally {
     await browser.close();

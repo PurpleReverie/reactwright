@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import React from "react";
 
 import { renderResolvedToHTML } from "../backends/html/render.js";
-import { buildPdfFromHtml } from "../backends/pdf/render.js";
+import { buildPdfFromHtml, buildPngsFromHtml } from "../backends/pdf/render.js";
 import { renderContentToIR } from "../content/render.js";
 import { resolveDocument } from "../resolver/resolve.js";
 import { renderTemplateToIR } from "../template/render.js";
@@ -31,7 +31,7 @@ function DefaultTemplate() {
   );
 }
 
-type OutputFormat = "html" | "pdf";
+type OutputFormat = "html" | "pdf" | "png";
 
 type RunExternalFileOptions = {
   inputPath: string;
@@ -47,6 +47,7 @@ type RunExternalFileResult = {
   template: "default" | "external";
   htmlPath?: string;
   pdfPath?: string;
+  pngPaths?: string[];
 };
 
 type ExternalDocumentModule =
@@ -79,12 +80,12 @@ function parseFormats(value: string | undefined): OutputFormat[] {
   const formats = new Set<OutputFormat>();
 
   for (const entry of raw) {
-    if (entry === "html" || entry === "pdf") {
+    if (entry === "html" || entry === "pdf" || entry === "png") {
       formats.add(entry);
       continue;
     }
 
-    throw new Error(`Unsupported format: ${entry}. Supported formats: html, pdf.`);
+    throw new Error(`Unsupported format: ${entry}. Supported formats: html, pdf, png.`);
   }
 
   return [...formats];
@@ -170,6 +171,11 @@ export async function runExternalFile(options: RunExternalFileOptions): Promise<
     const pdfPath = join(outDir, `${baseName}.pdf`);
     await buildPdfFromHtml(html, { outputPath: pdfPath });
     result.pdfPath = pdfPath;
+  }
+
+  if (options.formats.includes("png")) {
+    const { pngPaths } = await buildPngsFromHtml(html, { outputDir: outDir, baseName });
+    result.pngPaths = pngPaths;
   }
 
   return result;
