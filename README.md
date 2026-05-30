@@ -1,61 +1,153 @@
-# ReactDoc
+# Reactwright
 
-React-authored document engine. Write documents as React components; the engine renders them through Paged.js into paginated HTML, and to PDF via headless Chromium.
+> Write paginated documents in React. Get HTML for the browser and PDF for the printer — without LaTeX, without InDesign, without writing CSS Paged Media by hand.
+
+Reactwright is a document engine. You compose your *content* in JSX
+(`<document>`, `<section>`, `<p>`, `<figure>`, `<cite>`) and your
+*template* in a separate JSX tree (`<page>`, `<region>`, `<columns>`,
+`<header>`, `<footer>`). Two React reconcilers compile each tree to
+an intermediate representation; a resolver joins them; the engine
+emits paginated HTML and renders it to PDF through Paged.js inside
+headless Chromium.
+
+```
+content JSX  ─┐
+              ├──► resolver ──► paginated HTML ──► Paged.js ──► PDF
+template JSX ─┘
+```
+
+The same content can be re-skinned by swapping templates. The same
+template can host any content. Numbering, cross-references, page
+counts, footnotes, bibliographies, tables of contents, and indices
+all resolve automatically.
+
+## Why
+
+LaTeX is brilliant and brutal. The browser is now a fully capable
+typesetting engine — it does kerning, ligatures, hyphenation,
+hanging punctuation, justified text, multi-column flow, named
+running headers, and footnote floats. Reactwright gives that
+substrate a writer-facing language without making you learn CSS.
 
 ## Status
 
-Pre-release. The primitive vocabulary is being redesigned around Paged.js as the primary render target. The previous LaTeX backend is being removed.
+`0.1.0` — first published cut. The architecture has rendered a
+credible IEEE conference paper, a Tufte-style essay with sidenotes,
+a two-sided novel chapter, a multi-column newsletter, and an
+academic treatise. API will change pre-`1.0`; expect breakage
+between minor versions.
 
-See [docs/spec.md](docs/spec.md) for the current specification.
-
-## How it works
-
-ReactDoc separates document authoring into two React scopes:
-
-- a **content scope** describing semantic meaning (`<section>`, `<p>`, `<quote>`)
-- a **template scope** describing page layout and visual treatment (`<page>`, `<layer>`, `<region>`)
-
-Both scopes are executed by custom React reconcilers, normalized into intermediate trees, joined by a slot resolver, and compiled to a paginated HTML document driven by Paged.js. PDF output comes from headless Chromium printing the paginated DOM.
-
-```
-content React tree  ─┐
-                     ├──► resolver ──► HTML ──► Paged.js ──► paginated DOM ──► PDF
-template React tree ─┘
-```
-
-## Quickstart
+## Install
 
 ```bash
-npm install
-npm run run:file -- ./playground/paper.tsx --format html --out ./build/reactwright-run
+npm install reactwright
 ```
 
-The runner accepts a `.tsx` file exporting `default` (or `Content` / `content`) as the content component and optionally `Template` (or `template`) as the template component. If no template is exported, a built-in starter template is used.
+Peer dependency: `react@^19`. PDF output requires `puppeteer` or
+`puppeteer-core` and either a bundled Chromium or one available via
+`PUPPETEER_EXECUTABLE_PATH`.
 
-## Consumer authoring
-
-For consumer projects:
+## A 30-line example
 
 ```tsx
+// paper.tsx
 import "reactwright/jsx";
-import { ArticleTemplate } from "reactwright/templates";
-import type { ContentComponent, TemplateComponent } from "reactwright";
 
-export const Template: TemplateComponent = () => <ArticleTemplate />;
+export function Template() {
+  return (
+    <page page={{ size: "a4", margin: "25mm" }}>
+      <stack gap="6mm">
+        <region style={{ textAlign: "center" }}>
+          <slot name="title" />
+          <slot name="author" />
+        </region>
+        <region>
+          <slot name="body" />
+        </region>
+      </stack>
+    </page>
+  );
+}
 
-const Paper: ContentComponent = () => (
-  <document title="My Paper">
-    <section title="Intro">
-      <p>Hello world.</p>
-    </section>
-  </document>
-);
-
-export default Paper;
+export default function Paper() {
+  return (
+    <document title="A First Reactwright Paper" author="Your Name">
+      <section title="Introduction">
+        <p>Hello world.</p>
+      </section>
+    </document>
+  );
+}
 ```
 
-A consumer-style proof fixture lives in `fixtures/intellisense-consumer/` and can be verified with `npm run check:intellisense`.
+Render it:
 
-## Documentation
+```bash
+node --import tsx ./node_modules/reactwright/src/cli/run-file.tsx \
+  ./paper.tsx --format html,pdf --out ./out
+```
 
-- [docs/spec.md](docs/spec.md) — full specification: vocabulary, architecture, rule system, layer system, examples
+Outputs `./out/paper.html` and `./out/paper.pdf`.
+
+## What's in the box
+
+**Content primitives.** `document`, `section`, `p`, `em`, `strong`,
+`code`, `link`, `quote`, `list` / `item`, `figure`, `table` /
+`row` / `cell`, `code-block`, `defs` / `def`, `math`, `cite`,
+`footnote`, `sidenote`, `index`, `ref`, `set running` /
+`running`, plus `refs` / `ref-entry` for bibliography registration.
+
+**Template primitives.** `page`, `page-set` (named-page regimes),
+`region`, `stack`, `columns` / `column`, `layer` (backgrounds),
+`fixed` (overlays), `slot`, `header`, `footer`, `footnote-area`,
+`sidenote-area`, `font` (font-face), `rules` containing `role`
+(semantic→presentation routing) and `page` rules, plus back-matter
+generators `toc`, `list-of`, `bibliography`, `index`.
+
+**Output formats.** `html` (Paged.js-ready), `pdf` (headless
+Chromium print), `png` (one image per page, useful for visual
+diffing and AI-assisted review).
+
+## Architecture in one line
+
+Reactwright is two React reconcilers, an intermediate-representation
+resolver, an HTML emitter, and a Chromium printing harness. Each
+piece is a few hundred lines; together they replace a corpus of TeX
+that took thirty years to write.
+
+See [docs/spec.md](docs/spec.md) for the full specification and
+[docs/names.md](docs/names.md) for the project's name history.
+
+## Pre-built templates
+
+The `mockups/ieee/` directory ships an IEEE conference paper
+template + typed bibliography helper that demonstrates the
+authoring pattern other formats can copy:
+
+```tsx
+import { Template, createBibliography, IEEEFrontMatter } from "reactwright/templates/ieee";
+
+const refs = createBibliography({
+  knuth1984: { authors: "D. E. Knuth", title: "The TeXbook",
+                publisher: "Addison-Wesley", year: 1984 },
+});
+
+export { Template };
+export default function Paper() {
+  return (
+    <document title="…" author="…">
+      <IEEEFrontMatter abstract="…" indexTerms="…" />
+      <section title="Introduction">
+        <p>… <refs.Cite k="knuth1984" /> …</p>
+      </section>
+      <refs.RefList />
+    </document>
+  );
+}
+```
+
+TypeScript catches typos in citation keys at compile time.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
