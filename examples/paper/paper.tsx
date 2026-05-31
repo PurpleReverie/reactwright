@@ -16,11 +16,11 @@ import { Conclusion } from "./sections/conclusion.js";
 // multiple files. Each section lives in its own module; data tables are
 // rendered from CSV files via the DataTable helper; citations are
 // declared once in bibliography.tsx and referenced by typed key from
-// every section. The template comes from mockups/ieee — this file
-// contains zero IEEE-specific styling.
+// every section. The template comes from @reactwright/template-ieee —
+// this file contains zero IEEE-specific styling.
 //
 // Build:
-//   npm run example:paper
+//   pnpm --filter @example/paper mockup
 //
 // Outputs: build/examples/paper.{html,pdf}
 

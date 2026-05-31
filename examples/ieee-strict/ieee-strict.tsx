@@ -7,8 +7,8 @@ import { Template, createBibliography, IEEEFrontMatter } from "@reactwright/temp
 
 // Strict IEEE conference paper, content-only file. All the IEEE
 // styling, citation wiring, and front-matter formatting live in the
-// ./ieee/ helper package — this file is just prose + a typed
-// reference list. Compare with the earlier 480-line monolith.
+// @reactwright/template-ieee package — this file is just prose + a
+// typed reference list.
 
 export { Template };
 
