@@ -162,6 +162,8 @@ export const IEEE_STYLES = `
   .ieee-bib-entry {
     margin-bottom: 2pt;
     text-align: justify;
+    text-indent: -1.4em;
+    padding-left: 1.4em;
     prefix: "[" counter(reactwright-bib) "] ";
   }
 
@@ -194,16 +196,14 @@ export const IEEE_STYLES = `
   }
 `;
 
-// Three rules remain. All three target renderer-generated DOM that has
-// no IR identity today: the bibliography <h2> and <ol> wrappers, plus
-// the <li> hanging-indent (which is partly a slice-3 promoted-concept
-// problem). They migrate when slice 6.3 ships userland <Bibliography>
-// (or slice 5.3 synthesizes the wrappers), and slice 3 ships
-// `hanging-indent`.
+// Two rules remain. Both target renderer-generated DOM with no IR
+// identity today: the bibliography <h2> and <ol> wrappers. They
+// migrate when slice 6.3 ships userland <Bibliography> (composing
+// engine primitives via <bib-data>). Once 6.3 lands, IEEE_CSS goes
+// to zero.
 export const IEEE_CSS = [
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
-  ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}",
-  ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;}"
+  ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}"
 ].join("");
 
 export function Template() {
