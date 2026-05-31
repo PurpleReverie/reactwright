@@ -23,6 +23,7 @@ type DocumentProps = {
 
 type SectionProps = ContentMetadataProps & {
   title: string;
+  counter?: string;
   children?: ReactNode;
 };
 
@@ -231,6 +232,7 @@ type ListProps = ContentMetadataProps & {
 };
 
 type ItemProps = WithClassName & {
+  id?: string;
   children?: ReactNode;
 };
 

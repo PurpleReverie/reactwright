@@ -205,6 +205,7 @@ export function resolveBlockQuoteNode(node: BlockQuoteNode): ResolvedBlockQuoteN
 export function resolveListItemNode(node: ListItemNode): ResolvedListItemNode {
   return {
     kind: "item",
+    ...(node.id != null ? { id: node.id } : {}),
     ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
@@ -253,6 +254,7 @@ export function resolveSectionNode(node: SectionNode, depth = 1): ResolvedSectio
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
     ...(node.className != null ? { className: node.className } : {}),
+    ...(node.counter != null ? { counter: node.counter } : {}),
     children: resolvedChildren
   };
 }

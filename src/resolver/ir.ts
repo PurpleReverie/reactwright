@@ -205,6 +205,7 @@ export type ResolvedBlockQuoteNode = {
 
 export type ResolvedListItemNode = {
   kind: "item";
+  id?: string;
   className?: string;
   children: ResolvedContentChild[];
 };
@@ -228,6 +229,7 @@ export type ResolvedSectionNode = {
   page?: string;
   variant?: string;
   className?: string;
+  counter?: string;
   children: ResolvedContentChild[];
 };
 

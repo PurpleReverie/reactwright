@@ -74,10 +74,12 @@ function abstractNode(props: ContentProps): SemanticNode {
 }
 
 function sectionNode(props: ContentProps): SemanticNode {
+  const counter = getNonEmptyStringIfPresent(props, "counter");
   return {
     kind: "section",
     title: String(props.title ?? ""),
     ...readMetadata(props),
+    ...(counter != null ? { counter } : {}),
     children: []
   };
 }
@@ -192,8 +194,13 @@ function listNode(props: ContentProps): SemanticNode {
   };
 }
 
-function itemNode(_props: ContentProps): SemanticNode {
-  return { kind: "item", children: [] };
+function itemNode(props: ContentProps): SemanticNode {
+  const id = getNonEmptyStringIfPresent(props, "id");
+  return {
+    kind: "item",
+    ...(id != null ? { id } : {}),
+    children: []
+  };
 }
 
 function defsNode(props: ContentProps): SemanticNode {

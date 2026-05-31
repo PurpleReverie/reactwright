@@ -205,6 +205,7 @@ export type BlockQuoteNode = {
 
 export type ListItemNode = {
   kind: "item";
+  id?: string;
   className?: string;
   children: SemanticBlockChild[];
 };
@@ -245,6 +246,7 @@ export type SectionNode = {
   page?: string;
   variant?: string;
   className?: string;
+  counter?: string;
   children: SemanticBlockChild[];
 };
 

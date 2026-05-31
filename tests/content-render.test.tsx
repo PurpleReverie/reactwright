@@ -4,6 +4,19 @@ import { resolve } from "node:path";
 import React from "react";
 
 import { renderContentToIR } from "../src/content/render.js";
+import { renderResolvedToHTML } from "../src/backends/html/render.js";
+import { resolveDocument } from "../src/resolver/resolve.js";
+import { renderTemplateToIR } from "../src/template/render.js";
+
+function minimalTemplate() {
+  return (
+    <page style={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <slot name="body" />
+      </region>
+    </page>
+  );
+}
 
 test("content renderer creates semantic IR for a minimal document", () => {
   const result = renderContentToIR(
@@ -441,4 +454,61 @@ test("content renderer supports table primitives with row/cell", () => {
       }
     ]
   });
+});
+
+test("item id prop emits id attribute on <li>", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Item Id Test" author="T">
+          <section title="L">
+            <list ordered>
+              <item id="foo">
+                <p>First.</p>
+              </item>
+            </list>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<li id="foo"[^>]*><p>First\.<\/p><\/li>/);
+});
+
+test("section counter prop emits data-counter attribute on <section>", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Section Counter Test" author="T">
+          <section title="X" counter="my-counter">
+            <p>Body.</p>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<section[^>]*data-counter="my-counter"[^>]*>/);
+});
+
+test("item without id omits id attribute; section without counter omits data-counter", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Neg Test" author="T">
+          <section title="Y">
+            <list>
+              <item>
+                <p>No id.</p>
+              </item>
+            </list>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<li><p>No id\.<\/p><\/li>/);
+  assert.ok(!/<section[^>]*data-counter[^>]*>[\s\S]*?<h2[^>]*>Y<\/h2>/.test(html), "section without counter prop should not emit data-counter");
 });

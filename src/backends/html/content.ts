@@ -159,7 +159,7 @@ export function renderPageBreakNode(_node: ResolvedPageBreakNode): string {
 }
 
 export function renderListItemNode(node: ResolvedListItemNode): string {
-  return `<li${classAttr(node)}>${node.children.map((child) => renderContentNode(child)).join("")}</li>`;
+  return `<li${idAttr(node.id)}${classAttr(node)}>${node.children.map((child) => renderContentNode(child)).join("")}</li>`;
 }
 
 export function renderListNode(node: ResolvedListNode): string {
@@ -268,8 +268,9 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
         )
         .join("");
   }
+  const counterAttr = node.counter != null ? ` data-counter="${escapeHtml(node.counter)}"` : "";
   const sectionHtml = [
-    `<section${idAttr(node.id)}${regimeStyle}${classAttr(node)}>`,
+    `<section${idAttr(node.id)}${counterAttr}${regimeStyle}${classAttr(node)}>`,
     childrenHtml,
     "</section>"
   ].join("");
