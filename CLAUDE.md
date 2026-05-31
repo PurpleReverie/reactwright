@@ -12,7 +12,7 @@ The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
 | Slice 1 — foundation (parser, selector, apply, lower, render, IEEE partial migration, docs) | **complete** | commits `b5ea69c..0e18292`; plan in `docs/styling-slice-1-plan.md` |
 | Slice 2.1 — `numbering` / `numbering-reset` / `prefix` / `suffix` / `break` lowering | **complete** | commit `6079464` |
 | Slice 2.2 — inline renderers honour `classAttr(node)` | **complete** | commit `85fa0f7` |
-| Slice 2.3 — migrate IEEE counter / break / cite rules to dialect | **pending** | task #72; plan in `docs/styling-slice-2-plan.md` §3 |
+| Slice 2.3 — migrate IEEE counter / break / cite rules to dialect | **complete** | commits `0225491..48b6c36`; plan in `docs/styling-slice-2-plan.md` §3 |
 | Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
 | Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
 | Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
@@ -58,6 +58,21 @@ Sub-agents picking up styling work: read the spec § 10 first.
 - **The 12 styling decisions in `docs/styling-spec.md` §10 are
   binding.** Re-read before any architectural call. Reversing one
   requires a spec amendment, not an inline judgment.
+- **Bibliography entries (and other aggregates) are not addressable as
+  IR nodes by default.** `ResolvedBibliographyEntry` is a flat data
+  carrier collected from `ctx.refEntries`; the `<li>` rendered for it
+  has no node identity at render time. To let `<rule match={{kind:
+  "ref-entry"}}>` work, slice 2.3 added a `sourceNode` field on the
+  entry and pointed the renderer at `classAttr(entry.sourceNode)`. The
+  same pattern applies to TOC entries, list-of entries, and index
+  entries — adding rules for those kinds will need the same plumbing.
+- **`<rule match={{kind:"section"}}>` styles the heading, not the
+  section wrapper.** The section renderer lifts rule-applied classes
+  onto the inner `<h2>`/`<h3>` via `classAttrWithBase(node,
+  "reactwright-section-title", …)`. This is intentional (slice 2.3
+  §3.7) — styling section heads is the common case. Styling the
+  whole section block would need a separate IR concept or a different
+  rule key.
 
 ## Architecture at a glance
 

@@ -1,6 +1,6 @@
 # Reactwright Styling Spec
 
-Status: design partly shipped, partly in-flight. Slice 1 complete (commits `b5ea69c..0e18292`); slice 2.1 + 2.2 complete (`6079464`, `85fa0f7`); slice 2.3 pending (see `docs/styling-slice-2-plan.md`). Architectural decisions in §10 are binding for all future slices.
+Status: design partly shipped, partly in-flight. Slice 1 complete (commits `b5ea69c..0e18292`); slice 2.1 (`6079464`), 2.2 (`85fa0f7`), and 2.3 (`0225491..48b6c36`) complete; slices 2.4 / 3 / 4 deferred. Architectural decisions in §10 are binding for all future slices.
 
 ## 1. Objective
 

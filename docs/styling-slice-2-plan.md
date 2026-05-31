@@ -15,7 +15,7 @@ indent, text-flow, column-fit, hanging-indent).
 |---|---|---|
 | 2.1 — lowering for `numbering` / `numbering-reset` / `prefix` / `suffix` / `break` | **complete** | `6079464` |
 | 2.2 — inline renderers honour `classAttr(node)` | **complete** | `85fa0f7` |
-| 2.3 — migrate IEEE template's counter / break / cite rules | **pending** | — |
+| 2.3 — migrate IEEE template's counter / break / cite rules | **complete** | `0225491..48b6c36` |
 
 Sub-agents picking up 2.3 should start from §3 of this doc.
 
@@ -402,6 +402,19 @@ test("lower: target-counter in suffix value passes through", () => {
   margin:0; }` — list reset on a descendant `ol`. Today's dialect
   doesn't target the `<ol>` rendered inside the bibliography because
   it's a renderer-generated element, not an IR node. Slice 4 work.
+
+**Plumbing note (added during 2.3 implementation):**
+The original plan assumed `<rule match={{kind:"ref-entry"}}>` would
+"just work" because `ref-entry` is a content-IR kind. It doesn't —
+`renderBibliographyNode` doesn't render `ResolvedRefEntryNode`s
+directly; it reads `ctx.refEntries`, a flat aggregate of
+`ResolvedBibliographyEntry` records that lose node identity during
+collection. Commit `48b6c36` carries the source node through by
+adding a `sourceNode?: ResolvedRefEntryNode` field on the entry and
+threading it through `collectBibliography` so the renderer can call
+`classAttr(entry.sourceNode)`. The same pattern is required for any
+future rule on aggregated kinds (`toc-entry`, `list-of-entry`,
+`index-entry`). See `CLAUDE.md` gotcha on aggregates for details.
 
 ### 3.7 Heading 2/3 vs section node — implementation note
 
