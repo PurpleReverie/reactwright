@@ -222,7 +222,7 @@ export function renderResolvedToHTML(page: ResolvedPageNode): string {
     "<head>",
     '<meta charset="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
-    "<title>ReactDoc Preview</title>",
+    "<title>Reactwright Preview</title>",
     ...fontTags,
     hasMathNodes(page) ? `<link rel="stylesheet" href="${KATEX_CSS}" />` : "",
     `<style>${styleRules}</style>`,

@@ -4,6 +4,16 @@
   "description": "Business/technical report template for the Reactwright document engine.",
   "license": "MIT",
   "author": "Reactwright contributors",
+  "homepage": "https://github.com/reactwright/reactwright/tree/main/packages/template-report#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reactwright/reactwright.git",
+    "directory": "packages/template-report"
+  },
+  "bugs": {
+    "url": "https://github.com/reactwright/reactwright/issues"
+  },
+  "keywords": ["reactwright", "template", "report", "technical", "business"],
   "type": "module",
   "exports": {
     ".": {

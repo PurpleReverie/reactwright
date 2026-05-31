@@ -1,7 +1,7 @@
 {
   "name": "@reactwright/code-highlight",
   "version": "0.0.0",
-  "private": false,
+  "private": true,
   "description": "Syntax-highlighting adapter (Shiki / Prism) for Reactwright code blocks. Stub.",
   "license": "MIT",
   "author": "Reactwright contributors",

@@ -1,7 +1,7 @@
 {
   "name": "@reactwright/cite-csl",
   "version": "0.0.0",
-  "private": false,
+  "private": true,
   "description": "Citation Style Language (CSL-JSON / .csl) adapter for Reactwright. Stub.",
   "license": "MIT",
   "author": "Reactwright contributors",

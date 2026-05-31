@@ -221,7 +221,7 @@ const isDirectRun = process.argv[1] != null && import.meta.url === pathToFileURL
 if (isDirectRun) {
   try {
     const result = await runExternalFile(parseArgs(process.argv.slice(2)));
-    console.log("ReactDoc external file run completed.");
+    console.log("Reactwright external file run completed.");
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

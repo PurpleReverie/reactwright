@@ -4,6 +4,16 @@
   "description": "IEEE conference-paper template for the Reactwright document engine.",
   "license": "MIT",
   "author": "Reactwright contributors",
+  "homepage": "https://github.com/reactwright/reactwright/tree/main/packages/template-ieee#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reactwright/reactwright.git",
+    "directory": "packages/template-ieee"
+  },
+  "bugs": {
+    "url": "https://github.com/reactwright/reactwright/issues"
+  },
+  "keywords": ["reactwright", "template", "ieee", "academic-paper", "conference-paper"],
   "type": "module",
   "exports": {
     ".": {
