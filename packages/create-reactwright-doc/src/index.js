@@ -23,9 +23,21 @@ const TEMPLATES = {
     pkg: "@reactwright/template-ieee",
     description: "IEEE conference paper (two-column, numbered sections, numeric citations)"
   },
+  "ieee-report": {
+    pkg: "@reactwright/template-ieee-report",
+    description: "IEEE technical report (single-column long-form, Roman section numbering)"
+  },
   report: {
     pkg: "@reactwright/template-report",
     description: "Technical/business report (single-spaced, decimal section numbering)"
+  },
+  book: {
+    pkg: "@reactwright/template-book",
+    description: "Long-form chaptered book (5.5×8.5 trade paperback, Georgia serif)"
+  },
+  letter: {
+    pkg: "@reactwright/template-letter",
+    description: "Formal business letter (one-page, named regions: letterhead, addressee, …)"
   }
 };
 
@@ -55,7 +67,7 @@ Usage:
   npx create-reactwright-doc <name> --template=<template>
 
 Templates:
-${Object.entries(TEMPLATES).map(([k, v]) => `  ${k.padEnd(8)}  ${v.description}`).join("\n")}
+${Object.entries(TEMPLATES).map(([k, v]) => `  ${k.padEnd(12)}  ${v.description}`).join("\n")}
 
 Defaults: --template=essay
 
@@ -140,14 +152,96 @@ The build outputs ${args.name.replace(/\W/g, "_")}.html and ${args.name.replace(
 
 function starterTsx(templateKey, name) {
   const template = TEMPLATES[templateKey];
+  if (templateKey === "letter") {
+    return `import "reactwright/jsx";
+import { Template } from "${template.pkg}";
+
+export { Template };
+
+export default function Document() {
+  return (
+    <document title="${name}" author="Sender Name">
+      <section role="letterhead" title="Sender Name">
+        <p>123 Example Street</p>
+        <p>City, ST 00000</p>
+        <p>sender@example.com</p>
+      </section>
+
+      <section role="date" title="">
+        <p>1 January 2026</p>
+      </section>
+
+      <section role="addressee" title="">
+        <p>Recipient Name</p>
+        <p>Recipient Title</p>
+        <p>Organization</p>
+        <p>Recipient Address</p>
+      </section>
+
+      <section role="salutation" title="">
+        <p>Dear Recipient,</p>
+      </section>
+
+      <p>
+        Write your opening paragraph here. Replace this starter prose
+        with the substance of your letter.
+      </p>
+
+      <section role="closing" title="">
+        <p>Sincerely,</p>
+      </section>
+
+      <section role="signature" title="">
+        <p>Sender Name</p>
+        <p>Sender Title</p>
+      </section>
+    </document>
+  );
+}
+`;
+  }
+  if (templateKey === "book") {
+    return `import "reactwright/jsx";
+import { Template } from "${template.pkg}";
+
+export { Template };
+
+export default function Document() {
+  return (
+    <document title="${name}" author="A. Author">
+      <section role="title-page" title="${name}">
+        <p>A. Author</p>
+      </section>
+
+      <section role="front-matter" title="Copyright">
+        <p>Copyright © 2026 A. Author. All rights reserved.</p>
+      </section>
+
+      <section role="chapter" title="The First Chapter">
+        <set running="chapter-title" value="The First Chapter" />
+        <p>
+          Welcome to your new book. Replace this opening paragraph with
+          your prose. Each <code>{"<section role=\\"chapter\\">"}</code> becomes
+          a chapter that starts on a fresh page.
+        </p>
+      </section>
+
+      <section role="back-matter" title="Acknowledgments">
+        <p>Thanks to everyone who made this possible.</p>
+      </section>
+    </document>
+  );
+}
+`;
+  }
   return `import "reactwright/jsx";
 import { Template } from "${template.pkg}";
+
+export { Template };
 
 export default function Document() {
   return (
     <document title="${name}" author="Anonymous">
-      <Template />
-
       <section title="Introduction">
         <p>
           Welcome to your new Reactwright document. Edit this file to
