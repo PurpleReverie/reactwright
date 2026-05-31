@@ -130,6 +130,13 @@ export const IEEE_STYLES = `
     border-top: 0.5pt solid #000;
     border-bottom: 0.5pt solid #000;
   }
+
+  .ieee-cite {
+    color: inherit;
+    text-decoration: none;
+    prefix: "[";
+    suffix: target-counter(attr(href url), reactwright-bib) "]";
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -163,11 +170,6 @@ export const IEEE_CSS = [
   "table th, table td{padding:1pt 2pt;text-align:left;text-indent:0;word-wrap:break-word;overflow-wrap:break-word;}",
   "table tr:last-child td{border-bottom:0.5pt solid #000;}",
   "table p{margin:0;text-indent:0;font-size:inherit;}",
-
-  // ── Citations: IEEE-style [N] brackets, black inline text ───────
-  "a.reactwright-cite{color:inherit;text-decoration:none;}",
-  "a.reactwright-cite::before{content:'[';}",
-  "a.reactwright-cite::after{content:target-counter(attr(href url), reactwright-bib) ']';}",
 
   // ── References list ─────────────────────────────────────────────
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
@@ -209,6 +211,7 @@ export function Template() {
       <rule match={{ kind: "table" }} className="ieee-table" />
       <rule match={{ kind: "caption", parent: { kind: "table" } }} className="ieee-table-caption" />
       <rule match={{ kind: "cell", attr: { header: true } }} className="ieee-table-header-cell" />
+      <rule match={{ kind: "cite" }} className="ieee-cite" />
 
       <rules>
         <role

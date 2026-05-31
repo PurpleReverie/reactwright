@@ -75,6 +75,17 @@ test("lower: combined dialect + pass-through in one rule", () => {
   assert.match(css, /\.ieee-section-head::before\{content:counter\(sec,upper-roman\) '\. ';\}/);
 });
 
+test("lower: target-counter in suffix value passes through", () => {
+  // The parser reads the value up to the next top-level `;` or `}`,
+  // balancing parens via a depth counter. `target-counter(attr(href
+  // url), bib)` has nested parens; the suffix value must reach the
+  // closing `"]"` without truncation. This pins that behavior so the
+  // IEEE cite migration (`suffix: target-counter(...) "]"`) survives
+  // future parser tweaks.
+  const css = lower(`.x { suffix: target-counter(attr(href url), bib) "]"; }`);
+  assert.match(css, /\.x::after\{content:target-counter\(attr\(href url\), bib\) "\]";\}/);
+});
+
 test("lower: malformed numbering falls through to pass-through", () => {
   // No `counter(...)` form — author probably meant `numbering-reset`.
   // Engine emits the verbatim property:value so the author sees the
