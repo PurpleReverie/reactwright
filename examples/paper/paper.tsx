@@ -1,6 +1,6 @@
 import "reactwright/jsx";
 
-import { Template, IEEEFrontMatter } from "../../mockups/ieee/index.js";
+import { Template, IEEEFrontMatter } from "@reactwright/template-ieee";
 
 import { RefList } from "./bibliography.js";
 import { Introduction } from "./sections/introduction.js";

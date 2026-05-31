@@ -1,4 +1,4 @@
-import { createBibliography } from "../../mockups/ieee/index.js";
+import { createBibliography } from "@reactwright/template-ieee";
 
 // One central, typed bibliography for the paper. Every section file
 // imports { Cite } from here and the type system rejects citations to
