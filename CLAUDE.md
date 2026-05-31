@@ -16,6 +16,7 @@ The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
 | Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
 | Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
 | Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
+| Slice 5 — synthesized IR for renderer-internal elements | **in flight** | plan in `docs/synthesized-ir-plan.md`; closes the `<rule>` reach gap so `customCss` can be empty |
 
 Open refactors flagged during slice 1/2:
 - task #68 — split `src/resolver/ir.ts` (~700 lines) per-domain
