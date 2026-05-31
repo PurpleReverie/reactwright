@@ -59,6 +59,24 @@ export const IEEE_STYLES = `
     font-size: 8pt;
   }
 
+  .ieee-bib-heading {
+    font-size: 10pt;
+    font-weight: normal;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-align-last: center;
+    margin: 12pt 0 6pt 0;
+    break: after(avoid);
+  }
+
+  .ieee-bib-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
   .ieee-section-head {
     font-size: 10pt;
     font-weight: normal;
@@ -196,15 +214,9 @@ export const IEEE_STYLES = `
   }
 `;
 
-// Two rules remain. Both target renderer-generated DOM with no IR
-// identity today: the bibliography <h2> and <ol> wrappers. They
-// migrate when slice 6.3 ships userland <Bibliography> (composing
-// engine primitives via <bib-data>). Once 6.3 lands, IEEE_CSS goes
-// to zero.
-export const IEEE_CSS = [
-  ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
-  ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}"
-].join("");
+// IEEE_CSS is empty. All styling is expressed via the dialect's
+// <styles> block + <rule> bindings.
+export const IEEE_CSS = "";
 
 export function Template() {
   return (
@@ -229,6 +241,8 @@ export function Template() {
       <rule match={{ kind: "abstract" }} className="ieee-abstract" />
       <rule match={{ kind: "code" }} className="ieee-code-inline" />
       <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
+      <rule match={{ kind: "bibliography-heading" }} className="ieee-bib-heading" />
+      <rule match={{ kind: "bibliography-list" }} className="ieee-bib-list" />
       <rule match={{ kind: "section-heading", depth: 1 }} className="ieee-section-head" />
       <rule match={{ kind: "section-heading", depth: 2 }} className="ieee-subsection-head" />
       <rule

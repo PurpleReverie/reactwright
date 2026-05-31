@@ -88,6 +88,8 @@ import type {
   ResolvedEmNode,
   ResolvedFigureNode,
   ResolvedBibliographyEntry,
+  ResolvedBibliographyHeadingNode,
+  ResolvedBibliographyListNode,
   ResolvedBibliographyNode,
   ResolvedCiteNode,
   ResolvedColumnNode,
@@ -426,7 +428,14 @@ function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveC
           kind: "bibliography",
           ...(child.title != null ? { title: child.title } : {}),
           entries,
-          style: child.style
+          style: child.style,
+          // Synthesized addressability for the rendered <h2> + <ol>
+          // wrappers (slice 5.3). Heading only exists when there's a
+          // title to render.
+          ...(child.title != null
+            ? { headingNode: { kind: "bibliography-heading", text: child.title } as ResolvedBibliographyHeadingNode }
+            : {}),
+          listNode: { kind: "bibliography-list" } as ResolvedBibliographyListNode
         } satisfies ResolvedBibliographyNode
       ];
     }

@@ -32,7 +32,7 @@ import {
 import { renderInlineNode } from "./inline.js";
 import { styleToCss, styleToInlineCss, type MarginMatterEntry } from "./css.js";
 import { renderContentNode, renderSectionNode } from "./content.js";
-import { classAttr } from "./class-bindings.js";
+import { classAttr, classAttrWithBase } from "./class-bindings.js";
 
 // Render an array of children to a single HTML string. Used at every
 // container call-site that needs to pass its rendered children into a
@@ -206,7 +206,14 @@ export function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string
 }
 
 export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
-  const title = node.title != null ? `<h2 class="reactwright-bibliography-title">${escapeHtml(node.title)}</h2>` : "";
+  // Slice 5.3: the synthesized headingNode / listNode carry any
+  // rule-applied classes via `classAttr` so authors can target the
+  // rendered <h2>/<ol> via kind:"bibliography-heading" / kind:"bibliography-list".
+  const headingClassAttr = node.headingNode != null
+    ? classAttrWithBase(node.headingNode, "reactwright-bibliography-title")
+    : ' class="reactwright-bibliography-title"';
+  const listClassAttr = node.listNode != null ? classAttr(node.listNode) : "";
+  const title = node.title != null ? `<h2${headingClassAttr}>${escapeHtml(node.title)}</h2>` : "";
   // Bibliography counter wiring: counter-reset on the section and
   // counter-increment per <li> are emitted via STATIC_DEFAULTS_CSS
   // class rules (.reactwright-bibliography / .reactwright-bibliography ol > li)
@@ -228,7 +235,7 @@ export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
       return `<li id="reactwright-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}${entryClass}>${body}</li>`;
     })
     .join("");
-  return `<section data-node="bibliography" class="reactwright-bibliography">${title}<ol>${items}</ol></section>`;
+  return `<section data-node="bibliography" class="reactwright-bibliography">${title}<ol${listClassAttr}>${items}</ol></section>`;
 }
 
 // --- Custom intrinsic --------------------------------------------------

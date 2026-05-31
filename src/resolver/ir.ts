@@ -389,11 +389,29 @@ export type ResolvedBibliographyEntry = {
   sourceNode?: unknown;
 };
 
+export type ResolvedBibliographyHeadingNode = {
+  kind: "bibliography-heading";
+  text: string;
+  className?: string;
+};
+
+export type ResolvedBibliographyListNode = {
+  kind: "bibliography-list";
+  className?: string;
+};
+
 export type ResolvedBibliographyNode = {
   kind: "bibliography";
   title?: string;
   entries: ResolvedBibliographyEntry[];
   style?: TemplateStyle;
+  // Synthesized child IR nodes for the rendered <h2> + <ol> wrappers,
+  // so authors can target them via `<rule match={{kind:"bibliography-heading"}}>`
+  // / `<rule match={{kind:"bibliography-list"}}>`. Slice 5.3 (the
+  // back-compat path while engine <bibliography> stays deprecated;
+  // slice 6.3 will replace this with userland composition).
+  headingNode?: ResolvedBibliographyHeadingNode;
+  listNode?: ResolvedBibliographyListNode;
 };
 
 export type ResolvedRunningNode = {

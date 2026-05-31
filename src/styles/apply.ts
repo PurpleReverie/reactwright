@@ -125,6 +125,17 @@ function childrenOf(node: SelectableNode): SelectableNode[] {
   if (capNode != null && typeof capNode.kind === "string") {
     out.push(capNode);
   }
+  // Bibliography synthesized wrapper nodes — heading and list — are
+  // virtual children for rule application so authors can target the
+  // rendered <h2> and <ol>. Slice 5.3.
+  const headingNode = (node as { headingNode?: SelectableNode }).headingNode;
+  if (headingNode != null && typeof headingNode.kind === "string") {
+    out.push(headingNode);
+  }
+  const listNode = (node as { listNode?: SelectableNode }).listNode;
+  if (listNode != null && typeof listNode.kind === "string") {
+    out.push(listNode);
+  }
   return out;
 }
 
