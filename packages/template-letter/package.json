@@ -1,0 +1,43 @@
+{
+  "name": "@reactwright/template-letter",
+  "version": "0.1.0",
+  "description": "Formal business letter template for the Reactwright document engine.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "homepage": "https://github.com/PurpleReverie/reactwright/tree/main/packages/template-letter#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
+    "directory": "packages/template-letter"
+  },
+  "bugs": {
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
+  },
+  "keywords": ["reactwright", "template", "letter", "correspondence", "business"],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "reactwright": "workspace:*",
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "reactwright": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}
