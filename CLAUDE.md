@@ -2,6 +2,63 @@
 
 ReactDoc is a React-authored document engine for paginated output (HTML via Paged.js, PDF via headless Chromium).
 
+## Currently in flight
+
+The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
+
+| Phase | Status | Pointer |
+|---|---|---|
+| Spec — design and 12 binding decisions | locked | `docs/styling-spec.md` (§10 = decisions) |
+| Slice 1 — foundation (parser, selector, apply, lower, render, IEEE partial migration, docs) | **complete** | commits `b5ea69c..0e18292`; plan in `docs/styling-slice-1-plan.md` |
+| Slice 2.1 — `numbering` / `numbering-reset` / `prefix` / `suffix` / `break` lowering | **complete** | commit `6079464` |
+| Slice 2.2 — inline renderers honour `classAttr(node)` | **complete** | commit `85fa0f7` |
+| Slice 2.3 — migrate IEEE counter / break / cite rules to dialect | **pending** | task #72; plan in `docs/styling-slice-2-plan.md` §3 |
+| Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
+| Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
+| Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
+
+Open refactors flagged during slice 1/2:
+- task #68 — split `src/resolver/ir.ts` (~700 lines) per-domain
+- task #69 — split `src/resolver/resolve.ts` (orchestrator + dispatch + slot/regime context)
+
+All architectural decisions are binding (`docs/styling-spec.md` §10).
+Sub-agents picking up styling work: read the spec § 10 first.
+
+## Gotchas (collected during slice 1 + 2 work)
+
+- **`cell` requires block children, not raw text.** Wrap values in
+  `<p>` — the `examples/paper/components/data-table.tsx` `DataTable`
+  shows the pattern. Grammar enforces it; symptom is "Content renderer
+  produced no root node."
+- **`npm test` glob needs both patterns.** sh doesn't recurse `**`
+  alone. Script uses `'tests/*.test.tsx' 'tests/**/*.test.tsx'`. Don't
+  collapse.
+- **`classAttr(node)` vs `classAttrWithBase(node, ...base)`:** plain
+  `classAttr` when the renderer emits no engine-internal class.
+  `classAttrWithBase` when the renderer keeps a stable engine class
+  (`reactwright-cite`, `reactwright-math-block`, `reactwright-abstract`,
+  …) AND wants to merge in rule-applied classes.
+- **Caption back-compat:** `figure` and `table` still accept `caption?:
+  string` props. New JSX uses `<caption>…</caption>` child form, which
+  the grammar routes to the parent's `captionNode` field. Renderer
+  prefers `captionNode` over the legacy string.
+- **`ResolvedTemplateRowNode` uses kind `"template-row"`**, not
+  `"row"`. Template-side `<row>` JSX → template-IR kind `"row"` →
+  resolved-IR kind `"template-row"`. The disambiguation exists because
+  the content-side table `ResolvedRowNode` also uses `kind: "row"`;
+  merging them in the `ResolvedChild` discriminated union would break
+  narrowing.
+- **`customCss` lifecycle:** stays through 0.x. Deprecation warning
+  lands at slice 4; removal at v1.0.
+- **`key` prop on intrinsics:** don't try to add to
+  `JSX.IntrinsicAttributes` — TypeScript's JSX checker doesn't honour
+  the namespace augmentation reliably for cross-module-augmented
+  namespaces. Add `key?: Key | null` directly to the prop types
+  used by `.map(...)` loops (currently `RowProps`, `CellProps`).
+- **The 12 styling decisions in `docs/styling-spec.md` §10 are
+  binding.** Re-read before any architectural call. Reversing one
+  requires a spec amendment, not an inline judgment.
+
 ## Architecture at a glance
 
 ```
@@ -112,7 +169,36 @@ If no top-level `<slot name="body">` consumes body content but page-sets registe
 | New role-rule attribute | `template/factories/rules.ts` (reader) + `resolver/rules.ts` (RoleRule + withVariant) + `backends/html/css.ts` (`buildRoleVariantCss`) |
 | New styles-dialect selector key | `src/styles/ir.ts` (Match) + `src/styles/parser.ts` (lexer/parser) + `src/styles/selector.ts` (matchNode) + `src/styles/apply.ts` (walker context if combinator) |
 | New styles-dialect declaration (promoted concept) | `src/styles/lower.ts` (lowering rule) + `tests/styles/lower.test.tsx` (per-property test) |
-| Make a node selectable | give it `className?: string` in both `content/ir.ts` (or `template/ir.ts`) and `resolver/ir.ts` (Resolved*Node), and propagate through the resolver |
+| Make a node selectable | see "className propagation checklist" below |
+
+## className propagation checklist
+
+Five touchpoints. Miss any one and `className` silently drops between
+where the author writes it and where the renderer reads it. Sub-agents
+adding a new selectable kind: do all five.
+
+1. **Source IR type** — add `className?: string` to the type in
+   `src/content/ir.ts` or `src/template/ir.ts` (whichever side the
+   primitive lives on).
+2. **Resolved IR type** — add `className?: string` to the matching
+   `Resolved*Node` type in `src/resolver/ir.ts`.
+3. **Factory** — read it in the factory function. Use
+   `readMetadata(props)` (content side, already includes className)
+   or `readClassName(props)` (template side and inline content).
+4. **Resolver function** — propagate it in the per-kind resolver
+   with the standard idiom:
+   `...(node.className != null ? { className: node.className } : {})`.
+   Content resolvers live in `src/resolver/{inline,block}.ts`;
+   template-side propagation lives in `src/resolver/resolve.ts:resolveTemplateContainer`.
+5. **Renderer** — splice `classAttr(node)` (when emitting a tag with
+   no engine-internal class) or `classAttrWithBase(node, ...baseClasses)`
+   (when keeping a stable engine class like `reactwright-cite`) into
+   the emitted HTML tag. Both helpers live in
+   `src/backends/html/class-bindings.ts`.
+
+Verification: after the change, write a one-line test in
+`tests/styles-integration.test.tsx` that applies a rule to the new
+kind and asserts the class appears in the rendered HTML.
 
 ## Conventions
 

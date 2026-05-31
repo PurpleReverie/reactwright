@@ -1,6 +1,6 @@
 # Reactwright Styling Spec
 
-Status: design draft. No code in this doc has shipped. Implementation will land in phased slices after agreement on the model.
+Status: design partly shipped, partly in-flight. Slice 1 complete (commits `b5ea69c..0e18292`); slice 2.1 + 2.2 complete (`6079464`, `85fa0f7`); slice 2.3 pending (see `docs/styling-slice-2-plan.md`). Architectural decisions in §10 are binding for all future slices.
 
 ## 1. Objective
 
