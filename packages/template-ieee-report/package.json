@@ -1,0 +1,43 @@
+{
+  "name": "@reactwright/template-ieee-report",
+  "version": "0.1.0",
+  "description": "IEEE technical-report template (single-column, long-form) for the Reactwright document engine.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "homepage": "https://github.com/PurpleReverie/reactwright/tree/main/packages/template-ieee-report#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
+    "directory": "packages/template-ieee-report"
+  },
+  "bugs": {
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
+  },
+  "keywords": ["reactwright", "template", "ieee", "technical-report", "white-paper"],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "reactwright": "workspace:*",
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "reactwright": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

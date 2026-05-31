@@ -63,6 +63,30 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  examples/ieee-report-sample:
+    devDependencies:
+      '@reactwright/template-ieee-report':
+        specifier: workspace:*
+        version: link:../../packages/template-ieee-report
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   examples/ieee-strict:
     devDependencies:
       '@reactwright/template-ieee':
@@ -74,6 +98,30 @@ importers:
       '@types/react':
         specifier: ^19.1.2
         version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/markdown-sample:
+    devDependencies:
+      '@reactwright/markdown':
+        specifier: workspace:*
+        version: link:../../packages/markdown
+      '@reactwright/template-essay':
+        specifier: workspace:*
+        version: link:../../packages/template-essay
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
       react:
         specifier: ^19.1.0
         version: 19.2.6
@@ -198,6 +246,69 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  packages/charts:
+    dependencies:
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+
+  packages/cite-bibtex:
+    dependencies:
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+
+  packages/cite-csl:
+    dependencies:
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+
+  packages/code-highlight:
+    dependencies:
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+
+  packages/create-reactwright-doc: {}
+
+  packages/markdown:
+    dependencies:
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      marked:
+        specifier: ^12.0.0
+        version: 12.0.2
+    devDependencies:
+      '@reactwright/template-essay':
+        specifier: workspace:*
+        version: link:../template-essay
+      '@reactwright/template-ieee':
+        specifier: workspace:*
+        version: link:../template-ieee
+      '@reactwright/template-report':
+        specifier: workspace:*
+        version: link:../template-report
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/reactwright:
     dependencies:
       react-reconciler:
@@ -245,6 +356,24 @@ importers:
         version: 5.9.3
 
   packages/template-ieee:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/template-ieee-report:
     devDependencies:
       '@types/node':
         specifier: ^22.15.18
@@ -666,6 +795,10 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
 
+  extend-shallow@2.0.1:
+    resolution: {integrity: sha512-zCnTtlxNoAiDc3gqY2aYAWFx7XWWiasuF2K8Me5WbN8otHKTUKBwjPtNpRs/rbUZm7KxWAaNj7P1a/p52GbVug==}
+    engines: {node: '>=0.10.0'}
+
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
 
@@ -712,6 +845,10 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  gray-matter@4.0.3:
+    resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
+    engines: {node: '>=6.0'}
+
   human-id@4.1.3:
     resolution: {integrity: sha512-tsYlhAYpjCKa//8rXZ9DqKEawhPoSytweBC2eNvcaDK+57RZLHGqNs3PZTQO6yekLFSuvA6AlnAfrw1uBvtb+Q==}
     hasBin: true
@@ -723,6 +860,10 @@ packages:
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
+
+  is-extendable@0.1.1:
+    resolution: {integrity: sha512-5BMULNob1vgFX6EjQw5izWDxrecWK9AM72rugNr0TFldMOi0fj6Jk+zeKIt0xGj4cEfQIJth4w3OKWOJ4f+AFw==}
+    engines: {node: '>=0.10.0'}
 
   is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
@@ -766,12 +907,21 @@ packages:
     resolution: {integrity: sha512-Vdw0ATsQ9V+LuegM/BTwQqV/6cTl5lbGcIrU+BCgLxyf6bo38ybOr372tuSIxir3CN720flu1meYR6XzNMwQnw==}
     hasBin: true
 
+  kind-of@6.0.3:
+    resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
+    engines: {node: '>=0.10.0'}
+
   locate-path@5.0.0:
     resolution: {integrity: sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==}
     engines: {node: '>=8'}
 
   lodash.startcase@4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}
+
+  marked@12.0.2:
+    resolution: {integrity: sha512-qXUm7e/YKFoqFPYPa3Ukg9xlI5cyAtGmyEIzMfW//m6kXwCy2Ps9DYf5ioijFKQ8qyuscrHoY04iJGctu2Kg0Q==}
+    engines: {node: '>= 18'}
+    hasBin: true
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -891,6 +1041,10 @@ packages:
   scheduler@0.25.0:
     resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
 
+  section-matter@1.0.0:
+    resolution: {integrity: sha512-vfD3pmTzGpufjScBh50YHKzEu2lxBWhVEHsNGoEXmCmn2hKGfeNLYMzCJpe8cD7gqX7TJluOVpBkAequ6dgMmA==}
+    engines: {node: '>=4'}
+
   semver@7.8.1:
     resolution: {integrity: sha512-rkVq3IXh+4FDGch+KwzX3aV9W3kO54GyEgpvBzSyctDA6Xtd7RJQV1xmXbeQp5v7+VzLOfVqiutSE6GICgPFvg==}
     engines: {node: '>=10'}
@@ -925,6 +1079,10 @@ packages:
   strip-ansi@6.0.1:
     resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
     engines: {node: '>=8'}
+
+  strip-bom-string@1.0.0:
+    resolution: {integrity: sha512-uCC2VHvQRYu+lMh4My/sFNmF2klFymLX1wHJeXnbEJERpV/ZsVuonzerjfrGpIGF7LBVa1O7i9kjiWvJiFck8g==}
+    engines: {node: '>=0.10.0'}
 
   strip-bom@3.0.0:
     resolution: {integrity: sha512-vavAMRXOgBVNF6nyEEmL3DBK19iRpDcoIwW+swQ+CbGiu7lju6t+JklA1MHweoWtadgt4ISVUsXLyDq34ddcwA==}
@@ -1396,6 +1554,10 @@ snapshots:
 
   esprima@4.0.1: {}
 
+  extend-shallow@2.0.1:
+    dependencies:
+      is-extendable: 0.1.1
+
   extendable-error@0.1.7: {}
 
   fast-glob@3.3.3:
@@ -1451,6 +1613,13 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  gray-matter@4.0.3:
+    dependencies:
+      js-yaml: 3.14.2
+      kind-of: 6.0.3
+      section-matter: 1.0.0
+      strip-bom-string: 1.0.0
+
   human-id@4.1.3: {}
 
   iconv-lite@0.7.2:
@@ -1458,6 +1627,8 @@ snapshots:
       safer-buffer: 2.1.2
 
   ignore@5.3.2: {}
+
+  is-extendable@0.1.1: {}
 
   is-extglob@2.1.1: {}
 
@@ -1494,11 +1665,15 @@ snapshots:
     dependencies:
       commander: 8.3.0
 
+  kind-of@6.0.3: {}
+
   locate-path@5.0.0:
     dependencies:
       p-locate: 4.1.0
 
   lodash.startcase@4.4.0: {}
+
+  marked@12.0.2: {}
 
   merge2@1.4.1: {}
 
@@ -1594,6 +1769,11 @@ snapshots:
 
   scheduler@0.25.0: {}
 
+  section-matter@1.0.0:
+    dependencies:
+      extend-shallow: 2.0.1
+      kind-of: 6.0.3
+
   semver@7.8.1: {}
 
   shebang-command@2.0.0:
@@ -1622,6 +1802,8 @@ snapshots:
   strip-ansi@6.0.1:
     dependencies:
       ansi-regex: 5.0.1
+
+  strip-bom-string@1.0.0: {}
 
   strip-bom@3.0.0: {}
 
