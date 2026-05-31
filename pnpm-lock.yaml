@@ -18,6 +18,186 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  examples/essay-sample:
+    devDependencies:
+      '@reactwright/template-essay':
+        specifier: workspace:*
+        version: link:../../packages/template-essay
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/field-notes:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/ieee-strict:
+    devDependencies:
+      '@reactwright/template-ieee':
+        specifier: workspace:*
+        version: link:../../packages/template-ieee
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/newsletter:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/paper:
+    devDependencies:
+      '@reactwright/template-ieee':
+        specifier: workspace:*
+        version: link:../../packages/template-ieee
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/report-sample:
+    devDependencies:
+      '@reactwright/template-report':
+        specifier: workspace:*
+        version: link:../../packages/template-report
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/story-bible:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/treatise:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/reactwright:
     dependencies:
       react-reconciler:

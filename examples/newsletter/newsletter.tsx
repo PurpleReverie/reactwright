@@ -1,8 +1,12 @@
 import "reactwright/jsx";
 
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const SWATCH_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 // Newsletter — multi-column layout.
 // Exercises: <columns widths={["2fr","1fr"]}> with <column> children,

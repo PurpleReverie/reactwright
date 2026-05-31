@@ -1,6 +1,6 @@
 import "reactwright/jsx";
 
-import { Template } from "./essay/index.js";
+import { Template } from "@reactwright/template-essay";
 
 // Sample essay mockup exercising the MLA-style essay template. Three
 // short sections, one block quote, a handful of inline citations, and a

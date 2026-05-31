@@ -1,11 +1,15 @@
 import "reactwright/jsx";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import React from "react";
 
 import { Cite } from "../bibliography.js";
 import { NumberedEquation } from "../components/numbered-equation.js";
 
-const PIPELINE_DIAGRAM = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const PIPELINE_DIAGRAM = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 export function Architecture(): React.ReactElement {
   return (

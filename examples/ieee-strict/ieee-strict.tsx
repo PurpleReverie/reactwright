@@ -1,8 +1,9 @@
 import "reactwright/jsx";
 
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { Template, createBibliography, IEEEFrontMatter } from "./ieee/index.js";
+import { Template, createBibliography, IEEEFrontMatter } from "@reactwright/template-ieee";
 
 // Strict IEEE conference paper, content-only file. All the IEEE
 // styling, citation wiring, and front-matter formatting live in the
@@ -11,7 +12,10 @@ import { Template, createBibliography, IEEEFrontMatter } from "./ieee/index.js";
 
 export { Template };
 
-const FIGURE_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const FIGURE_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 const refs = createBibliography({
   kernighan1976: {

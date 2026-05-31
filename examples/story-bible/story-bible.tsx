@@ -1,8 +1,12 @@
 import "reactwright/jsx";
 
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const DIAGRAM = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const DIAGRAM = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 // Story Bible — tests three distinct page regimes routing in one document.
 //

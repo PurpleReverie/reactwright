@@ -1,8 +1,12 @@
 import "reactwright/jsx";
 
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SWATCH_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const SWATCH_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 // Treatise — academic paper mockup.
 // Exercises: abstract, sections with ids, figures with auto-numbered captions

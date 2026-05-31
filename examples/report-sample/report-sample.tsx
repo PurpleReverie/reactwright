@@ -1,8 +1,9 @@
 import "reactwright/jsx";
 
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { Template } from "./report/index.js";
+import { Template } from "@reactwright/template-report";
 
 // Sample report mockup exercising the technical/business report
 // template. Includes an executive summary, four numbered sections, a
@@ -11,7 +12,10 @@ import { Template } from "./report/index.js";
 
 export { Template };
 
-const FIGURE_PATH = resolve(process.cwd(), "tests/fixtures/reactwright-diagram.svg");
+const FIGURE_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/reactwright/tests/fixtures/reactwright-diagram.svg"
+);
 
 export default function ReportSample() {
   return (
