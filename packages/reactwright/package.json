@@ -1,0 +1,77 @@
+{
+  "name": "reactwright",
+  "version": "0.1.0",
+  "description": "Author paginated documents in React. Two-reconciler engine that compiles JSX content + template trees to CSS Paged Media HTML and PDF via Paged.js + headless Chromium.",
+  "keywords": [
+    "react",
+    "pagination",
+    "paged-media",
+    "paged-js",
+    "pdf",
+    "typography",
+    "document",
+    "typesetting",
+    "browser-native",
+    "jsx",
+    "headless-chromium"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "TauraJ Greig",
+    "email": "tauraj.pro@gmail.com"
+  },
+  "homepage": "https://github.com/PurpleReverie/react_doc#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PurpleReverie/react_doc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PurpleReverie/react_doc/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./jsx": {
+      "types": "./src/public/jsx.d.ts",
+      "default": "./src/public/jsx.js"
+    },
+    "./contract": {
+      "types": "./src/public/contract.ts",
+      "default": "./src/public/contract.ts"
+    }
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "node --import tsx -e \"import('reactwright').then(() => console.log('reactwright package entry loaded'))\"",
+    "check": "tsc --noEmit",
+    "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
+    "test": "node --import tsx --test 'tests/*.test.tsx' 'tests/**/*.test.tsx'",
+    "prepublishOnly": "npm run -s check && npm run -s test",
+    "run:file": "PUPPETEER_EXECUTABLE_PATH=\"${PUPPETEER_EXECUTABLE_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node --import tsx ./src/cli/run-file.tsx"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "react-reconciler": "^0.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "katex": "^0.17.0",
+    "puppeteer-core": "^25.1.0",
+    "react": "^19.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}
