@@ -3,6 +3,7 @@ import type {
   ResolvedContentNode,
   ResolvedInlineNode,
   ResolvedListOfEntry,
+  ResolvedRefEntryNode,
   ResolvedTocEntry
 } from "./ir.js";
 
@@ -196,11 +197,11 @@ export function assignAutoIdsAndCollectListOfInSlotMap(
 
 export function collectRefEntriesFromNode(
   node: ResolvedContentNode | ResolvedInlineNode,
-  out: Map<string, ResolvedInlineNode[]>
+  out: Map<string, ResolvedRefEntryNode>
 ): void {
   if ("kind" in node && (node as { kind: string }).kind === "ref-entry") {
-    const entry = node as unknown as { refKey: string; children: ResolvedInlineNode[] };
-    if (!out.has(entry.refKey)) out.set(entry.refKey, entry.children);
+    const entry = node as ResolvedRefEntryNode;
+    if (!out.has(entry.refKey)) out.set(entry.refKey, entry);
   }
   if ("children" in node && Array.isArray((node as { children: unknown[] }).children)) {
     for (const c of (node as { children: ResolvedContentNode[] }).children) {
@@ -211,7 +212,7 @@ export function collectRefEntriesFromNode(
 
 export function collectRefEntriesFromSlotMap(
   slots: SlotMap,
-  out: Map<string, ResolvedInlineNode[]>
+  out: Map<string, ResolvedRefEntryNode>
 ): void {
   for (const list of [slots.title, slots.author, slots.abstract, slots.body]) {
     for (const node of list) collectRefEntriesFromNode(node, out);

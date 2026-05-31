@@ -137,6 +137,12 @@ export const IEEE_STYLES = `
     prefix: "[";
     suffix: target-counter(attr(href url), reactwright-bib) "]";
   }
+
+  .ieee-bib-entry {
+    margin-bottom: 2pt;
+    text-align: justify;
+    prefix: "[" counter(reactwright-bib) "] ";
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -172,10 +178,16 @@ export const IEEE_CSS = [
   "table p{margin:0;text-indent:0;font-size:inherit;}",
 
   // ── References list ─────────────────────────────────────────────
+  // Entry margin / text-align / "[N] " prefix moved to .ieee-bib-entry
+  // in IEEE_STYLES. Remaining items need slice 3/4:
+  //   • hanging-indent on <li> (slice 3 `hanging-indent`)
+  //   • list-reset on the renderer-generated <ol>          (slice 4 —
+  //     the <ol> isn't an IR node, so today's dialect can't target it)
+  //   • the bibliography <h2> styling (renderer-generated heading,
+  //     same constraint as the <ol>)
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
   ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}",
-  ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;margin-bottom:2pt;text-align:justify;}",
-  ".reactwright-bibliography li::before{content:'[' counter(reactwright-bib) '] ';}",
+  ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;}",
 
   // ── Math: numbered equation right-margin ────────────────────────
   ".reactwright-math-block{text-indent:0;}"
@@ -212,6 +224,7 @@ export function Template() {
       <rule match={{ kind: "caption", parent: { kind: "table" } }} className="ieee-table-caption" />
       <rule match={{ kind: "cell", attr: { header: true } }} className="ieee-table-header-cell" />
       <rule match={{ kind: "cite" }} className="ieee-cite" />
+      <rule match={{ kind: "ref-entry" }} className="ieee-bib-entry" />
 
       <rules>
         <role

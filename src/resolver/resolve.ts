@@ -165,7 +165,7 @@ type ResolveContext = {
   // marker so authors can wire content by placing the body slot inside the
   // page-set alone.
   bodyState: { consumed: boolean };
-  refEntries: Map<string, ResolvedInlineNode[]>;
+  refEntries: Map<string, ResolvedRefEntryNode>;
 };
 
 function buildSlotMap(document: DocumentNode): SlotMap {
@@ -393,13 +393,16 @@ function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveC
       const provided = child.entries ?? [];
       const seen = new Set<string>();
       const entries: ResolvedBibliographyEntry[] = [];
-      // Content-side entries first.
-      for (const [key, inline] of ctx.refEntries) {
+      // Content-side entries first. Carry the source `ResolvedRefEntryNode`
+      // forward as `sourceNode` so `renderBibliographyNode` can look up
+      // rule-applied class bindings keyed on that node identity.
+      for (const [key, refEntryNode] of ctx.refEntries) {
         seen.add(key);
         entries.push({
           key,
-          inline,
-          used: ctx.citeKeys.has(key)
+          inline: refEntryNode.children,
+          used: ctx.citeKeys.has(key),
+          sourceNode: refEntryNode
         } as ResolvedBibliographyEntry);
       }
       // Template-prop entries that don't conflict.
@@ -606,7 +609,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   assignAutoIdsAndCollectListOfInSlotMap(slots, listOf);
   const pageRegimes: ResolvedPageRegime[] = [];
   const regimeFlows = new Map<string, ResolvedChild[]>();
-  const refEntries = new Map<string, ResolvedInlineNode[]>();
+  const refEntries = new Map<string, ResolvedRefEntryNode>();
   collectRefEntriesFromSlotMap(slots, refEntries);
   const resolved = resolveTemplateContainer(template, slots, {
     rules,

@@ -343,6 +343,13 @@ export type ResolvedBibliographyEntry = {
   text?: string;
   inline?: ResolvedInlineNode[];
   used: boolean;
+  // Identity of the source `ResolvedRefEntryNode` that produced this
+  // entry (for content-side entries). The renderer passes it to
+  // `classAttr` so authors can target bibliography <li>s via
+  // `<rule match={{ kind: "ref-entry" }} />`. Absent when the entry
+  // came from the template-prop `entries={...}` path or was synthesised
+  // for a citation with no entry.
+  sourceNode?: unknown;
 };
 
 export type ResolvedBibliographyNode = {

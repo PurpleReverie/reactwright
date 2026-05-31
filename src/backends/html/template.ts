@@ -220,7 +220,12 @@ export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
         e.inline != null && e.inline.length > 0
           ? e.inline.map((c) => renderInlineNode(c)).join("")
           : escapeHtml(e.text ?? e.key);
-      return `<li id="reactwright-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}>${body}</li>`;
+      // The entry's source `ResolvedRefEntryNode` (when present) is the
+      // identity rules bind to — look up its class list so a
+      // `<rule match={{ kind: "ref-entry" }} className="..." />` lands
+      // on the rendered <li>.
+      const entryClass = e.sourceNode != null ? classAttr(e.sourceNode) : "";
+      return `<li id="reactwright-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}${entryClass}>${body}</li>`;
     })
     .join("");
   return `<section data-node="bibliography" class="reactwright-bibliography">${title}<ol>${items}</ol></section>`;
