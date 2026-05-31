@@ -1,0 +1,49 @@
+name: Mockups
+
+# `pnpm mockup:all` drives headless Chromium via puppeteer-core, which
+# needs a Chrome binary on the runner. We run it on demand (via the
+# `mockup` PR label or a manual dispatch) rather than on every push,
+# so cheap CI runs stay fast.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  mockup:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'mockup'
+    name: Render every example
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Chromium for Puppeteer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Render mockups
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        run: pnpm mockup:all
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mockups
+          path: build/mockups/**
+          if-no-files-found: warn
