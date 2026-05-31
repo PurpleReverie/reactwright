@@ -1,92 +1,28 @@
 {
-  "name": "reactwright",
-  "version": "0.1.0",
-  "description": "Author paginated documents in React. Two-reconciler engine that compiles JSX content + template trees to CSS Paged Media HTML and PDF via Paged.js + headless Chromium.",
-  "keywords": [
-    "react",
-    "pagination",
-    "paged-media",
-    "paged-js",
-    "pdf",
-    "typography",
-    "document",
-    "typesetting",
-    "browser-native",
-    "jsx",
-    "headless-chromium"
-  ],
+  "name": "reactwright-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo root for Reactwright — engine, templates, and examples.",
   "license": "MIT",
   "author": {
     "name": "TauraJ Greig",
     "email": "tauraj.pro@gmail.com"
   },
-  "homepage": "https://github.com/PurpleReverie/react_doc#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/PurpleReverie/react_doc.git"
-  },
-  "bugs": {
-    "url": "https://github.com/PurpleReverie/react_doc/issues"
-  },
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
-    },
-    "./jsx": {
-      "types": "./src/public/jsx.d.ts",
-      "default": "./src/public/jsx.js"
-    },
-    "./contract": {
-      "types": "./src/public/contract.ts",
-      "default": "./src/public/contract.ts"
-    }
-  },
-  "files": [
-    "src",
-    "LICENSE",
-    "README.md"
-  ],
   "scripts": {
-    "dev": "node --import tsx -e \"import('reactwright').then(() => console.log('reactwright package entry loaded'))\"",
-    "check": "tsc --noEmit",
-    "check:intellisense": "tsc -p fixtures/intellisense-consumer/tsconfig.json --noEmit",
-    "test": "node --import tsx --test 'tests/*.test.tsx' 'tests/**/*.test.tsx'",
-    "prepublishOnly": "npm run -s check && npm run -s test && npm run -s mockup:ieee-strict",
-    "run:file": "PUPPETEER_EXECUTABLE_PATH=\"${PUPPETEER_EXECUTABLE_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node --import tsx ./src/cli/run-file.tsx",
-    "mockup:treatise": "npm run -s run:file -- ./mockups/treatise.tsx --format html,pdf --out ./build/mockups",
-    "mockup:field-notes": "npm run -s run:file -- ./mockups/field-notes.tsx --format html,pdf --out ./build/mockups",
-    "mockup:newsletter": "npm run -s run:file -- ./mockups/newsletter.tsx --format html,pdf --out ./build/mockups",
-    "mockup:story-bible": "npm run -s run:file -- ./mockups/story-bible.tsx --format html,pdf --out ./build/mockups",
-    "mockup:ieee-strict": "npm run -s run:file -- ./mockups/ieee-strict.tsx --format html,pdf --out ./build/mockups",
-    "mockup:essay-sample": "npm run -s run:file -- ./mockups/essay-sample.tsx --format html,pdf --out ./build/mockups",
-    "mockup:report-sample": "npm run -s run:file -- ./mockups/report-sample.tsx --format html,pdf --out ./build/mockups",
-    "example:paper": "npm run -s run:file -- ./examples/paper/paper.tsx --format html,pdf --out ./build/examples",
-    "mockup:all": "npm run -s mockup:treatise && npm run -s mockup:field-notes && npm run -s mockup:newsletter && npm run -s mockup:story-bible && npm run -s mockup:ieee-strict && npm run -s mockup:essay-sample && npm run -s mockup:report-sample",
-    "snapshot:treatise": "npm run -s run:file -- ./mockups/treatise.tsx --format png --out ./build/snapshots",
-    "snapshot:field-notes": "npm run -s run:file -- ./mockups/field-notes.tsx --format png --out ./build/snapshots",
-    "snapshot:newsletter": "npm run -s run:file -- ./mockups/newsletter.tsx --format png --out ./build/snapshots",
-    "snapshot:story-bible": "npm run -s run:file -- ./mockups/story-bible.tsx --format png --out ./build/snapshots",
-    "snapshot:ieee-strict": "npm run -s run:file -- ./mockups/ieee-strict.tsx --format png --out ./build/snapshots",
-    "snapshot:all": "npm run -s snapshot:treatise && npm run -s snapshot:field-notes && npm run -s snapshot:newsletter && npm run -s snapshot:story-bible && npm run -s snapshot:ieee-strict"
+    "build": "turbo build",
+    "test": "turbo test",
+    "check": "turbo check",
+    "mockup:all": "turbo mockup --filter='./examples/*'"
   },
   "engines": {
-    "node": ">=20"
-  },
-  "peerDependencies": {
-    "react": "^19.0.0"
-  },
-  "dependencies": {
-    "react-reconciler": "^0.31.0"
+    "node": ">=20",
+    "pnpm": ">=9"
   },
   "devDependencies": {
-    "@types/node": "^22.15.18",
-    "@types/react": "^19.1.2",
-    "katex": "^0.17.0",
-    "puppeteer-core": "^25.1.0",
-    "react": "^19.1.0",
-    "tsx": "^4.19.2",
+    "@changesets/cli": "^2.27.0",
+    "turbo": "^2.0.0",
     "typescript": "^5.8.3"
-  }
+  },
+  "packageManager": "pnpm@9.15.9"
 }
