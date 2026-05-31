@@ -1,0 +1,17 @@
+{
+  "name": "@reactwright/cite-bibtex",
+  "version": "0.0.0",
+  "private": false,
+  "description": "BibTeX (.bib) to Reactwright citation-list adapter. Stub.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "type": "module",
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "reactwright": "workspace:*"
+  }
+}

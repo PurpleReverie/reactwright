@@ -1,0 +1,15 @@
+{
+  "name": "create-reactwright-doc",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Scaffolder CLI for Reactwright documents. Stub.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "type": "module",
+  "files": [
+    "src",
+    "templates",
+    "LICENSE",
+    "README.md"
+  ]
+}

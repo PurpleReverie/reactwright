@@ -1,0 +1,17 @@
+{
+  "name": "@reactwright/charts",
+  "version": "0.0.0",
+  "private": false,
+  "description": "SVG chart primitives for Reactwright documents. Stub.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "type": "module",
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "reactwright": "workspace:*"
+  }
+}

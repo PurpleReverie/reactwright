@@ -1,0 +1,17 @@
+{
+  "name": "@reactwright/code-highlight",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Syntax-highlighting adapter (Shiki / Prism) for Reactwright code blocks. Stub.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "type": "module",
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "reactwright": "workspace:*"
+  }
+}
