@@ -1,5 +1,5 @@
 import "reactwright/jsx";
-import { Bibliography } from "../../src/userland/Bibliography.js";
+import { Bibliography } from "../../reactwright/src/userland/Bibliography.js";
 
 // MLA-style academic essay template, packaged as a reusable module.
 // Templates that want the same essay styling can:
