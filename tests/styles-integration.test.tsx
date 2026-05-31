@@ -315,3 +315,97 @@ test("userland Bibliography accepts a custom title", () => {
   const html = renderToHtml(document, template);
   assert.match(html, />Works Cited</);
 });
+
+// --- Slice 6.4: userland TOC / ListOf / Index helpers --------------
+
+import { Toc } from "../src/userland/Toc.js";
+import { ListOf } from "../src/userland/ListOf.js";
+import { Index as UserlandIndex } from "../src/userland/Index.js";
+
+test("userland Toc helper enumerates collected section anchors", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <Toc />
+        <slot name="body" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="T">
+      <section title="Alpha">
+        <p>A.</p>
+      </section>
+      <section title="Beta">
+        <p>B.</p>
+      </section>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+
+  assert.match(html, />Contents</);
+  // The two entries each emit a title link + a page-number link.
+  assert.match(html, /<a href="#reactwright-sec-alpha" class="reactwright-toc-link">Alpha<\/a>/);
+  assert.match(html, /<a href="#reactwright-sec-beta" class="reactwright-toc-link">Beta<\/a>/);
+  // The page-number CSS rule is in the static defaults.
+  assert.match(
+    html,
+    /\.reactwright-toc-page::after\{content:target-counter\(attr\(href url\), page\);\}/
+  );
+});
+
+test("userland ListOf helper enumerates collected figure entries", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <ListOf of="figure" title="Figures" />
+        <slot name="body" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="T">
+      <section title="Body">
+        <figure src="fixtures/x.png" caption="A diagram" />
+        <figure src="fixtures/y.png" caption="Another diagram" />
+      </section>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+
+  assert.match(html, />Figures</);
+  assert.match(html, /class="reactwright-list-of-link">A diagram<\/a>/);
+  assert.match(html, /class="reactwright-list-of-link">Another diagram<\/a>/);
+});
+
+test("userland Index helper enumerates collected term anchors", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <UserlandIndex />
+        <slot name="body" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="T">
+      <section title="Body">
+        <p>
+          We mention <index term="alpha" /> in passing, and again{" "}
+          <index term="alpha" /> later, and once{" "}
+          <index term="beta" />.
+        </p>
+      </section>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+
+  assert.match(html, />Index</);
+  // Each rendered <p> wraps its page-ref anchors with the
+  // reactwright-index-pagerefs class so the comma separator CSS
+  // rule applies.
+  assert.match(html, /class="reactwright-index-pagerefs"/);
+  // Both terms produce list entries.
+  assert.match(html, />alpha\b/);
+  assert.match(html, />beta\b/);
+});

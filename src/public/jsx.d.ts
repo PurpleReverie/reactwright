@@ -95,6 +95,9 @@ type StrongProps = WithClassName & {
 };
 
 type LinkProps = WithClassName & {
+  // Permitted so authors mapping over data can pass keys; React strips
+  // it at the JSX boundary so it never reaches the underlying IR.
+  key?: Key | null;
   href: string;
   titleText?: string;
   children?: ReactNode;
