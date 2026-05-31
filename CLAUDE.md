@@ -16,7 +16,8 @@ The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
 | Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
 | Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
 | Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
-| Slice 5 — synthesized IR for renderer-internal elements | **in flight** | plan in `docs/synthesized-ir-plan.md`; closes the `<rule>` reach gap so `customCss` can be empty |
+| Slice 5 — synthesized IR for renderer-internal elements | **partial** | 5.1 + 5.2 shipped (`357d2a8`, `d0a0df3`); 5.3 dropped, superseded by slice 6.3 |
+| Slice 6 — userland-composable compounds (bibliography/toc/list-of/index/abstract) | **in flight** | plan in `docs/userland-compounds-plan.md`; engine shrinks to primitives + data-source primitives, semantics moves to userland helpers |
 
 Open refactors flagged during slice 1/2:
 - task #68 — split `src/resolver/ir.ts` (~700 lines) per-domain
