@@ -2,7 +2,6 @@ import { mergeTemplateStyleGroups, type TemplateProps } from "../prop-readers.js
 import type {
   BibDataEntry,
   BibDataNode,
-  BibEntryContentNode,
   BibliographyEntry,
   BibliographyNode,
   IndexDataEntry,
@@ -185,15 +184,5 @@ export function indexDataNode(props: TemplateProps): IndexDataNode {
   };
 }
 
-export function bibEntryContentNode(props: TemplateProps): BibEntryContentNode {
-  // The JSX prop is `for` (matches html-author intuition); we rename to
-  // `refKey` internally to dodge the JS reserved word.
-  const raw = (props as Record<string, unknown>).for;
-  if (typeof raw !== "string" || raw.trim().length === 0) {
-    throw new Error("`bib-entry-content` requires a non-empty `for` prop.");
-  }
-  return {
-    kind: "bib-entry-content",
-    refKey: raw.trim()
-  };
-}
+// `<bib-entry-content>` moved to content side in slice 6.3 (D1).
+// See src/content/factories.ts.

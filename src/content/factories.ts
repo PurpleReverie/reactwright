@@ -353,6 +353,20 @@ function setNode(props: ContentProps): SemanticNode {
   } satisfies SetRunningNode;
 }
 
+// Slice 6.3 (D1): `<bib-entry-content for="key" />` is content-side as
+// of the path-A re-entry refactor. The JSX prop is `for` (matches the
+// html-author intuition); the IR keeps `refKey` internally to dodge
+// the reserved word. The resolver walks the SemanticNode tree and
+// substitutes this placeholder with the resolved inline children of
+// the matching <ref-entry>; it never reaches `resolveInlineNode`.
+function bibEntryContentContentNode(props: ContentProps): SemanticNode {
+  const raw = getTrimmedString(props, "for");
+  if (raw == null) {
+    throw new Error("`bib-entry-content` requires a non-empty `for` prop.");
+  }
+  return { kind: "bib-entry-content", refKey: raw };
+}
+
 // Dispatch table — adding a content intrinsic means adding one entry
 // here plus its factory function above.
 const FACTORIES: Record<string, (props: ContentProps) => SemanticNode> = {
@@ -390,7 +404,8 @@ const FACTORIES: Record<string, (props: ContentProps) => SemanticNode> = {
   sup: supNode,
   link: linkNode,
   "page-break": pageBreakNode,
-  set: setNode
+  set: setNode,
+  "bib-entry-content": bibEntryContentContentNode
 };
 
 export function createContentNode(type: string, props: ContentProps): SemanticNode {

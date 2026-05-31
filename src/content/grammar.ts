@@ -17,7 +17,7 @@ type Kind = SemanticNode["kind"];
 const INLINE_KINDS = new Set<Kind>([
   "text", "em", "strong", "code", "link", "br",
   "sub", "sup", "img", "ref", "footnote", "m",
-  "cite", "index", "sidenote"
+  "cite", "index", "sidenote", "bib-entry-content"
 ]);
 
 // Inline subset for ref-entry — no nested footnotes, refs, citations,

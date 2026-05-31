@@ -350,6 +350,14 @@ export function renderResolvedChild(node: ResolvedChild): string {
     case "page-break":
     case "set-running":
       return renderContentNode(node as ResolvedContentNode);
+    case "bib-entry-content":
+      // Slice 6.3: the data-source resolver splice-replaces these
+      // placeholders before rendering. Reaching this case means a
+      // userland helper used `<bib-entry-content>` outside a
+      // `<bib-data>` render-prop.
+      throw new Error(
+        `<bib-entry-content for="${(node as { refKey: string }).refKey}" /> rendered without surrounding <bib-data> — substitution did not run.`
+      );
   }
 }
 

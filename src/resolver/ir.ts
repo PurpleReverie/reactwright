@@ -299,6 +299,17 @@ export type ResolvedRefEntryNode = {
   children: ResolvedInlineNode[];
 };
 
+// Slice 6.3 (D1): content-side `<bib-entry-content for="key" />` resolves
+// to this placeholder, which the data-source `expandRenderProp` then
+// splice-replaces with the resolved inline children of the matching
+// `<ref-entry>` (looked up via `ctx.refEntries`). The placeholder
+// should never reach a renderer; if it does, that means a userland
+// helper used `<bib-entry-content>` outside a `<bib-data>` render-prop.
+export type ResolvedBibEntryContentNode = {
+  kind: "bib-entry-content";
+  refKey: string;
+};
+
 export type ResolvedRefsNode = {
   kind: "refs";
   className?: string;
@@ -657,6 +668,7 @@ export type ResolvedContentNode =
   | ResolvedCiteNode
   | ResolvedIndexEntryNode
   | ResolvedSidenoteNode
+  | ResolvedBibEntryContentNode
   | ResolvedTextNode;
 
 export type ResolvedContentChild =
@@ -692,7 +704,8 @@ export type ResolvedInlineNode =
   | ResolvedInlineMathNode
   | ResolvedCiteNode
   | ResolvedIndexEntryNode
-  | ResolvedSidenoteNode;
+  | ResolvedSidenoteNode
+  | ResolvedBibEntryContentNode;
 
 export type ResolvedTemplateNode =
   | ResolvedPageNode

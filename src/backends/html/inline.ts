@@ -85,6 +85,13 @@ export function renderInlineNode(node: ResolvedInlineNode): string {
     case "cite":     return renderCiteNode(node);
     case "index":    return renderIndexEntryNode(node);
     case "sidenote": return renderSidenoteNode(node);
+    case "bib-entry-content":
+      // Slice 6.3: substituted by the data-source resolver before
+      // rendering. Reaching this case means the placeholder escaped
+      // a `<bib-data>` render-prop scope.
+      throw new Error(
+        `<bib-entry-content for="${node.refKey}" /> rendered without surrounding <bib-data> — substitution did not run.`
+      );
   }
   throw new Error("Unsupported resolved inline node.");
 }

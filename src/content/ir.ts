@@ -104,6 +104,17 @@ export type SidenoteNode = {
   children: InlineNode[];
 };
 
+// Substitution primitive (slice 6.3 / D1). Lives content-side now so
+// userland helpers compose it inside content JSX. Its resolver walks
+// the SemanticNode tree before content resolution and replaces the
+// placeholder in-place with the resolved inline children of the
+// matching <ref-entry refKey="...">. The node never reaches
+// `resolveInlineNode`.
+export type BibEntryContentNode = {
+  kind: "bib-entry-content";
+  refKey: string;
+};
+
 export type RefEntryNode = {
   kind: "ref-entry";
   refKey: string;
@@ -294,7 +305,8 @@ export type InlineNode =
   | InlineMathNode
   | CiteNode
   | IndexNode
-  | SidenoteNode;
+  | SidenoteNode
+  | BibEntryContentNode;
 
 export type SemanticBlockChild =
   | SectionNode
@@ -350,6 +362,7 @@ export type SemanticNode =
   | CiteNode
   | IndexNode
   | SidenoteNode
+  | BibEntryContentNode
   | TextNode;
 
 export type SemanticContainerNode =

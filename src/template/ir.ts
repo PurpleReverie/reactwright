@@ -387,14 +387,9 @@ export type IndexDataNode = {
   render: (entries: IndexDataEntry[]) => unknown;
 };
 
-// Substitution primitive: the resolver replaces this node with the
-// resolved inline children of the matching <ref-entry refKey="...">.
-// Used inside a <bib-data> render-prop tree (or any other context that
-// wants to inline a ref entry's body).
-export type BibEntryContentNode = {
-  kind: "bib-entry-content";
-  refKey: string;
-};
+// `BibEntryContentNode` moved to content side (`src/content/ir.ts`) in
+// slice 6.3 (D1). Userland helpers compose it inside content JSX
+// returned from a `<bib-data>` render-prop.
 
 export type FontNode = {
   kind: "font";
@@ -487,7 +482,6 @@ export type TemplateNode =
   | TocDataNode
   | ListOfDataNode
   | IndexDataNode
-  | BibEntryContentNode
   | FontNode
   | SlotNode
   | CustomTemplateNode
@@ -527,7 +521,6 @@ export type TemplateChild =
   | TocDataNode
   | ListOfDataNode
   | IndexDataNode
-  | BibEntryContentNode
   | FontNode
   | SlotNode
   | StylesNode

@@ -7,7 +7,6 @@ import { columnNode, columnsNode, fixedNode, layerNode, regionNode, stackNode, t
 import { footerNode, headerNode } from "./margin-matter.js";
 import {
   bibDataNode,
-  bibEntryContentNode,
   bibliographyNode,
   indexDataNode,
   indexTemplateNode,
@@ -50,7 +49,6 @@ const FACTORIES: Record<string, (props: TemplateProps) => TemplateNode> = {
   "toc-data": tocDataNode,
   "list-of-data": listOfDataNode,
   "index-data": indexDataNode,
-  "bib-entry-content": bibEntryContentNode,
   font: fontNode,
   image: imageNode,
   running: runningNode,

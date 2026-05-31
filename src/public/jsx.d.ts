@@ -272,6 +272,10 @@ type ListProps = ContentMetadataProps & {
 };
 
 type ItemProps = WithClassName & {
+  // `<list>` is iterated with `.map(...)` in userland; React strips the
+  // `key` prop before it reaches the reconciler, but TypeScript needs it
+  // on the prop type to typecheck the JSX (see CLAUDE.md gotcha).
+  key?: Key | null;
   id?: string;
   children?: ReactNode;
 };

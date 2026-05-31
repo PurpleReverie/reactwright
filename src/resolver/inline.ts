@@ -1,4 +1,5 @@
 import type {
+  BibEntryContentNode,
   BreakNode,
   CiteNode,
   CodeNode,
@@ -19,6 +20,7 @@ import type {
   TextNode
 } from "../content/ir.js";
 import type {
+  ResolvedBibEntryContentNode,
   ResolvedBreakNode,
   ResolvedCiteNode,
   ResolvedCodeNode,
@@ -172,6 +174,18 @@ export function resolveSidenoteNode(node: SidenoteNode): ResolvedSidenoteNode {
   };
 }
 
+// Slice 6.3 (D1): pass-through resolver for the content-side
+// `<bib-entry-content for="key" />` placeholder. The data-source
+// `expandRenderProp` walks the resolved tree afterwards and
+// splice-replaces this node with the resolved inline children of the
+// matching `<ref-entry>`. If a renderer ever sees this node, the
+// userland code put `<bib-entry-content>` outside a `<bib-data>`.
+export function resolveBibEntryContentNode(
+  node: BibEntryContentNode
+): ResolvedBibEntryContentNode {
+  return { kind: "bib-entry-content", refKey: node.refKey };
+}
+
 export function resolveRefEntryNode(node: RefEntryNode): ResolvedRefEntryNode {
   return {
     kind: "ref-entry",
@@ -208,6 +222,7 @@ export function resolveInlineNode(
     | CiteNode
     | IndexNode
     | SidenoteNode
+    | BibEntryContentNode
 ): ResolvedInlineNode {
   switch (node.kind) {
     case "text":     return resolveTextNode(node);
@@ -225,5 +240,6 @@ export function resolveInlineNode(
     case "cite":     return resolveCiteNode(node);
     case "index":    return resolveIndexNode(node);
     case "sidenote": return resolveSidenoteNode(node);
+    case "bib-entry-content": return resolveBibEntryContentNode(node);
   }
 }

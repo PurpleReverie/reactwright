@@ -153,7 +153,11 @@ test("resolver applies role rules and stores page-set body flow as a per-regime 
   assert.equal((sec1.children[1] as { variant?: string }).variant, "dialogueBlock");
 });
 
-// --- Slice 6.2: data-source primitives ------------------------------
+// --- Slice 6.3: data-source primitives (content re-entry) -----------
+// Slice 6.2 wired the render-prop to the template reconciler; slice 6.3
+// (D1, path A) flips to the content reconciler so userland helpers can
+// compose content JSX (`<section>` / `<list>` / `<item>` / …) inside
+// `<bib-data>`. `<bib-entry-content>` is now content-side.
 
 test("bib-data passes merged ref-entry + cite-key entries to its render-prop", () => {
   const captured: { key: string; used: boolean; text?: string }[][] = [];
@@ -182,9 +186,9 @@ test("bib-data passes merged ref-entry + cite-key entries to its render-prop", (
           {(entries) => {
             captured.push(entries);
             return (
-              <region>
-                <slot name="abstract" />
-              </region>
+              <section title="References">
+                <p>Bib body.</p>
+              </section>
             );
           }}
         </bib-data>
@@ -222,38 +226,50 @@ test("bib-entry-content substitutes the resolved inline body of the matching ref
       <region>
         <bib-data>
           {(entries) => (
-            <region>
-              {entries.map((e) => (
-                <React.Fragment key={e.key}>
-                  <stack>
-                    <bib-entry-content for={e.key} />
-                  </stack>
-                </React.Fragment>
-              ))}
-            </region>
+            <section title="References" role="bibliography">
+              <list ordered>
+                {entries.map((e) => (
+                  <item key={e.key} id={`reactwright-bib-${e.key}`}>
+                    <p>
+                      <bib-entry-content for={e.key} />
+                    </p>
+                  </item>
+                ))}
+              </list>
+            </section>
           )}
         </bib-data>
       </region>
     </page>
   );
   const resolved = resolveDocument(documentTree, template);
-  // page > region > region(from render-prop) > stack > [inline nodes from ref-entry]
+  // page > region > section > [section-heading, list] > item > p > [inline...]
   const outerRegion = resolved.children[0];
   assert.equal(outerRegion?.kind, "region");
   if (outerRegion?.kind !== "region") throw new Error("expected region");
-  const innerRegion = outerRegion.children[0];
-  assert.equal(innerRegion?.kind, "region");
-  if (innerRegion?.kind !== "region") throw new Error("expected region");
-  const stack = innerRegion.children[0];
-  assert.equal(stack?.kind, "stack");
-  if (stack?.kind !== "stack") throw new Error("expected stack");
-  // The stack's children are the inline IR from <ref-entry>: a text node,
-  // an em node (children: "Robust"), and another text node.
-  const inline = stack.children;
+  const section = outerRegion.children[0] as { kind: string; children: unknown[] };
+  assert.equal(section?.kind, "section");
+  // children: [section-heading, list]
+  const list = section.children.find(
+    (c) => (c as { kind: string }).kind === "list"
+  ) as { kind: string; children: unknown[] };
+  assert.equal(list?.kind, "list");
+  const firstItem = list.children[0] as { kind: string; id?: string; children: unknown[] };
+  assert.equal(firstItem.kind, "item");
+  assert.equal(firstItem.id, "reactwright-bib-smith-2024");
+  const para = firstItem.children[0] as { kind: string; children: unknown[] };
+  assert.equal(para.kind, "paragraph");
+  const inline = para.children;
+  // After substitution: text, em (children "Robust"), text.
   assert.ok(inline.length >= 2);
-  // Find the em node.
   const em = inline.find((c) => (c as { kind: string }).kind === "em");
   assert.ok(em != null, "em node from ref-entry body survives substitution");
+  // Substitution should have splice-replaced the placeholder; no
+  // bib-entry-content placeholders survive.
+  const placeholder = inline.find(
+    (c) => (c as { kind: string }).kind === "bib-entry-content"
+  );
+  assert.equal(placeholder, undefined, "placeholder spliced out");
 });
 
 test("toc-data produces an entries list keyed by collected section anchors", () => {
@@ -277,7 +293,7 @@ test("toc-data produces an entries list keyed by collected section anchors", () 
         <toc-data>
           {(entries) => {
             captured = entries;
-            return <region />;
+            return <section title="Contents"><p>placeholder.</p></section>;
           }}
         </toc-data>
         <slot name="body" />
@@ -335,9 +351,9 @@ test("bib-entry-content for a missing key throws", () => {
       <region>
         <bib-data>
           {() => (
-            <region>
-              <bib-entry-content for="nonexistent" />
-            </region>
+            <section title="References">
+              <p><bib-entry-content for="nonexistent" /></p>
+            </section>
           )}
         </bib-data>
       </region>
