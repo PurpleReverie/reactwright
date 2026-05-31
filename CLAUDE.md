@@ -17,7 +17,7 @@ The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
 | Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
 | Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
 | Slice 5 — synthesized IR for renderer-internal elements | **partial** | 5.1 + 5.2 shipped (`357d2a8`, `d0a0df3`); 5.3 dropped, superseded by slice 6.3 |
-| Slice 6 — userland-composable compounds (bibliography/toc/list-of/index/abstract) | **in flight** | plan in `docs/userland-compounds-plan.md`; engine shrinks to primitives + data-source primitives, semantics moves to userland helpers |
+| Slice 6 — userland-composable compounds (bibliography/toc/list-of/index/abstract) | **partial** | 6.1 (`49012b1`), 6.2 (`e7e8e31`), 6.6 deprecation warnings shipped; 6.3/6.4/6.5 deferred — 6.3 blocked on bib-data re-entry direction (template vs content reconciler); 6.5 abstract-removal scope (12 files) deferred for separate session |
 
 Open refactors flagged during slice 1/2:
 - task #68 — split `src/resolver/ir.ts` (~700 lines) per-domain

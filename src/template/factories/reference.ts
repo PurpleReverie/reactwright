@@ -17,7 +17,30 @@ import type {
   TocNode
 } from "../ir.js";
 
+// One-time deprecation-warning gate. Engine compound intrinsics
+// (bibliography/toc/list-of/index) are slated for removal at v1.0;
+// authors should migrate to userland helpers composed from data-source
+// primitives (bib-data, toc-data, list-of-data, index-data) per
+// docs/userland-compounds-plan.md.
+const deprecatedCompoundsWarned = new Set<string>();
+function warnDeprecatedCompound(name: string): void {
+  if (deprecatedCompoundsWarned.has(name)) return;
+  deprecatedCompoundsWarned.add(name);
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[reactwright] <${name}> is deprecated and will be removed at v1.0. ` +
+      `Migrate to a userland helper using <${name === "bibliography" ? "bib" : name.replace("-", "")}-data> ` +
+      `— see docs/userland-compounds-plan.md.`
+  );
+}
+
+/**
+ * @deprecated Engine compound primitive. Removed at v1.0. Migrate to a
+ * userland helper composed from `<bib-data>` and engine primitives.
+ * See `docs/userland-compounds-plan.md`.
+ */
 export function bibliographyNode(props: TemplateProps): BibliographyNode {
+  warnDeprecatedCompound("bibliography");
   const rawEntries = (props as Record<string, unknown>).entries;
   let entries: BibliographyEntry[] | undefined;
   if (Array.isArray(rawEntries)) {
@@ -44,7 +67,13 @@ export function bibliographyNode(props: TemplateProps): BibliographyNode {
   };
 }
 
+/**
+ * @deprecated Engine compound primitive. Removed at v1.0. Migrate to a
+ * userland helper composed from `<toc-data>` and engine primitives.
+ * See `docs/userland-compounds-plan.md`.
+ */
 export function tocNode(props: TemplateProps): TocNode {
+  warnDeprecatedCompound("toc");
   const titleProp = (props as Record<string, unknown>).title;
   const title = typeof titleProp === "string" ? titleProp : undefined;
   const depthRaw = (props as Record<string, unknown>).depth;
@@ -59,7 +88,13 @@ export function tocNode(props: TemplateProps): TocNode {
   };
 }
 
+/**
+ * @deprecated Engine compound primitive. Removed at v1.0. Migrate to a
+ * userland helper composed from `<list-of-data>` and engine primitives.
+ * See `docs/userland-compounds-plan.md`.
+ */
 export function listOfNode(props: TemplateProps): ListOfNode {
+  warnDeprecatedCompound("list-of");
   const ofRaw = (props as Record<string, unknown>).of;
   let of: ListOfKind;
   if (ofRaw === "figure" || ofRaw === "table" || ofRaw === "equation") {
@@ -77,7 +112,13 @@ export function listOfNode(props: TemplateProps): ListOfNode {
   };
 }
 
+/**
+ * @deprecated Engine compound primitive. Removed at v1.0. Migrate to a
+ * userland helper composed from `<index-data>` and engine primitives.
+ * See `docs/userland-compounds-plan.md`.
+ */
 export function indexTemplateNode(props: TemplateProps): IndexTemplateNode {
+  warnDeprecatedCompound("index");
   const titleProp = (props as Record<string, unknown>).title;
   const title = typeof titleProp === "string" ? titleProp : undefined;
   return {

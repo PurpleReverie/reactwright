@@ -12,12 +12,40 @@ libraries** that compose lower-level primitives.
 
 | Sub-slice | Subject | Status | Pointer |
 |---|---|---|---|
-| 6.1 | Engine primitives: `<list ordered>` + `<item>` reach parity (already in IR; add direct template-side equivalents + heading-as-block parity) | not started | §5.1 |
-| 6.2 | Data-source primitives: `<bib-data>`, `<toc-data>`, `<list-of-data>`, `<index-data>` (template side, render-prop) | not started | §5.2 |
-| 6.3 | Migrate `<bibliography>` → userland `<Bibliography>` in `mockups/ieee/components/` | not started | §5.3 |
-| 6.4 | Migrate `<toc>`, `<list-of>`, `<index>` to userland helpers (one slice) | not started | §5.4 |
-| 6.5 | `<abstract>`: decide between engine-thin-wrapper vs userland; default = keep, see §6 | not started | §5.5 |
-| 6.6 | Deprecation: comment+warning on engine compounds; spec amendment; removal target v1.0 | not started | §5.6 |
+| 6.1 | Engine primitive parity (`<item id>`, `<section counter>`) | **shipped** `49012b1` | §5.1 |
+| 6.2 | Data-source primitives + `<bib-entry-content>` | **shipped** `e7e8e31` | §5.2 |
+| 6.3 | Userland `<Bibliography>` + IEEE migration | **deferred** (blocked, see below) | §5.3 |
+| 6.4 | Userland `<TOC>`, `<ListOf>`, `<Index>` | **deferred** (same blocker) | §5.4 |
+| 6.5 | Remove engine `<abstract>` | **deferred** (12-file scope; separate session) | §5.5 |
+| 6.6 | Deprecation warnings + JSDoc on engine compounds | **shipped** (this session) | §5.6 |
+
+### Slice 6.3 blocker — discovered during dispatch
+
+Slice 6.2 wired the four render-prop data primitives to re-enter the
+**template** reconciler (`renderTemplateFragmentToIR`). The userland
+helper sketched in §5.3 composes **content** primitives (`<section>`,
+`<heading>`, `<list>`, `<item>`) — those live on the content side, not
+the template side. The plan implicitly assumed content re-entry but
+its §3.2 wording said "template-side data-source primitives," which
+the implementing agent followed literally.
+
+Three resolution paths (smallest first):
+- **6.2.1 path A** — flip `expandRenderProp` to call
+  `renderContentToIR` (or a `renderContentFragmentToIR` variant);
+  move `<bib-entry-content>` from template-side to content-side;
+  resolve the content sub-tree and return as `ResolvedChild[]`.
+  Touches ~10 files; rewrites the 5 slice-6.2 tests.
+- **6.2.1 path B** — port `section`/`heading`/`list`/`item` to
+  template-side primitives in parallel with their content
+  counterparts. Userland helper writes template JSX. Causes
+  duplication.
+- **6.2.1 path C** — add a `<content-region>` template primitive
+  that bridges (children rendered via content reconciler internally).
+  Lightest but introduces a one-off bridging primitive.
+
+Path A is the architecturally honest answer but exceeds the budget
+of a single dispatch. The slice is deferred pending a fresh dispatch
+budgeted explicitly for the re-entry refactor.
 
 Decisions inherited from earlier slices:
 - `customCss` removal is a slice-4 concern. Userland-compound migration
