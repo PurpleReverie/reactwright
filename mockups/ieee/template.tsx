@@ -154,54 +154,55 @@ export const IEEE_STYLES = `
   .ieee-heading-adjacent-p {
     text-indent: 0;
   }
+
+  .ieee-abstract-p {
+    margin: 0;
+    text-indent: 0;
+  }
+
+  .ieee-abstract-p-follow {
+    margin-top: 6pt;
+  }
+
+  .ieee-body-p {
+    margin: 0;
+    text-indent: 1em;
+  }
+
+  .ieee-cell-p {
+    margin: 0;
+    text-indent: 0;
+    font-size: inherit;
+  }
+
+  .ieee-math-block {
+    text-indent: 0;
+  }
 `;
 
-// The remaining rules still need slice 2/3 concepts (numbering,
-// prefix/suffix, break-inside, table-layout) — stay in customCss
-// until those land.
+// The remaining rules still need engine work to migrate to the
+// dialect — they target renderer-generated DOM elements with no IR
+// identity (the bibliography <h2>/<ol>) or selector vocab the dialect
+// doesn't yet expose (table cell padding + "last row" border require
+// slice 5.4's property-allowlist additions and a parent sibling-index
+// fix). Hanging-indent on bib <li> is slice 3.
 export const IEEE_CSS = [
-  // ── Abstract paragraph layout (uses sibling combinator and indent
-  //    behaviour the dialect doesn't yet model). ─────────────────────
-  ".reactwright-abstract p{margin:0;text-indent:0;}",
-  ".reactwright-abstract p + p{margin-top:6pt;}",
-
-  // ── Body paragraphs: 1em first-line indent ──────────────────────
-  // The `h2 + p, h3 + p, h4 + p{text-indent:0}` rule moved to the
-  // `.ieee-heading-adjacent-p` class in IEEE_STYLES, bound by a
-  // `paragraph follows section-heading` rule below (slice 5.1).
-  ".reactwright-flow p{margin:0;text-indent:1em;}",
-
-  // ── Figures: container layout + caption "Fig. N. " moved to
-  //    `.ieee-figure` + `.ieee-fig-caption` in IEEE_STYLES. Inner-image
-  //    sizing (slice 5.2) moved to `.ieee-figure-img`, bound via
-  //    `<rule match={{kind:"figure-image"}}>` below.
-
-  // ── Tables: width/table-layout + cell padding stay until slice 3
-  //    (column-fit, descendant-cell rules). Container styling + caption
-  //    "Table I. " + header-cell border moved to .ieee-table* in
-  //    IEEE_STYLES.
-  // `width:100%` + `table-layout:fixed` are required: without them a
-  // table whose intrinsic content width exceeds the column-width
-  // overflows and bleeds into the adjacent column.
+  // ── Tables: width/table-layout, cell padding, last-row border stay
+  //    until slice 5.4 (cssPropertyMap additions: table-layout,
+  //    word-wrap, overflow-wrap; selector vocab: parent sibling-index
+  //    so :last-row-cell can be expressed).
   "table{width:100%;table-layout:fixed;}",
   "table th, table td{padding:1pt 2pt;text-align:left;text-indent:0;word-wrap:break-word;overflow-wrap:break-word;}",
   "table tr:last-child td{border-bottom:0.5pt solid #000;}",
-  "table p{margin:0;text-indent:0;font-size:inherit;}",
 
   // ── References list ─────────────────────────────────────────────
-  // Entry margin / text-align / "[N] " prefix moved to .ieee-bib-entry
-  // in IEEE_STYLES. Remaining items need slice 3/4:
-  //   • hanging-indent on <li> (slice 3 `hanging-indent`)
-  //   • list-reset on the renderer-generated <ol>          (slice 4 —
-  //     the <ol> isn't an IR node, so today's dialect can't target it)
-  //   • the bibliography <h2> styling (renderer-generated heading,
-  //     same constraint as the <ol>)
+  // Three items remain. Two target renderer-generated DOM that has
+  // no IR identity today: bibliography <h2> and <ol>. They'll
+  // migrate when slice 6.3 ships userland <Bibliography> (or 5.3
+  // synthesizes them). One needs slice-3 `hanging-indent`.
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
   ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}",
-  ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;}",
-
-  // ── Math: numbered equation right-margin ────────────────────────
-  ".reactwright-math-block{text-indent:0;}"
+  ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;}"
 ].join("");
 
 export function Template() {
@@ -241,6 +242,14 @@ export function Template() {
       <rule match={{ kind: "cell", attr: { header: true } }} className="ieee-table-header-cell" />
       <rule match={{ kind: "cite" }} className="ieee-cite" />
       <rule match={{ kind: "ref-entry" }} className="ieee-bib-entry" />
+      <rule match={{ kind: "paragraph", within: { kind: "abstract" } }} className="ieee-abstract-p" />
+      <rule
+        match={{ kind: "paragraph", within: { kind: "abstract" }, follows: { kind: "paragraph" } }}
+        className="ieee-abstract-p-follow"
+      />
+      <rule match={{ kind: "paragraph" }} className="ieee-body-p" />
+      <rule match={{ kind: "paragraph", within: { kind: "cell" } }} className="ieee-cell-p" />
+      <rule match={{ kind: "math" }} className="ieee-math-block" />
 
       <rules>
         <role
