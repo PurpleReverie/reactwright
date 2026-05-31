@@ -179,9 +179,10 @@ export default function IEEEStrictPaper() {
           id="fig-pipeline"
           role="numbered"
           src={FIGURE_PATH}
-          caption="Compilation pipeline. The React content tree and template tree are reconciled separately, joined by a resolver, emitted as paginated HTML, and consumed by Paged.js inside headless Chromium to produce the final PDF."
           width="80mm"
-        />
+        >
+          <caption>Compilation pipeline. The React content tree and template tree are reconciled separately, joined by a resolver, emitted as paginated HTML, and consumed by Paged.js inside headless Chromium to produce the final PDF.</caption>
+        </figure>
       </section>
 
       <section title="Primitive Vocabulary">

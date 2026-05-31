@@ -87,6 +87,21 @@ export const IEEE_STYLES = `
     numbering: counter(ieee-subsection, upper-alpha) "$ieee-subsection. ";
     break: after(avoid);
   }
+
+  .ieee-figure {
+    margin: 8pt 0;
+    text-align: center;
+    break: inside(avoid);
+  }
+
+  .ieee-fig-caption {
+    font-size: 8pt;
+    font-family: 'Times New Roman', Times, serif;
+    text-align: center;
+    line-height: 1.2;
+    text-indent: 0;
+    numbering: counter(ieee-figure) "Fig. $ieee-figure. ";
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -102,10 +117,12 @@ export const IEEE_CSS = [
   ".reactwright-flow p{margin:0;text-indent:1em;}",
   "h2 + p, h3 + p, h4 + p{text-indent:0;}",
 
-  // ── Figures: caption "Fig. 1. ..." centered below, 8pt ──────────
-  "figure{margin:8pt 0;text-align:center;page-break-inside:avoid;break-inside:avoid;}",
+  // ── Figures: image sizing only. Container layout + caption "Fig. N. "
+  //    moved to `.ieee-figure` + `.ieee-fig-caption` in IEEE_STYLES.
+  //    The `figure img` descendant selector stays here until slice 3
+  //    can express it (or a separate `<rule match={{kind:"img",
+  //    within:{kind:"figure"}}}>` lands).
   "figure img{max-width:100%;height:auto;display:block;margin:0 auto 4pt auto;}",
-  "figure figcaption{font-size:8pt;font-family:'Times New Roman',Times,serif;text-align:center;line-height:1.2;text-indent:0;}",
 
   // ── Tables: caption "TABLE I. ..." centered above, 8pt small-caps ─
   // `width:100%` + `table-layout:fixed` are required: without them a
@@ -160,6 +177,8 @@ export function Template() {
       <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
       <rule match={{ kind: "section", depth: 1 }} className="ieee-section-head" />
       <rule match={{ kind: "section", depth: 2 }} className="ieee-subsection-head" />
+      <rule match={{ kind: "figure" }} className="ieee-figure" />
+      <rule match={{ kind: "caption", parent: { kind: "figure" } }} className="ieee-fig-caption" />
 
       <rules>
         <role
