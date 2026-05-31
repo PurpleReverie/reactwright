@@ -54,7 +54,7 @@ export default function ResearchMemo() {
 
       <section title="Introduction">
         <p>
-          ReactDoc should let authors control both meaning and presentation from
+          Reactwright should let authors control both meaning and presentation from
           project code.
         </p>
       </section>

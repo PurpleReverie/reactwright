@@ -3,7 +3,7 @@ import React from "react";
 
 // Thin wrapper around the engine's <math> block that pre-fills the
 // role+id pair an IEEE numbered equation always needs. With the
-// numberedEquation role rule defined in mockups/ieee/template.tsx,
+// numberedEquation role rule defined in @reactwright/template-ieee,
 // this auto-numbers as (1), (2), … and lets <ref> resolve to "(N)".
 //
 //   <NumberedEquation id="eq-shannon" tex="C = W \log_2(1 + S/N)" />

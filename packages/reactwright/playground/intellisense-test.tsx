@@ -30,7 +30,7 @@ const IntelliSenseTest: ContentComponent = () => (
 
     <section title="Introduction">
       <p>
-        If this file type-checks cleanly, then ReactDoc intrinsics are available
+        If this file type-checks cleanly, then Reactwright intrinsics are available
         through the public IntelliSense surface.
       </p>
     </section>

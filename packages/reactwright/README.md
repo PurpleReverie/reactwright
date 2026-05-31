@@ -109,7 +109,7 @@ routing) and `page` rules, plus back-matter generators `toc`,
 `rule` (selector + className binding). Author writes a CSS-superset
 dialect targeting our typed selectors (`kind`, `role`, `depth`,
 `follows`, `within`, `has`, …) instead of HTML element names. See
-[docs/styling-spec.md](docs/styling-spec.md).
+[docs/styling-spec.md](https://github.com/reactwright/reactwright/blob/main/docs/styling-spec.md).
 
 **Output formats.** `html` (Paged.js-ready), `pdf` (headless
 Chromium print), `png` (one image per page, useful for visual
@@ -122,18 +122,19 @@ resolver, an HTML emitter, and a Chromium printing harness. Each
 piece is a few hundred lines; together they replace a corpus of TeX
 that took thirty years to write.
 
-See [docs/spec.md](docs/spec.md) for the full specification,
-[docs/styling-spec.md](docs/styling-spec.md) for the styling system,
-and [docs/names.md](docs/names.md) for the project's name history.
+See [docs/spec.md](https://github.com/reactwright/reactwright/blob/main/docs/spec.md)
+for the full specification and
+[docs/styling-spec.md](https://github.com/reactwright/reactwright/blob/main/docs/styling-spec.md)
+for the styling system.
 
 ## Pre-built templates
 
-The `mockups/ieee/` directory ships an IEEE conference paper
-template + typed bibliography helper that demonstrates the
-authoring pattern other formats can copy:
+The companion `@reactwright/template-ieee` package ships an IEEE
+conference paper template + typed bibliography helper that
+demonstrates the authoring pattern other formats can copy:
 
 ```tsx
-import { Template, createBibliography, IEEEFrontMatter } from "reactwright/templates/ieee";
+import { Template, createBibliography, IEEEFrontMatter } from "@reactwright/template-ieee";
 
 const refs = createBibliography({
   knuth1984: { authors: "D. E. Knuth", title: "The TeXbook",

@@ -18,7 +18,7 @@ export function ResearchMemo() {
       <section title="Observation">
         <p>
           A local project can define its own template component and still use the
-          same ReactDoc pipeline.
+          same Reactwright pipeline.
         </p>
       </section>
     </document>

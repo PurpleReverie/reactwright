@@ -1,12 +1,12 @@
-# ReactDoc Specification
+# Reactwright Specification
 
-ReactDoc is a React-authored document engine for paginated documents. The system targets HTML rendered through Paged.js, with PDF as a derived artifact via headless Chromium. LaTeX is not a render target.
+Reactwright is a React-authored document engine for paginated documents. The system targets HTML rendered through Paged.js, with PDF as a derived artifact via headless Chromium. LaTeX is not a render target.
 
 > **Status.** This specification describes the target vocabulary and architecture. The current source code still reflects an earlier LaTeX-shaped design and is being migrated toward this spec. Where the spec and code disagree, the spec is canonical.
 
 ## Pivot context
 
-Earlier iterations of ReactDoc targeted LaTeX as the primary typesetting backend, with HTML serving as a preview path. That direction has been abandoned:
+Earlier iterations of Reactwright targeted LaTeX as the primary typesetting backend, with HTML serving as a preview path. That direction has been abandoned:
 
 - LaTeX targeting was actively bloating the codebase and template vocabulary
 - Browser-based tooling (devtools, live inspection) gives template authors a faster design loop
