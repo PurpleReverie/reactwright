@@ -11,7 +11,7 @@
     "check": {},
     "mockup": {
       "dependsOn": ["^build"],
-      "outputs": ["build/**"]
+      "cache": false
     }
   }
 }

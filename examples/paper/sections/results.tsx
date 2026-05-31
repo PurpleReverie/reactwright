@@ -29,7 +29,7 @@ export function Results(): React.ReactElement {
         <DataTable
           id="tbl-build-times"
           caption="End-to-end build times across the reference corpus. Times are wall-clock medians over five consecutive trials. HTML and PDF sizes are reported uncompressed."
-          src="examples/paper/data/build-times.csv"
+          src="data/build-times.csv"
         />
 
         <p>
@@ -55,7 +55,7 @@ export function Results(): React.ReactElement {
         <DataTable
           id="tbl-overhead"
           caption="Per-phase compile-time budget. Means and 95th-percentile values measured over 100 consecutive builds of the IEEE strict reference document. The four reactwright-internal phases together account for under 16 per cent of the budget."
-          src="examples/paper/data/compile-overhead.csv"
+          src="data/compile-overhead.csv"
         />
 
         <p>
