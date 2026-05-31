@@ -242,3 +242,76 @@ test("rule on paragraph follows section-heading binds only to first paragraph af
   assert.doesNotMatch(html, /<p class="lede">Second\./);
   assert.doesNotMatch(html, /<p class="lede">Third\./);
 });
+
+// --- Slice 6.3: userland Bibliography helper ------------------------
+
+import { Bibliography } from "../src/userland/Bibliography.js";
+
+test("userland Bibliography helper renders a back-matter bibliography", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <slot name="body" />
+        <Bibliography />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="With cites">
+      <section title="Body">
+        <p>
+          See <cite cite="alpha" /> and <cite cite="beta" />.
+        </p>
+      </section>
+      <refs>
+        <ref-entry refKey="alpha">Alpha author. <em>Alpha Title</em>. 2024.</ref-entry>
+        <ref-entry refKey="beta">Beta author. <em>Beta Title</em>. 2025.</ref-entry>
+      </refs>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+
+  // Section emits with the counter scoping attribute.
+  assert.match(html, /<section[^>]*data-counter="reactwright-bib"/);
+  // The default title "References" is rendered.
+  assert.match(html, />References</);
+  // Each entry's <li> carries the cross-ref anchor ID.
+  assert.match(html, /<li id="reactwright-bib-alpha"/);
+  assert.match(html, /<li id="reactwright-bib-beta"/);
+  // The static counter-wiring rules are present in the <style> block.
+  assert.match(
+    html,
+    /\[data-counter="reactwright-bib"\]\{counter-reset:reactwright-bib;\}/
+  );
+  assert.match(
+    html,
+    /\[data-counter="reactwright-bib"\] ol > li\{counter-increment:reactwright-bib;\}/
+  );
+  // The ref-entry inline body survives substitution (the <em> renders).
+  assert.match(html, /<em>Alpha Title<\/em>/);
+});
+
+test("userland Bibliography accepts a custom title", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <region>
+        <slot name="body" />
+        <Bibliography title="Works Cited" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="Custom">
+      <section title="Body">
+        <p>
+          See <cite cite="x" />.
+        </p>
+      </section>
+      <refs>
+        <ref-entry refKey="x">X et al. Some work.</ref-entry>
+      </refs>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+  assert.match(html, />Works Cited</);
+});

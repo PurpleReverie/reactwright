@@ -63,6 +63,14 @@ const STATIC_DEFAULTS_CSS = [
   // correctly across Paged.js page chunks.
   ".reactwright-bibliography{counter-reset:reactwright-bib;}",
   ".reactwright-bibliography ol > li{counter-increment:reactwright-bib;}",
+  // Slice 6.3: the userland `<Bibliography>` helper sets
+  // `counter="reactwright-bib"` on its `<section>`, which emits as
+  // `data-counter="reactwright-bib"`. Mirror the engine-compound
+  // counter wiring so `<cite>` cross-refs (which resolve via
+  // `target-counter(attr(href url), reactwright-bib)`) still produce
+  // `[1]`, `[2]`, …
+  "[data-counter=\"reactwright-bib\"]{counter-reset:reactwright-bib;}",
+  "[data-counter=\"reactwright-bib\"] ol > li{counter-increment:reactwright-bib;}",
   // reactwright-ref counter: incremented on every id-bearing element
   // that can be the target of <ref show="number">. Same constraint
   // as reactwright-bib — must be a CSS rule, not inline, so Paged.js

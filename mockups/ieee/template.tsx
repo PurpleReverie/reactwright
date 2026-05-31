@@ -1,4 +1,5 @@
 import "reactwright/jsx";
+import { Bibliography } from "../../src/userland/Bibliography.js";
 
 // Strict IEEE conference paper template, packaged as a reusable
 // module. Templates that want the same IEEE styling can:
@@ -179,6 +180,15 @@ export const IEEE_STYLES = `
 
   .ieee-bib-entry {
     margin-bottom: 2pt;
+  }
+
+  /* Slice 6.3: the userland Bibliography wraps each entry body in a
+     paragraph. Apply the entry-line typography + counter prefix to
+     the inner p so the leading [N] sits inline with the entry text
+     (a prefix on the parent li would render on its own line above
+     the block-level p). */
+  .ieee-bib-entry-p {
+    margin: 0;
     text-align: justify;
     text-indent: -1.4em;
     padding-left: 1.4em;
@@ -240,10 +250,29 @@ export function Template() {
       <rule match={{ kind: "title" }} className="ieee-title" />
       <rule match={{ kind: "section", role: "abstract" }} className="ieee-abstract" />
       <rule match={{ kind: "code" }} className="ieee-code-inline" />
-      <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
-      <rule match={{ kind: "bibliography-heading" }} className="ieee-bib-heading" />
-      <rule match={{ kind: "bibliography-list" }} className="ieee-bib-list" />
-      <rule match={{ kind: "section-heading", depth: 1 }} className="ieee-section-head" />
+      {/* Slice 6.3: bibliography is now userland — the rules target
+          IR shapes the helper composes (section role="bibliography"
+          + nested section-heading + ordered list). */}
+      <rule match={{ kind: "section", role: "bibliography" }} className="ieee-bibliography" />
+      <rule
+        match={{ kind: "section-heading", within: { kind: "section", role: "bibliography" } }}
+        className="ieee-bib-heading"
+      />
+      <rule
+        match={{ kind: "list", within: { kind: "section", role: "bibliography" } }}
+        className="ieee-bib-list"
+      />
+      {/* Exclude the userland Bibliography's heading from the
+          Roman-numeral counter — the bibliography is a section but
+          IEEE numbers its heading as "References", not "VIII.". */}
+      <rule
+        match={{
+          kind: "section-heading",
+          depth: 1,
+          not: { within: { kind: "section", role: "bibliography" } }
+        }}
+        className="ieee-section-head"
+      />
       <rule match={{ kind: "section-heading", depth: 2 }} className="ieee-subsection-head" />
       <rule
         match={{ kind: "paragraph", follows: { kind: "section-heading" } }}
@@ -261,13 +290,32 @@ export function Template() {
         className="ieee-table-last-row-cell"
       />
       <rule match={{ kind: "cite" }} className="ieee-cite" />
-      <rule match={{ kind: "ref-entry" }} className="ieee-bib-entry" />
+      {/* Slice 6.3: each rendered bib entry now traces to a content-
+          side `<item>` (the userland helper wraps each entry in
+          `<item id="reactwright-bib-{key}">`), not a template-side
+          ref-entry. The entry text lives in a `<p>` inside the
+          `<li>` — counter prefix goes on the `<p>` so "[N]" stays
+          inline with the entry text. */}
+      <rule
+        match={{ kind: "item", within: { kind: "section", role: "bibliography" } }}
+        className="ieee-bib-entry"
+      />
+      <rule
+        match={{ kind: "paragraph", within: { kind: "section", role: "bibliography" } }}
+        className="ieee-bib-entry-p"
+      />
       <rule match={{ kind: "paragraph", within: { kind: "section", role: "abstract" } }} className="ieee-abstract-p" />
       <rule
         match={{ kind: "paragraph", within: { kind: "section", role: "abstract" }, follows: { kind: "paragraph" } }}
         className="ieee-abstract-p-follow"
       />
-      <rule match={{ kind: "paragraph" }} className="ieee-body-p" />
+      <rule
+        match={{
+          kind: "paragraph",
+          not: { within: { kind: "section", role: "bibliography" } }
+        }}
+        className="ieee-body-p"
+      />
       <rule match={{ kind: "paragraph", within: { kind: "cell" } }} className="ieee-cell-p" />
       <rule match={{ kind: "math" }} className="ieee-math-block" />
 
@@ -303,7 +351,7 @@ export function Template() {
         <region style={{ columns: 2, columnGap: "4.24mm", textAlign: "justify" }}>
           <slot name="abstract" />
           <slot name="body" />
-          <bibliography title="References" />
+          <Bibliography />
         </region>
       </stack>
     </page>
