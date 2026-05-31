@@ -114,7 +114,21 @@ export const IEEE_STYLES = `
     margin: 8pt 0;
     border-collapse: collapse;
     font-size: 8pt;
+    width: 100%;
+    table-layout: fixed;
     break: inside(avoid);
+  }
+
+  .ieee-table-cell {
+    padding: 1pt 2pt;
+    text-align: left;
+    text-indent: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .ieee-table-last-row-cell {
+    border-bottom: 0.5pt solid #000;
   }
 
   .ieee-table-caption {
@@ -180,26 +194,13 @@ export const IEEE_STYLES = `
   }
 `;
 
-// The remaining rules still need engine work to migrate to the
-// dialect — they target renderer-generated DOM elements with no IR
-// identity (the bibliography <h2>/<ol>) or selector vocab the dialect
-// doesn't yet expose (table cell padding + "last row" border require
-// slice 5.4's property-allowlist additions and a parent sibling-index
-// fix). Hanging-indent on bib <li> is slice 3.
+// Three rules remain. All three target renderer-generated DOM that has
+// no IR identity today: the bibliography <h2> and <ol> wrappers, plus
+// the <li> hanging-indent (which is partly a slice-3 promoted-concept
+// problem). They migrate when slice 6.3 ships userland <Bibliography>
+// (or slice 5.3 synthesizes the wrappers), and slice 3 ships
+// `hanging-indent`.
 export const IEEE_CSS = [
-  // ── Tables: width/table-layout, cell padding, last-row border stay
-  //    until slice 5.4 (cssPropertyMap additions: table-layout,
-  //    word-wrap, overflow-wrap; selector vocab: parent sibling-index
-  //    so :last-row-cell can be expressed).
-  "table{width:100%;table-layout:fixed;}",
-  "table th, table td{padding:1pt 2pt;text-align:left;text-indent:0;word-wrap:break-word;overflow-wrap:break-word;}",
-  "table tr:last-child td{border-bottom:0.5pt solid #000;}",
-
-  // ── References list ─────────────────────────────────────────────
-  // Three items remain. Two target renderer-generated DOM that has
-  // no IR identity today: bibliography <h2> and <ol>. They'll
-  // migrate when slice 6.3 ships userland <Bibliography> (or 5.3
-  // synthesizes them). One needs slice-3 `hanging-indent`.
   ".reactwright-bibliography h2{font-size:10pt;font-weight:normal;font-style:normal;text-transform:uppercase;letter-spacing:0.04em;text-align:center;text-align-last:center;margin:12pt 0 6pt 0;break-after:avoid;}",
   ".reactwright-bibliography ol{list-style:none;padding-left:0;margin:0;}",
   ".reactwright-bibliography li{text-indent:-1.4em;padding-left:1.4em;}"
@@ -239,7 +240,12 @@ export function Template() {
       <rule match={{ kind: "caption", parent: { kind: "figure" } }} className="ieee-fig-caption" />
       <rule match={{ kind: "table" }} className="ieee-table" />
       <rule match={{ kind: "caption", parent: { kind: "table" } }} className="ieee-table-caption" />
+      <rule match={{ kind: "cell" }} className="ieee-table-cell" />
       <rule match={{ kind: "cell", attr: { header: true } }} className="ieee-table-header-cell" />
+      <rule
+        match={{ kind: "cell", parent: { kind: "row", index: "last" } }}
+        className="ieee-table-last-row-cell"
+      />
       <rule match={{ kind: "cite" }} className="ieee-cite" />
       <rule match={{ kind: "ref-entry" }} className="ieee-bib-entry" />
       <rule match={{ kind: "paragraph", within: { kind: "abstract" } }} className="ieee-abstract-p" />

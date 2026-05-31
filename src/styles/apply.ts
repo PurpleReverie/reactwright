@@ -25,6 +25,7 @@ export function applyRulesToTree(
     root,
     {
       ancestors: [],
+      ancestorSiblingInfo: [],
       prevSiblings: [],
       siblingIndex: 0,
       siblingCount: 1,
@@ -79,6 +80,12 @@ function walk(
     const childCtx: MatchContext = {
       parent: node,
       ancestors: [...ctx.ancestors, node],
+      // Capture this node's own sibling position so descendant
+      // `parent: {index:"last"}` etc. resolve correctly.
+      ancestorSiblingInfo: [
+        ...ctx.ancestorSiblingInfo,
+        { index: ctx.siblingIndex, count: ctx.siblingCount }
+      ],
       prevSiblings: prevSibling != null ? [prevSibling] : [],
       siblingIndex: idx,
       siblingCount: total,

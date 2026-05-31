@@ -25,6 +25,10 @@ export type SelectableNode = {
 export type MatchContext = {
   parent?: SelectableNode;
   ancestors: SelectableNode[];     // root-first order
+  // Parallel to `ancestors`: each ancestor's own siblingIndex/siblingCount
+  // captured at the time the walker visited it. Lets `parent: {index:"last"}`
+  // resolve against the parent's real sibling position instead of zeroes.
+  ancestorSiblingInfo: { index: number; count: number }[];
   prevSiblings: SelectableNode[];  // earlier siblings of the current node
   siblingIndex: number;            // 0-based position among siblings of the same kind
   siblingCount: number;            // total siblings of the same kind under the parent
@@ -162,11 +166,14 @@ function nodeHasClass(node: SelectableNode, name: string): boolean {
 }
 
 // Build the context for evaluating the parent in a parent-combinator.
+// The parent's own siblingIndex/siblingCount come from the last entry
+// in ctx.ancestorSiblingInfo (captured when the walker visited it).
 function parentContext(ctx: MatchContext): MatchContext {
   const parent = ctx.parent;
   if (parent == null) {
     return {
       ancestors: [],
+      ancestorSiblingInfo: [],
       prevSiblings: [],
       siblingIndex: 0,
       siblingCount: 0,
@@ -175,26 +182,33 @@ function parentContext(ctx: MatchContext): MatchContext {
     };
   }
   const grandAncestors = ctx.ancestors.slice(0, -1);
+  const grandSiblingInfo = ctx.ancestorSiblingInfo.slice(0, -1);
+  const parentSiblingInfo = ctx.ancestorSiblingInfo[ctx.ancestorSiblingInfo.length - 1] ?? { index: 0, count: 1 };
   return {
     parent: grandAncestors[grandAncestors.length - 1],
     ancestors: grandAncestors,
+    ancestorSiblingInfo: grandSiblingInfo,
     prevSiblings: [],
-    siblingIndex: 0,
-    siblingCount: 1,
+    siblingIndex: parentSiblingInfo.index,
+    siblingCount: parentSiblingInfo.count,
     depth: 0,
     children: parent.children as SelectableNode[] ?? []
   };
 }
 
 // Build the context for an ancestor at position `i` in ctx.ancestors.
+// Like parentContext, reads the ancestor's own sibling info from
+// ctx.ancestorSiblingInfo[i] so `within: { index: "first" }` etc work.
 function ancestorContext(ctx: MatchContext, i: number): MatchContext {
   const ancestor = ctx.ancestors[i]!;
+  const ancestorSiblingInfo = ctx.ancestorSiblingInfo[i] ?? { index: 0, count: 1 };
   return {
     parent: ctx.ancestors[i - 1],
     ancestors: ctx.ancestors.slice(0, i),
+    ancestorSiblingInfo: ctx.ancestorSiblingInfo.slice(0, i),
     prevSiblings: [],
-    siblingIndex: 0,
-    siblingCount: 1,
+    siblingIndex: ancestorSiblingInfo.index,
+    siblingCount: ancestorSiblingInfo.count,
     depth: 0,
     children: ancestor.children as SelectableNode[] ?? []
   };
@@ -205,6 +219,7 @@ function siblingContext(ctx: MatchContext, idx: number): MatchContext {
   return {
     parent: ctx.parent,
     ancestors: ctx.ancestors,
+    ancestorSiblingInfo: ctx.ancestorSiblingInfo,
     prevSiblings: [],
     siblingIndex: idx,
     siblingCount: ctx.siblingCount,
@@ -218,6 +233,10 @@ function childContext(parent: SelectableNode, parentCtx: MatchContext, _child: S
   return {
     parent,
     ancestors: [...parentCtx.ancestors, parent],
+    ancestorSiblingInfo: [
+      ...parentCtx.ancestorSiblingInfo,
+      { index: parentCtx.siblingIndex, count: parentCtx.siblingCount }
+    ],
     prevSiblings: [],
     siblingIndex: 0,
     siblingCount: 1,

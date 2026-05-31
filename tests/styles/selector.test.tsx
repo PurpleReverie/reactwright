@@ -6,6 +6,7 @@ import { matchNode, type MatchContext, type SelectableNode } from "../../src/sty
 function emptyCtx(overrides: Partial<MatchContext> = {}): MatchContext {
   return {
     ancestors: [],
+    ancestorSiblingInfo: [],
     prevSiblings: [],
     siblingIndex: 0,
     siblingCount: 1,
@@ -79,6 +80,34 @@ test("within (descendant)", () => {
 test("parent (direct child)", () => {
   const ctx = emptyCtx({ parent: section, ancestors: [section] });
   assert.equal(matchNode(paragraph, { parent: { kind: "section" } }, ctx), true);
+});
+
+// Slice 5.4 — parent matcher reads parent's own sibling index/count from
+// ancestorSiblingInfo, so `parent: { index: "last" }` works for
+// patterns like "cell in the last row".
+test("parent + index:last (sibling-aware)", () => {
+  const cell: SelectableNode = { kind: "cell" };
+  const row: SelectableNode = { kind: "row", children: [cell] };
+  // Last row of 3 rows: index 2, count 3.
+  const ctx = emptyCtx({
+    parent: row,
+    ancestors: [row],
+    ancestorSiblingInfo: [{ index: 2, count: 3 }]
+  });
+  assert.equal(
+    matchNode(cell, { kind: "cell", parent: { kind: "row", index: "last" } }, ctx),
+    true
+  );
+  // Not the last row: index 1, count 3.
+  const ctxNotLast = emptyCtx({
+    parent: row,
+    ancestors: [row],
+    ancestorSiblingInfo: [{ index: 1, count: 3 }]
+  });
+  assert.equal(
+    matchNode(cell, { kind: "cell", parent: { kind: "row", index: "last" } }, ctxNotLast),
+    false
+  );
 });
 
 test("follows (adjacent sibling)", () => {
