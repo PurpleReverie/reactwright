@@ -121,9 +121,20 @@ export function assignSectionIdsAndCollectToc(
 
 export function assignSectionIdsInSlotMap(slots: SlotMap, entries: ResolvedTocEntry[]): void {
   const used = new Set<string>();
-  for (const list of [slots.abstract, slots.body]) {
-    for (const node of list) assignSectionIdsAndCollectToc(node, 1, used, entries);
+  // Body sections get auto-assigned ids + TOC entries. Abstract-slot
+  // sections (`<section role="abstract">`, slice 6.5) replace the
+  // engine's removed <abstract> intrinsic, which never received either
+  // treatment. Skip the abstract wrapper but still walk its children,
+  // matching the prior recurse-through-non-section behaviour for any
+  // sections nested inside.
+  for (const node of slots.abstract) {
+    if ("children" in node && Array.isArray(node.children)) {
+      for (const child of node.children) {
+        assignSectionIdsAndCollectToc(child as ResolvedContentNode, 1, used, entries);
+      }
+    }
   }
+  for (const node of slots.body) assignSectionIdsAndCollectToc(node, 1, used, entries);
 }
 
 // --- list-of (figures, tables, equations) ----------------------------

@@ -227,9 +227,9 @@ test("columns/column emits CSS grid with explicit and inferred widths", () => {
 
   const documentTree = renderContentToIR(
     <document title="Cols">
-      <abstract>
+      <section role="abstract" title="">
         <p>Side note.</p>
-      </abstract>
+      </section>
       <p>Main.</p>
     </document>
   );

@@ -73,7 +73,7 @@ export function Template() {
 export default function Treatise() {
   return (
     <document title="On the Construction of Self-Documenting Documents" author="L. M. Cartwright">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           We present a framework for documents that describe themselves: sections that
           number their own figures, references that resolve their own page numbers,
@@ -81,7 +81,7 @@ export default function Treatise() {
           generalises classical hypertext<footnote>The term was coined by Ted Nelson in 1965.</footnote>
           to fixed-page output via Paged Media.
         </p>
-      </abstract>
+      </section>
 
       <section id="intro" title="Introduction">
         <p>

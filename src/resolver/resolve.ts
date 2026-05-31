@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 import { resolveFixedAnchor } from "./anchors.js";
 import {
-  resolveAbstractNode,
-  resolveContentChild
+  resolveContentChild,
+  resolveSectionNode
 } from "./block.js";
 import {
   assignRoleVariants,
@@ -24,7 +24,6 @@ import { collectStylesAndRules } from "./collect-styles.js";
 import { applyRulesToTree } from "../styles/apply.js";
 import type { SelectableNode } from "../styles/selector.js";
 import type {
-  AbstractNode,
   BlockQuoteNode,
   BreakNode,
   CellNode,
@@ -33,7 +32,6 @@ import type {
   CodeNode,
   DefNode,
   DefsNode,
-  DocumentChild,
   DocumentNode,
   EmNode,
   FigureNode,
@@ -72,7 +70,6 @@ import type {
 } from "../template/ir.js";
 
 import type {
-  ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
   ResolvedBreakNode,
@@ -192,12 +189,15 @@ function buildSlotMap(document: DocumentNode): SlotMap {
         ]
       : [];
 
+  // Slice 6.5: the abstract slot is now routed by role, not by a
+  // dedicated engine intrinsic. `<section role="abstract">` populates
+  // `slots.abstract`; all other document children flow into `slots.body`.
   const abstract = document.children
-    .filter((child): child is AbstractNode => child.kind === "abstract")
-    .map(resolveAbstractNode);
+    .filter((child): child is SectionNode => child.kind === "section" && child.role === "abstract")
+    .map((child) => resolveSectionNode(child));
 
   const body = document.children
-    .filter((child): child is Exclude<DocumentChild, AbstractNode> => child.kind !== "abstract")
+    .filter((child) => !(child.kind === "section" && child.role === "abstract"))
     .map(resolveContentChild);
 
   return {
@@ -721,7 +721,7 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
   const slots = {
     title: rawSlots.title.map((node) => assignRoleVariants(node, rules)) as ResolvedTitleNode[],
     author: rawSlots.author.map((node) => assignRoleVariants(node, rules)) as ResolvedAuthorNode[],
-    abstract: rawSlots.abstract.map((node) => assignRoleVariants(node, rules)) as ResolvedAbstractNode[],
+    abstract: rawSlots.abstract.map((node) => assignRoleVariants(node, rules)) as ResolvedSectionNode[],
     body: rawSlots.body.map((node) => assignRoleVariants(node, rules))
   } satisfies SlotMap;
   const citeKeys = new Set<string>();

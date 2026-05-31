@@ -21,12 +21,12 @@ export const Template: TemplateComponent = () => (
 
 const IntelliSenseTest: ContentComponent = () => (
   <document title="IntelliSense Playground" author="Tauraj Greig">
-    <abstract>
+    <section role="abstract" title="">
       <p>
         This playground file exists to prove that the package-facing JSX types work
         in normal TSX authoring.
       </p>
-    </abstract>
+    </section>
 
     <section title="Introduction">
       <p>

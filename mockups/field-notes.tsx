@@ -63,13 +63,13 @@ export function Template() {
 export default function FieldNotes() {
   return (
     <document title="Field Notes from the Margins" author="E. Whitcombe">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           A note on the practice of carrying notes in the margin. The essay form,
           properly understood, is a conversation between two columns: the main
           argument and the second voice that watches it skeptically.
         </p>
-      </abstract>
+      </section>
 
       <section title="The Margin as Instrument">
         <p role="opener">

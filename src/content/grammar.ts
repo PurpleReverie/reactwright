@@ -35,15 +35,15 @@ const BLOCK_KINDS = new Set<Kind>([
   "page-break", "set-running"
 ]);
 
-// Block primitives plus section/refs — accepted inside abstract,
-// section, blockquote. Lets authors nest sections.
+// Block primitives plus section/refs — accepted inside section and
+// blockquote. Lets authors nest sections.
 const SECTION_CHILD_KINDS = new Set<Kind>([
   ...BLOCK_KINDS, "section", "refs"
 ]);
 
-// Document-level — block primitives plus section/abstract/refs.
+// Document-level — block primitives plus section/refs.
 const DOCUMENT_CHILD_KINDS = new Set<Kind>([
-  ...BLOCK_KINDS, "section", "abstract", "refs"
+  ...BLOCK_KINDS, "section", "refs"
 ]);
 
 type GrammarRule = {
@@ -53,7 +53,6 @@ type GrammarRule = {
 
 const GRAMMAR: Partial<Record<Kind, GrammarRule>> = {
   document:   { allowed: DOCUMENT_CHILD_KINDS, message: "`document` may only contain document-level block primitives." },
-  abstract:   { allowed: SECTION_CHILD_KINDS,  message: "`abstract` may only contain block primitives." },
   section:    { allowed: SECTION_CHILD_KINDS,  message: "`section` may only contain block primitives." },
   blockquote: { allowed: SECTION_CHILD_KINDS,  message: "`blockquote` may only contain block primitives." },
 

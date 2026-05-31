@@ -1,5 +1,4 @@
 import type {
-  ResolvedAbstractNode,
   ResolvedAuthorNode,
   ResolvedBlockQuoteNode,
   ResolvedCaptionNode,
@@ -179,18 +178,6 @@ export function renderDefsNode(node: ResolvedDefsNode): string {
   return `<dl${idAttr(node.id)}${variantAttr}${classAttr(node)}>${node.children.map(renderDefNode).join("")}</dl>`;
 }
 
-export function renderAbstractNode(node: ResolvedAbstractNode): string {
-  // The engine doesn't auto-emit a label. Different document formats
-  // disagree (IEEE uses an inline "Abstract—" prefix, novels have no
-  // abstract at all, APA wants a particular placement) — so the
-  // heading is composed at the content or template layer instead.
-  return [
-    `<section data-slot="abstract"${classAttrWithBase(node, "reactwright-abstract")}>`,
-    ...node.children.map((child) => renderContentNode(child)),
-    "</section>"
-  ].join("");
-}
-
 export function renderTitleNode(node: ResolvedTitleNode): string {
   return `<h1${classAttrWithBase(node, "reactwright-document-title")}>${escapeHtml(node.value)}</h1>`;
 }
@@ -269,8 +256,17 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
         .join("");
   }
   const counterAttr = node.counter != null ? ` data-counter="${escapeHtml(node.counter)}"` : "";
+  // Slice 6.5: a `<section role="abstract">` replaces the removed engine
+  // <abstract> intrinsic. Emit the `data-slot="abstract"` hook the
+  // existing slot wiring keys off + the `reactwright-abstract` class for
+  // back-compat with any user CSS that targeted the prior engine emit.
+  const isAbstractRole = node.role === "abstract";
+  const slotAttr = isAbstractRole ? ` data-slot="abstract"` : "";
+  const classAttrStr = isAbstractRole
+    ? classAttrWithBase(node, "reactwright-abstract")
+    : classAttr(node);
   const sectionHtml = [
-    `<section${idAttr(node.id)}${counterAttr}${regimeStyle}${classAttr(node)}>`,
+    `<section${idAttr(node.id)}${slotAttr}${counterAttr}${regimeStyle}${classAttrStr}>`,
     childrenHtml,
     "</section>"
   ].join("");
@@ -331,7 +327,6 @@ export function renderContentNode(node: ResolvedContentNode): string {
   switch (node.kind) {
     case "title":      return renderTitleNode(node);
     case "author":     return renderAuthorNode(node);
-    case "abstract":   return renderAbstractNode(node);
     case "section":    return renderSectionNode(node);
     case "section-heading": return renderSectionHeadingNode(node);
     case "figure":     return renderFigureNode(node);

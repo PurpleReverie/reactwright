@@ -1,5 +1,4 @@
 import type {
-  AbstractNode,
   BlockQuoteNode,
   CaptionNode,
   CellNode,
@@ -20,7 +19,6 @@ import type {
   TableNode
 } from "../content/ir.js";
 import type {
-  ResolvedAbstractNode,
   ResolvedBlockQuoteNode,
   ResolvedCaptionNode,
   ResolvedCellNode,
@@ -265,16 +263,6 @@ export function resolvePageBreakNode(_node: PageBreakNode): ResolvedPageBreakNod
 
 export function resolveSetRunningNode(node: SetRunningNode): ResolvedSetRunningNode {
   return { kind: "set-running", name: node.name, value: node.value };
-}
-
-export function resolveAbstractNode(node: AbstractNode): ResolvedAbstractNode {
-  return {
-    kind: "abstract",
-    ...(node.page != null ? { page: node.page } : {}),
-    ...(node.variant != null ? { variant: node.variant } : {}),
-    ...(node.className != null ? { className: node.className } : {}),
-    children: node.children.map(resolveContentChild)
-  };
 }
 
 // Block-content dispatcher. Each case routes to its per-kind resolver.

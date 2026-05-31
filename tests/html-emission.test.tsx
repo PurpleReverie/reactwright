@@ -16,11 +16,11 @@ import { registerTemplateIntrinsic } from "../src/template/registry.js";
 function createPaper() {
   return (
     <document title="Pipeline Test" author="Tauraj Greig">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           Testing <em>end-to-end</em> resolution.
         </p>
-      </abstract>
+      </section>
       <section title="Intro">
         <p>
           Hello <strong>world</strong>.

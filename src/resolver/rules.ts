@@ -162,11 +162,6 @@ export function assignRoleVariants<T extends ResolvedContentNode>(node: T, rules
         ...withVariant(node, "blockquote", rules),
         children: node.children.map((child) => assignRoleVariants(child, rules))
       } as T;
-    case "abstract":
-      return {
-        ...node,
-        children: node.children.map((child) => assignRoleVariants(child, rules))
-      } as T;
     case "list":
       return {
         ...withVariant(node, "list", rules),

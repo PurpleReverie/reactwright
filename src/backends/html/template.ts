@@ -312,7 +312,6 @@ export function renderResolvedChild(node: ResolvedChild): string {
       return renderCustomNode(node);
     case "title":
     case "author":
-    case "abstract":
     case "section":
     case "section-heading":
     case "figure":

@@ -1,12 +1,12 @@
 export function ResearchMemo() {
   return (
     <document title="Reactive Document Systems" author="Tauraj Greig">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           A project-scoped example showing that content and template can both live
           outside the ReactDoc engine internals.
         </p>
-      </abstract>
+      </section>
 
       <section title="Why This Matters">
         <p>

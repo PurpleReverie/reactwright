@@ -421,14 +421,6 @@ export type ResolvedRunningNode = {
   style?: TemplateStyle;
 };
 
-export type ResolvedAbstractNode = {
-  kind: "abstract";
-  page?: string;
-  variant?: string;
-  className?: string;
-  children: ResolvedContentChild[];
-};
-
 export type ResolvedTitleNode = {
   kind: "title";
   className?: string;
@@ -629,7 +621,6 @@ export type ResolvedFooterNode = {
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
-  | ResolvedAbstractNode
   | ResolvedSectionNode
   | ResolvedSectionHeadingNode
   | ResolvedFigureNode

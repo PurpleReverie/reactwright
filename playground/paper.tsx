@@ -1,9 +1,9 @@
 export default function Paper() {
   return (
     <document title="Playground Paper" author="Tauraj Greig">
-      <abstract>
+      <section role="abstract" title="">
         <p>This file lives outside the normal src examples and runs through the local ReactDoc runtime.</p>
-      </abstract>
+      </section>
 
       <section title="Introduction">
         <p>Hello from the playground runner.</p>

@@ -63,16 +63,6 @@ function documentNode(props: ContentProps): SemanticNode {
   };
 }
 
-function abstractNode(props: ContentProps): SemanticNode {
-  const meta = readMetadata(props);
-  return {
-    kind: "abstract",
-    ...(meta.page != null ? { page: meta.page } : {}),
-    ...(meta.variant != null ? { variant: meta.variant } : {}),
-    children: []
-  };
-}
-
 function sectionNode(props: ContentProps): SemanticNode {
   const counter = getNonEmptyStringIfPresent(props, "counter");
   return {
@@ -367,7 +357,6 @@ function setNode(props: ContentProps): SemanticNode {
 // here plus its factory function above.
 const FACTORIES: Record<string, (props: ContentProps) => SemanticNode> = {
   document: documentNode,
-  abstract: abstractNode,
   section: sectionNode,
   heading: headingNode,
   p: paragraphNode,

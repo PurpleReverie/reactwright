@@ -53,12 +53,12 @@ export function Template() {
 export default function Newsletter() {
   return (
     <document title="THE FOLD — Issue #4">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           A weekly digest of the small details, half-finished thoughts, and
           curious findings from our reading desk this week.
         </p>
-      </abstract>
+      </section>
 
       <section title="The Big Story">
         <p>

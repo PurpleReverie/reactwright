@@ -86,13 +86,6 @@ type CellProps = {
   children?: ReactNode;
 };
 
-type AbstractProps = {
-  page?: string;
-  variant?: string;
-  className?: string;
-  children?: ReactNode;
-};
-
 type EmProps = WithClassName & {
   children?: ReactNode;
 };
@@ -587,7 +580,6 @@ declare module "react" {
       table: TableProps;
       row: RowProps;
       cell: CellProps;
-      abstract: AbstractProps;
       em: EmProps;
       strong: StrongProps;
       link: LinkProps;
@@ -660,7 +652,6 @@ declare module "react/jsx-runtime" {
       table: TableProps;
       row: RowProps;
       cell: CellProps;
-      abstract: AbstractProps;
       em: EmProps;
       strong: StrongProps;
       link: LinkProps;
@@ -733,7 +724,6 @@ declare module "react/jsx-dev-runtime" {
       table: TableProps;
       row: RowProps;
       cell: CellProps;
-      abstract: AbstractProps;
       em: EmProps;
       strong: StrongProps;
       link: LinkProps;
@@ -806,7 +796,6 @@ declare global {
       table: TableProps;
       row: RowProps;
       cell: CellProps;
-      abstract: AbstractProps;
       em: EmProps;
       strong: StrongProps;
       link: LinkProps;

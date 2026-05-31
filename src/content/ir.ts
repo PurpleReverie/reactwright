@@ -271,14 +271,6 @@ export type SetRunningNode = {
   value: string;
 };
 
-export type AbstractNode = {
-  kind: "abstract";
-  page?: string;
-  variant?: string;
-  className?: string;
-  children: SemanticBlockChild[];
-};
-
 export type DocumentNode = {
   kind: "document";
   title: string;
@@ -320,11 +312,10 @@ export type SemanticBlockChild =
   | PageBreakNode
   | SetRunningNode;
 
-export type DocumentChild = AbstractNode | SemanticBlockChild;
+export type DocumentChild = SemanticBlockChild;
 
 export type SemanticNode =
   | DocumentNode
-  | AbstractNode
   | SectionNode
   | ParagraphNode
   | FigureNode
@@ -363,7 +354,6 @@ export type SemanticNode =
 
 export type SemanticContainerNode =
   | DocumentNode
-  | AbstractNode
   | SectionNode
   | ParagraphNode
   | FigureNode

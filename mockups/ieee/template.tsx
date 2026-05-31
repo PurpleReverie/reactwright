@@ -238,7 +238,7 @@ export function Template() {
     >
       <styles>{IEEE_STYLES}</styles>
       <rule match={{ kind: "title" }} className="ieee-title" />
-      <rule match={{ kind: "abstract" }} className="ieee-abstract" />
+      <rule match={{ kind: "section", role: "abstract" }} className="ieee-abstract" />
       <rule match={{ kind: "code" }} className="ieee-code-inline" />
       <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
       <rule match={{ kind: "bibliography-heading" }} className="ieee-bib-heading" />
@@ -262,9 +262,9 @@ export function Template() {
       />
       <rule match={{ kind: "cite" }} className="ieee-cite" />
       <rule match={{ kind: "ref-entry" }} className="ieee-bib-entry" />
-      <rule match={{ kind: "paragraph", within: { kind: "abstract" } }} className="ieee-abstract-p" />
+      <rule match={{ kind: "paragraph", within: { kind: "section", role: "abstract" } }} className="ieee-abstract-p" />
       <rule
-        match={{ kind: "paragraph", within: { kind: "abstract" }, follows: { kind: "paragraph" } }}
+        match={{ kind: "paragraph", within: { kind: "section", role: "abstract" }, follows: { kind: "paragraph" } }}
         className="ieee-abstract-p-follow"
       />
       <rule match={{ kind: "paragraph" }} className="ieee-body-p" />

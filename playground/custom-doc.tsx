@@ -45,12 +45,12 @@ export function Template() {
 export default function ResearchMemo() {
   return (
     <document title="Same File Custom Doc" author="Tauraj Greig">
-      <abstract>
+      <section role="abstract" title="">
         <p>
           This file exports both content and template, proving the two React scopes
           can live together in one external module.
         </p>
-      </abstract>
+      </section>
 
       <section title="Introduction">
         <p>
