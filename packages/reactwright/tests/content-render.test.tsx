@@ -20,7 +20,7 @@ function minimalTemplate() {
 
 test("content renderer creates semantic IR for a minimal document", () => {
   const result = renderContentToIR(
-    <document title="Minimal Test" author="Tauraj Greig">
+    <document title="Minimal Test" author="Anya Strunk">
       <section title="Introduction">
         <p>
           Hello <em>world</em> with <strong>emphasis</strong> and <code>inline-code</code>.
@@ -38,7 +38,7 @@ test("content renderer creates semantic IR for a minimal document", () => {
   assert.deepEqual(result, {
     kind: "document",
     title: "Minimal Test",
-    author: "Tauraj Greig",
+    author: "Anya Strunk",
     children: [
       {
         kind: "section",

@@ -14,7 +14,7 @@ import { renderTemplateToIR } from "../src/template/render.js";
 
 function createPaper() {
   return (
-    <document title="Pipeline Test" author="Tauraj Greig">
+    <document title="Pipeline Test" author="Anya Strunk">
       <section role="abstract" title="">
         <p>
           Testing <em>end-to-end</em> resolution.

@@ -20,7 +20,7 @@ export const Template: TemplateComponent = () => (
 );
 
 const IntelliSenseTest: ContentComponent = () => (
-  <document title="IntelliSense Playground" author="Tauraj Greig">
+  <document title="IntelliSense Playground" author="Anya Strunk">
     <section role="abstract" title="">
       <p>
         This playground file exists to prove that the package-facing JSX types work

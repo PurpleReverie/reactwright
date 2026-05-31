@@ -21,10 +21,10 @@ export const Template: TemplateComponent = () => (
 );
 
 const Paper: ContentComponent = () => (
-  <document title="Consumer Paper" author="Tauraj Greig">
+  <document title="Consumer Paper" author="Anya Strunk">
     <abstract>
       <p>
-        This file proves TypeScript can understand ReactDoc <em>intrinsics</em> from another project.
+        This file proves TypeScript can understand Reactwright <em>intrinsics</em> from another project.
       </p>
     </abstract>
 

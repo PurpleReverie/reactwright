@@ -4,10 +4,7 @@
   "private": true,
   "description": "Monorepo root for Reactwright — engine, templates, and examples.",
   "license": "MIT",
-  "author": {
-    "name": "TauraJ Greig",
-    "email": "tauraj.pro@gmail.com"
-  },
+  "author": "Reactwright contributors",
   "type": "module",
   "scripts": {
     "build": "turbo build",

@@ -16,17 +16,15 @@
     "headless-chromium"
   ],
   "license": "MIT",
-  "author": {
-    "name": "TauraJ Greig",
-    "email": "tauraj.pro@gmail.com"
-  },
-  "homepage": "https://github.com/PurpleReverie/react_doc#readme",
+  "author": "Reactwright contributors",
+  "homepage": "https://github.com/reactwright/reactwright#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PurpleReverie/react_doc.git"
+    "url": "git+https://github.com/reactwright/reactwright.git",
+    "directory": "packages/reactwright"
   },
   "bugs": {
-    "url": "https://github.com/PurpleReverie/react_doc/issues"
+    "url": "https://github.com/reactwright/reactwright/issues"
   },
   "type": "module",
   "exports": {
