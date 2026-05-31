@@ -9,21 +9,25 @@ export type ResolvedLinkNode = {
   kind: "link";
   href: string;
   title?: string;
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedEmNode = {
   kind: "em";
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedStrongNode = {
   kind: "strong";
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedCodeNode = {
   kind: "code";
+  className?: string;
   children: ResolvedTextNode[];
 };
 
@@ -33,11 +37,13 @@ export type ResolvedBreakNode = {
 
 export type ResolvedSubNode = {
   kind: "sub";
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedSupNode = {
   kind: "sup";
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
@@ -47,17 +53,20 @@ export type ResolvedInlineImgNode = {
   alt?: string;
   width?: string;
   height?: string;
+  className?: string;
 };
 
 export type ResolvedRefNode = {
   kind: "ref";
   to: string;
   show: "number" | "page" | "title" | "number-and-page";
+  className?: string;
 };
 
 export type ResolvedFootnoteNode = {
   kind: "footnote";
   marker?: string;
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
@@ -68,11 +77,13 @@ export type ResolvedMathNode = {
   role?: string;
   page?: string;
   variant?: string;
+  className?: string;
 };
 
 export type ResolvedInlineMathNode = {
   kind: "m";
   src: string;
+  className?: string;
 };
 
 export type ResolvedParagraphNode = {
@@ -240,17 +251,20 @@ export type ResolvedFootnoteAreaNode = {
 
 export type ResolvedSidenoteNode = {
   kind: "sidenote";
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedRefEntryNode = {
   kind: "ref-entry";
   refKey: string;
+  className?: string;
   children: ResolvedInlineNode[];
 };
 
 export type ResolvedRefsNode = {
   kind: "refs";
+  className?: string;
   children: ResolvedRefEntryNode[];
 };
 
@@ -265,12 +279,14 @@ export type ResolvedSidenoteAreaNode = {
 export type ResolvedCiteNode = {
   kind: "cite";
   cite: string;
+  className?: string;
 };
 
 export type ResolvedIndexEntryNode = {
   kind: "index";
   term: string;
   anchorId: string;
+  className?: string;
 };
 
 export type ResolvedIndexEntry = {

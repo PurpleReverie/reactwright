@@ -45,15 +45,27 @@ export function resolveTextNode(node: TextNode): ResolvedTextNode {
 }
 
 export function resolveEmNode(node: EmNode): ResolvedEmNode {
-  return { kind: "em", children: node.children.map(resolveInlineNode) };
+  return {
+    kind: "em",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
 }
 
 export function resolveStrongNode(node: StrongNode): ResolvedStrongNode {
-  return { kind: "strong", children: node.children.map(resolveInlineNode) };
+  return {
+    kind: "strong",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
 }
 
 export function resolveCodeNode(node: CodeNode): ResolvedCodeNode {
-  return { kind: "code", children: node.children.map(resolveTextNode) };
+  return {
+    kind: "code",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveTextNode)
+  };
 }
 
 export function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
@@ -61,6 +73,7 @@ export function resolveLinkNode(node: LinkNode): ResolvedLinkNode {
     kind: "link",
     href: node.href,
     ...(node.title != null ? { title: node.title } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveInlineNode)
   };
 }
@@ -70,11 +83,19 @@ export function resolveBreakNode(_node: BreakNode): ResolvedBreakNode {
 }
 
 export function resolveSubNode(node: SubNode): ResolvedSubNode {
-  return { kind: "sub", children: node.children.map(resolveInlineNode) };
+  return {
+    kind: "sub",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
 }
 
 export function resolveSupNode(node: SupNode): ResolvedSupNode {
-  return { kind: "sup", children: node.children.map(resolveInlineNode) };
+  return {
+    kind: "sup",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
 }
 
 export function resolveInlineImgNode(node: InlineImgNode): ResolvedInlineImgNode {
@@ -83,18 +104,25 @@ export function resolveInlineImgNode(node: InlineImgNode): ResolvedInlineImgNode
     src: node.src,
     ...(node.alt != null ? { alt: node.alt } : {}),
     ...(node.width != null ? { width: node.width } : {}),
-    ...(node.height != null ? { height: node.height } : {})
+    ...(node.height != null ? { height: node.height } : {}),
+    ...(node.className != null ? { className: node.className } : {})
   };
 }
 
 export function resolveRefNode(node: RefNode): ResolvedRefNode {
-  return { kind: "ref", to: node.to, show: node.show ?? "number" };
+  return {
+    kind: "ref",
+    to: node.to,
+    show: node.show ?? "number",
+    ...(node.className != null ? { className: node.className } : {})
+  };
 }
 
 export function resolveFootnoteNode(node: FootnoteNode): ResolvedFootnoteNode {
   return {
     kind: "footnote",
     ...(node.marker != null ? { marker: node.marker } : {}),
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveInlineNode)
   };
 }
@@ -106,36 +134,59 @@ export function resolveMathNode(node: MathNode): ResolvedMathNode {
     ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
-    ...(node.variant != null ? { variant: node.variant } : {})
+    ...(node.variant != null ? { variant: node.variant } : {}),
+    ...(node.className != null ? { className: node.className } : {})
   };
 }
 
 export function resolveInlineMathNode(node: InlineMathNode): ResolvedInlineMathNode {
-  return { kind: "m", src: node.src };
+  return {
+    kind: "m",
+    src: node.src,
+    ...(node.className != null ? { className: node.className } : {})
+  };
 }
 
 export function resolveCiteNode(node: CiteNode): ResolvedCiteNode {
-  return { kind: "cite", cite: node.cite };
+  return {
+    kind: "cite",
+    cite: node.cite,
+    ...(node.className != null ? { className: node.className } : {})
+  };
 }
 
 export function resolveIndexNode(_node: IndexNode): ResolvedIndexEntryNode {
-  return { kind: "index", term: _node.term, anchorId: "" };
+  return {
+    kind: "index",
+    term: _node.term,
+    anchorId: "",
+    ...(_node.className != null ? { className: _node.className } : {})
+  };
 }
 
 export function resolveSidenoteNode(node: SidenoteNode): ResolvedSidenoteNode {
-  return { kind: "sidenote", children: node.children.map(resolveInlineNode) };
+  return {
+    kind: "sidenote",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveInlineNode)
+  };
 }
 
 export function resolveRefEntryNode(node: RefEntryNode): ResolvedRefEntryNode {
   return {
     kind: "ref-entry",
     refKey: node.refKey,
+    ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveInlineNode)
   };
 }
 
 export function resolveRefsNode(node: RefsNode): ResolvedRefsNode {
-  return { kind: "refs", children: node.children.map(resolveRefEntryNode) };
+  return {
+    kind: "refs",
+    ...(node.className != null ? { className: node.className } : {}),
+    children: node.children.map(resolveRefEntryNode)
+  };
 }
 
 // Inline-node dispatcher. Used by every block resolver that has
