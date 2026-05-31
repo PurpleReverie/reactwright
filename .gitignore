@@ -6,3 +6,7 @@ build
 **/.turbo/
 .DS_Store
 *.log
+
+# Local Claude Code config (per-user, never committed)
+.claude/
+**/.claude/
