@@ -102,6 +102,34 @@ export const IEEE_STYLES = `
     text-indent: 0;
     numbering: counter(ieee-figure) "Fig. $ieee-figure. ";
   }
+
+  .ieee-table {
+    margin: 8pt 0;
+    border-collapse: collapse;
+    font-size: 8pt;
+    break: inside(avoid);
+  }
+
+  .ieee-table-caption {
+    font-size: 8pt;
+    font-family: 'Times New Roman', Times, serif;
+    text-align: center;
+    text-align-last: center;
+    line-height: 1.2;
+    text-indent: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4pt;
+    caption-side: top;
+    numbering: counter(ieee-table, upper-roman) "Table $ieee-table. ";
+  }
+
+  .ieee-table-header-cell {
+    font-weight: normal;
+    font-style: italic;
+    border-top: 0.5pt solid #000;
+    border-bottom: 0.5pt solid #000;
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -124,16 +152,15 @@ export const IEEE_CSS = [
   //    within:{kind:"figure"}}}>` lands).
   "figure img{max-width:100%;height:auto;display:block;margin:0 auto 4pt auto;}",
 
-  // ── Tables: caption "TABLE I. ..." centered above, 8pt small-caps ─
+  // ── Tables: width/table-layout + cell padding stay until slice 3
+  //    (column-fit, descendant-cell rules). Container styling + caption
+  //    "Table I. " + header-cell border moved to .ieee-table* in
+  //    IEEE_STYLES.
   // `width:100%` + `table-layout:fixed` are required: without them a
   // table whose intrinsic content width exceeds the column-width
   // overflows and bleeds into the adjacent column.
-  ".reactwright-flow{counter-reset:ieee-section ieee-table;}",
-  "table{width:100%;table-layout:fixed;margin:8pt 0;border-collapse:collapse;font-size:8pt;page-break-inside:avoid;break-inside:avoid;counter-increment:ieee-table;}",
-  "table caption{font-size:8pt;font-family:'Times New Roman',Times,serif;text-align:center;text-align-last:center;line-height:1.2;text-indent:0;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4pt;caption-side:top;}",
-  "table caption::before{content:'Table ' counter(ieee-table, upper-roman) '. ';}",
+  "table{width:100%;table-layout:fixed;}",
   "table th, table td{padding:1pt 2pt;text-align:left;text-indent:0;word-wrap:break-word;overflow-wrap:break-word;}",
-  "table th{font-weight:normal;font-style:italic;border-top:0.5pt solid #000;border-bottom:0.5pt solid #000;}",
   "table tr:last-child td{border-bottom:0.5pt solid #000;}",
   "table p{margin:0;text-indent:0;font-size:inherit;}",
 
@@ -179,6 +206,9 @@ export function Template() {
       <rule match={{ kind: "section", depth: 2 }} className="ieee-subsection-head" />
       <rule match={{ kind: "figure" }} className="ieee-figure" />
       <rule match={{ kind: "caption", parent: { kind: "figure" } }} className="ieee-fig-caption" />
+      <rule match={{ kind: "table" }} className="ieee-table" />
+      <rule match={{ kind: "caption", parent: { kind: "table" } }} className="ieee-table-caption" />
+      <rule match={{ kind: "cell", attr: { header: true } }} className="ieee-table-header-cell" />
 
       <rules>
         <role
