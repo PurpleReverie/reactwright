@@ -16,7 +16,7 @@ The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
 | Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
 | Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
 | Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
-| Slice 5 — synthesized IR for renderer-internal elements | **partial** | 5.1 + 5.2 shipped (`357d2a8`, `d0a0df3`); 5.3 dropped, superseded by slice 6.3 |
+| Slice 5 — synthesized IR + selector-vocab gaps | **partial** | 5.1 (`357d2a8`), 5.2 (`d0a0df3`), 5.4 (`0e2a05a`) shipped; 5.3 dropped, superseded by 6.3 |
 | Slice 6 — userland-composable compounds (bibliography/toc/list-of/index/abstract) | **partial** | 6.1 (`49012b1`), 6.2 (`e7e8e31`), 6.6 deprecation warnings shipped; 6.3/6.4/6.5 deferred — 6.3 blocked on bib-data re-entry direction (template vs content reconciler); 6.5 abstract-removal scope (12 files) deferred for separate session |
 
 Open refactors flagged during slice 1/2:
