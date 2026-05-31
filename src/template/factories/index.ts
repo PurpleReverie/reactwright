@@ -6,9 +6,14 @@ import { pageNode, pageSetNode } from "./page.js";
 import { columnNode, columnsNode, fixedNode, layerNode, regionNode, stackNode, templateRowNode } from "./regions.js";
 import { footerNode, headerNode } from "./margin-matter.js";
 import {
+  bibDataNode,
+  bibEntryContentNode,
   bibliographyNode,
+  indexDataNode,
   indexTemplateNode,
+  listOfDataNode,
   listOfNode,
+  tocDataNode,
   tocNode
 } from "./reference.js";
 import {
@@ -41,6 +46,11 @@ const FACTORIES: Record<string, (props: TemplateProps) => TemplateNode> = {
   toc: tocNode,
   "list-of": listOfNode,
   index: indexTemplateNode,
+  "bib-data": bibDataNode,
+  "toc-data": tocDataNode,
+  "list-of-data": listOfDataNode,
+  "index-data": indexDataNode,
+  "bib-entry-content": bibEntryContentNode,
   font: fontNode,
   image: imageNode,
   running: runningNode,

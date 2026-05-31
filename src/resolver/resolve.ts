@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { resolveFixedAnchor } from "./anchors.js";
 import {
   resolveAbstractNode,
@@ -13,9 +15,11 @@ import {
   assignAutoIdsAndCollectListOfInSlotMap,
   assignIndexAnchorsInSlotMap,
   assignSectionIdsInSlotMap,
+  collectCiteKeysFromNode,
   collectCiteKeysFromSlotMap,
   collectRefEntriesFromSlotMap
 } from "./collect.js";
+import { renderTemplateFragmentToIR } from "../template/render.js";
 import { collectStylesAndRules } from "./collect-styles.js";
 import { applyRulesToTree } from "../styles/apply.js";
 import type { SelectableNode } from "../styles/selector.js";
@@ -426,7 +430,114 @@ function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: ResolveC
         } satisfies ResolvedBibliographyNode
       ];
     }
+    // --- Slice 6.2: data-source primitives -------------------------
+    // Each builds the per-domain entries array from ctx, invokes the
+    // render-prop with it, re-enters the template reconciler on the
+    // returned JSX, and recursively expands each resulting node. The
+    // re-entry uses `renderTemplateFragmentToIR`, which does not
+    // require a <page> root — see src/template/render.ts. Aggregation
+    // data is final by the time this runs (see resolveDocument:
+    // collect-* passes execute before resolveTemplateContainer).
+    case "bib-data": {
+      assertRenderFn(child.render, "bib-data");
+      const bibEntries = buildBibDataEntries(ctx);
+      return expandRenderProp(child.render(bibEntries) as ReactNode, slots, ctx);
+    }
+    case "toc-data": {
+      assertRenderFn(child.render, "toc-data");
+      const tocEntries = ctx.tocEntries.map((e) => ({
+        id: e.id,
+        title: e.title,
+        depth: e.depth
+      }));
+      return expandRenderProp(child.render(tocEntries) as ReactNode, slots, ctx);
+    }
+    case "list-of-data": {
+      assertRenderFn(child.render, "list-of-data");
+      const listOfEntries = ctx.listOf[child.of].map((e) => ({
+        id: e.id,
+        caption: e.caption
+      }));
+      return expandRenderProp(child.render(listOfEntries) as ReactNode, slots, ctx);
+    }
+    case "index-data": {
+      assertRenderFn(child.render, "index-data");
+      const indexEntries = [...ctx.indexEntries.entries()]
+        .map(([term, anchorIds]) => ({ term, anchorIds: anchorIds.slice() }))
+        .sort((a, b) => a.term.localeCompare(b.term));
+      return expandRenderProp(child.render(indexEntries) as ReactNode, slots, ctx);
+    }
+    case "bib-entry-content": {
+      const entry = ctx.refEntries.get(child.refKey);
+      if (entry == null) {
+        throw new Error(
+          `<bib-entry-content for="${child.refKey}" /> has no matching <ref-entry refKey="${child.refKey}" />.`
+        );
+      }
+      // Forbid cite/index re-collection inside substituted bodies. The
+      // cite-key + index-anchor passes ran before this resolver runs;
+      // any new cite/index here would not register downstream.
+      const inlineChildren = entry.children;
+      const found = new Set<string>();
+      for (const c of inlineChildren) collectCiteKeysFromNode(c, found);
+      if (found.size > 0) {
+        throw new Error(
+          `<bib-entry-content for="${child.refKey}" /> body contains a <cite> — cites inside a ref-entry would not register against the bibliography. Move the cite to body content.`
+        );
+      }
+      // Return the resolved inline nodes directly as the expansion. Inline
+      // kinds are a subset of ResolvedContentNode, which fits ResolvedChild.
+      return inlineChildren as unknown as ResolvedChild[];
+    }
   }
+}
+
+// Helper for slice 6.2 data-source resolvers: re-enter the template
+// reconciler on the React node returned from a render-prop, then
+// recursively expand each top-level template IR node via
+// expandTemplateChild. Returns the flat expansion result.
+function expandRenderProp(
+  reactNode: ReactNode,
+  slots: SlotMap,
+  ctx: ResolveContext
+): ResolvedChild[] {
+  const subtree = renderTemplateFragmentToIR(reactNode);
+  return subtree.flatMap((node) => expandTemplateChild(node as TemplateChild, slots, ctx));
+}
+
+// Render-prop is captured by the factory without a type check (see
+// reference.ts:readChildAsRender). The resolver enforces the contract
+// here, at expand time, so the error surfaces cleanly instead of being
+// swallowed by React's commit-phase error handling.
+function assertRenderFn(value: unknown, kind: string): void {
+  if (typeof value !== "function") {
+    throw new Error(
+      `<${kind}> requires a function child of the form (entries) => JSX.`
+    );
+  }
+}
+
+function buildBibDataEntries(ctx: ResolveContext): {
+  key: string;
+  used: boolean;
+  text?: string;
+}[] {
+  // Same merge order as the engine `<bibliography>` case: content-side
+  // <ref-entry> first (no `text`, body lives in ctx.refEntries), then
+  // cite-only placeholders. The template-prop `entries={...}` path
+  // doesn't apply here — userland helpers compose data via JSX.
+  const seen = new Set<string>();
+  const result: { key: string; used: boolean; text?: string }[] = [];
+  for (const [key] of ctx.refEntries) {
+    seen.add(key);
+    result.push({ key, used: ctx.citeKeys.has(key) });
+  }
+  for (const key of ctx.citeKeys) {
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ key, used: true, text: key });
+  }
+  return result;
 }
 
 function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: ResolveContext): ResolvedTemplateNode {
@@ -575,6 +686,11 @@ function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx: Resol
     case "index-template":
     case "toc":
     case "list-of":
+    case "bib-data":
+    case "toc-data":
+    case "list-of-data":
+    case "index-data":
+    case "bib-entry-content":
     case "font":
     case "role-rule":
     case "page-rule":

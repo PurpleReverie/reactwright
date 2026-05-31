@@ -336,6 +336,66 @@ export type ListOfNode = {
   style?: TemplateStyle;
 };
 
+// Slice 6.2: data-source primitives. Each captures a render-prop
+// function child; the resolver invokes it with the aggregated entries,
+// re-enters the template reconciler on the returned JSX, and recursively
+// expands the result. None of these carry a renderer — their resolution
+// IS the expansion.
+
+export type BibDataEntry = {
+  key: string;
+  used: boolean;
+  text?: string;
+};
+
+export type BibDataNode = {
+  kind: "bib-data";
+  // Render type erased to `unknown` — React JSX types don't survive the
+  // factory boundary cleanly. The resolver casts at the call site.
+  render: (entries: BibDataEntry[]) => unknown;
+};
+
+export type TocDataEntry = {
+  id: string;
+  title: string;
+  depth: number;
+};
+
+export type TocDataNode = {
+  kind: "toc-data";
+  render: (entries: TocDataEntry[]) => unknown;
+};
+
+export type ListOfDataEntry = {
+  id: string;
+  caption: string;
+};
+
+export type ListOfDataNode = {
+  kind: "list-of-data";
+  of: ListOfKind;
+  render: (entries: ListOfDataEntry[]) => unknown;
+};
+
+export type IndexDataEntry = {
+  term: string;
+  anchorIds: string[];
+};
+
+export type IndexDataNode = {
+  kind: "index-data";
+  render: (entries: IndexDataEntry[]) => unknown;
+};
+
+// Substitution primitive: the resolver replaces this node with the
+// resolved inline children of the matching <ref-entry refKey="...">.
+// Used inside a <bib-data> render-prop tree (or any other context that
+// wants to inline a ref entry's body).
+export type BibEntryContentNode = {
+  kind: "bib-entry-content";
+  refKey: string;
+};
+
 export type FontNode = {
   kind: "font";
   family: string;
@@ -423,6 +483,11 @@ export type TemplateNode =
   | SidenoteAreaNode
   | TocNode
   | ListOfNode
+  | BibDataNode
+  | TocDataNode
+  | ListOfDataNode
+  | IndexDataNode
+  | BibEntryContentNode
   | FontNode
   | SlotNode
   | CustomTemplateNode
@@ -458,6 +523,11 @@ export type TemplateChild =
   | SidenoteAreaNode
   | TocNode
   | ListOfNode
+  | BibDataNode
+  | TocDataNode
+  | ListOfDataNode
+  | IndexDataNode
+  | BibEntryContentNode
   | FontNode
   | SlotNode
   | StylesNode

@@ -4,12 +4,15 @@ import type { ReactNode } from "react";
 import { templateHostConfig, type TemplateContainer } from "./host-config.js";
 import type { PageNode, TemplateNode } from "./ir.js";
 
+// Module-level reconciler instance. The reconciler itself holds no
+// per-render mutable state — each render passes a fresh `container`
+// object and gets its own root fiber — so this is safely re-entrant.
+// Slice 6.2 (data-source primitives) relies on this: a `<bib-data>`
+// resolver case re-enters the reconciler with the result of the
+// render-prop child, which may itself contain further template JSX.
 const templateReconciler = Reconciler(templateHostConfig);
 
-// Render a React node tree authored against the template JSX
-// vocabulary into the template IR (PageNode). The resolver consumes
-// this IR alongside the content IR.
-export function renderTemplateToIR(node: ReactNode): PageNode {
+function renderToContainer(node: ReactNode): TemplateContainer {
   const container: TemplateContainer = {
     root: null,
     children: []
@@ -31,6 +34,15 @@ export function renderTemplateToIR(node: ReactNode): PageNode {
   templateReconciler.updateContainerSync(node, root, null, null);
   templateReconciler.flushSyncWork();
 
+  return container;
+}
+
+// Render a React node tree authored against the template JSX
+// vocabulary into the template IR (PageNode). The resolver consumes
+// this IR alongside the content IR.
+export function renderTemplateToIR(node: ReactNode): PageNode {
+  const container = renderToContainer(node);
+
   if (container.root == null) {
     throw new Error("Template renderer produced no root node.");
   }
@@ -40,6 +52,16 @@ export function renderTemplateToIR(node: ReactNode): PageNode {
   }
 
   return container.root;
+}
+
+// Re-entrant variant: renders a React subtree into a flat list of
+// top-level template IR nodes, without requiring a `<page>` root. Used
+// by the resolver to expand data-source primitives (<bib-data>, etc.)
+// — the render-prop child returns arbitrary template JSX which must be
+// turned into TemplateNodes for the resolver to walk.
+export function renderTemplateFragmentToIR(node: ReactNode): TemplateNode[] {
+  const container = renderToContainer(node);
+  return container.children;
 }
 
 export type { PageNode, TemplateNode };

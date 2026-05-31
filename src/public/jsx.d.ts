@@ -200,6 +200,53 @@ type BibliographyProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
   entries?: BibliographyEntryProp[];
 };
 
+// --- Slice 6.2: data-source primitives ------------------------------
+// Each accepts a function child (render-prop). Per-entry shapes mirror
+// the resolver-side aggregation types in src/template/ir.ts.
+
+type BibDataEntryProp = {
+  key: string;
+  used: boolean;
+  text?: string;
+};
+
+type BibDataProps = {
+  children: (entries: BibDataEntryProp[]) => ReactNode;
+};
+
+type TocDataEntryProp = {
+  id: string;
+  title: string;
+  depth: number;
+};
+
+type TocDataProps = {
+  children: (entries: TocDataEntryProp[]) => ReactNode;
+};
+
+type ListOfDataEntryProp = {
+  id: string;
+  caption: string;
+};
+
+type ListOfDataProps = {
+  of: "figure" | "table" | "equation";
+  children: (entries: ListOfDataEntryProp[]) => ReactNode;
+};
+
+type IndexDataEntryProp = {
+  term: string;
+  anchorIds: string[];
+};
+
+type IndexDataProps = {
+  children: (entries: IndexDataEntryProp[]) => ReactNode;
+};
+
+type BibEntryContentProps = {
+  for: string;
+};
+
 type RefsProps = WithClassName & {
   children?: ReactNode;
 };
@@ -558,6 +605,11 @@ declare module "react" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      "bib-data": BibDataProps;
+      "toc-data": TocDataProps;
+      "list-of-data": ListOfDataProps;
+      "index-data": IndexDataProps;
+      "bib-entry-content": BibEntryContentProps;
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
@@ -626,6 +678,11 @@ declare module "react/jsx-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      "bib-data": BibDataProps;
+      "toc-data": TocDataProps;
+      "list-of-data": ListOfDataProps;
+      "index-data": IndexDataProps;
+      "bib-entry-content": BibEntryContentProps;
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
@@ -694,6 +751,11 @@ declare module "react/jsx-dev-runtime" {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      "bib-data": BibDataProps;
+      "toc-data": TocDataProps;
+      "list-of-data": ListOfDataProps;
+      "index-data": IndexDataProps;
+      "bib-entry-content": BibEntryContentProps;
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
@@ -762,6 +824,11 @@ declare global {
       m: InlineMathProps;
       cite: CiteProps;
       bibliography: BibliographyProps;
+      "bib-data": BibDataProps;
+      "toc-data": TocDataProps;
+      "list-of-data": ListOfDataProps;
+      "index-data": IndexDataProps;
+      "bib-entry-content": BibEntryContentProps;
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
