@@ -1,15 +1,35 @@
 {
   "name": "create-reactwright-doc",
-  "version": "0.0.0",
-  "private": false,
-  "description": "Scaffolder CLI for Reactwright documents. Stub.",
+  "version": "0.1.0",
+  "description": "Scaffolder for new Reactwright documents.",
   "license": "MIT",
   "author": "Reactwright contributors",
+  "homepage": "https://github.com/reactwright/reactwright/tree/main/packages/create-reactwright-doc#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reactwright/reactwright.git",
+    "directory": "packages/create-reactwright-doc"
+  },
+  "bugs": {
+    "url": "https://github.com/reactwright/reactwright/issues"
+  },
+  "keywords": ["reactwright", "scaffolder", "create-app"],
   "type": "module",
+  "bin": {
+    "create-reactwright-doc": "./src/index.js"
+  },
   "files": [
     "src",
-    "templates",
     "LICENSE",
     "README.md"
-  ]
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "check": "node --check src/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
