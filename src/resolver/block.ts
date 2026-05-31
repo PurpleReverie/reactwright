@@ -36,6 +36,7 @@ import type {
   ResolvedParagraphNode,
   ResolvedPreNode,
   ResolvedRowNode,
+  ResolvedSectionHeadingNode,
   ResolvedSectionNode,
   ResolvedSetRunningNode,
   ResolvedTableNode
@@ -200,7 +201,28 @@ export function resolveListNode(node: ListNode): ResolvedListNode {
   };
 }
 
-export function resolveSectionNode(node: SectionNode): ResolvedSectionNode {
+export function resolveSectionNode(node: SectionNode, depth = 1): ResolvedSectionNode {
+  // Synthesize a section-heading child (slice 5.1) so `<rule
+  // match={{kind:"section-heading"}}>` has something to bind to. The
+  // legacy `title` field stays populated for back-compat — the renderer
+  // prefers the synthesized child when present, and falls back to the
+  // inline title emit otherwise.
+  const resolvedChildren: ResolvedContentChild[] = [];
+  if (node.title.length > 0) {
+    const heading: ResolvedSectionHeadingNode = {
+      kind: "section-heading",
+      text: node.title,
+      depth
+    };
+    resolvedChildren.push(heading);
+  }
+  for (const child of node.children) {
+    if (child.kind === "section") {
+      resolvedChildren.push(resolveSectionNode(child, depth + 1));
+    } else {
+      resolvedChildren.push(resolveContentChild(child));
+    }
+  }
   return {
     kind: "section",
     title: node.title,
@@ -209,7 +231,7 @@ export function resolveSectionNode(node: SectionNode): ResolvedSectionNode {
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
     ...(node.className != null ? { className: node.className } : {}),
-    children: node.children.map(resolveContentChild)
+    children: resolvedChildren
   };
 }
 

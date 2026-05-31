@@ -18,6 +18,7 @@ import type {
   ResolvedParagraphNode,
   ResolvedPreNode,
   ResolvedRowNode,
+  ResolvedSectionHeadingNode,
   ResolvedSectionNode,
   ResolvedSetRunningNode,
   ResolvedTableNode,
@@ -170,24 +171,27 @@ export function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `<p${classAttr(node)}>${escapeHtml(node.value)}</p>`;
 }
 
+// Section heading renderer (slice 5.1). The slice-2.3 heading-lift
+// (splicing rule-applied classes onto the <h2>) now lives here: the
+// heading's own IR node carries the bindings, so `classAttrWithBase`
+// reads them off `node`, not off the parent section. The depth-1
+// heading additionally carries `reactwright-chapter-title` to preserve
+// the existing engine-class contract.
+export function renderSectionHeadingNode(
+  node: ResolvedSectionHeadingNode,
+  opts: { variant?: string } = {}
+): string {
+  const baseClasses = ["reactwright-section-title"];
+  if (node.depth === 1) baseClasses.push("reactwright-chapter-title");
+  const variantAttr =
+    opts.variant != null ? ` data-variant="${escapeHtml(opts.variant)}"` : "";
+  const headingLevel = Math.min(node.depth + 1, 6);
+  const headingTag = `h${headingLevel}`;
+  return `<${headingTag}${classAttrWithBase(node, ...baseClasses)}${variantAttr}>${escapeHtml(node.text)}</${headingTag}>`;
+}
+
 export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
-  const baseClasses = ["reactwright-section-title"];
-  if (depth === 1) baseClasses.push("reactwright-chapter-title");
-  // Heading-lift (slice 2.3 §3.7): rule-applied classes for
-  // `<rule match={{kind:"section", depth:N}}>` are spliced onto the
-  // inner heading tag, not the <section> wrapper. The section node is
-  // the IR carrier; the heading is where the title text + counter +
-  // ::before generated content land. Authors writing
-  // `numbering: counter(...) "..."` need their class on the <h2> for
-  // the CSS `counter-increment` / `::before { content }` lowering to
-  // fire on the same element that holds the heading text.
-  const headingClassAttr = classAttrWithBase(node, ...baseClasses);
-  // Heading tag mirrors nesting depth: depth 1 → h2, depth 2 → h3,
-  // depth 3 → h4, capped at h6. Depth 1 is h2 rather than h1 because
-  // the document title (rendered separately) already occupies h1.
-  const headingLevel = Math.min(depth + 1, 6);
-  const headingTag = `h${headingLevel}`;
   // Route the section to a named CSS Paged Media regime when
   // `page=<name>` was set. Paged.js honours `page: <name>` to put the
   // element on a page of that type, and inserts the appropriate
@@ -196,18 +200,43 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
     depth === 1 && typeof node.page === "string" && node.page.length > 0
       ? ` style="page:${escapeHtml(node.page)};"`
       : "";
-  const titleHeading =
-    node.title.length > 0
-      ? `<${headingTag}${headingClassAttr}${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
-      : "";
+  // Slice 5.1: if a section-heading child has been synthesized by the
+  // resolver, walk children and dispatch — the heading is now a
+  // first-class IR node. Falls back to the legacy inline emit only when
+  // no section-heading child is present (back-compat path; shouldn't
+  // trigger for resolver-built sections with non-empty titles).
+  const hasHeadingChild = node.children.some((c) => c.kind === "section-heading");
+  let childrenHtml: string;
+  if (hasHeadingChild) {
+    childrenHtml = node.children
+      .map((child) => {
+        if (child.kind === "section") return renderSectionNode(child, depth + 1);
+        if (child.kind === "section-heading") {
+          return renderSectionHeadingNode(child, { variant: node.variant });
+        }
+        return renderContentNode(child);
+      })
+      .join("");
+  } else {
+    const headingLevel = Math.min(depth + 1, 6);
+    const headingTag = `h${headingLevel}`;
+    const titleHeading =
+      node.title.length > 0
+        ? `<${headingTag} class="reactwright-section-title${depth === 1 ? " reactwright-chapter-title" : ""}"${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
+        : "";
+    childrenHtml =
+      titleHeading +
+      node.children
+        .map((child) =>
+          child.kind === "section"
+            ? renderSectionNode(child, depth + 1)
+            : renderContentNode(child)
+        )
+        .join("");
+  }
   const sectionHtml = [
-    `<section${idAttr(node.id)}${regimeStyle}>`,
-    titleHeading,
-    ...node.children.map((child) =>
-      child.kind === "section"
-        ? renderSectionNode(child, depth + 1)
-        : renderContentNode(child)
-    ),
+    `<section${idAttr(node.id)}${regimeStyle}${classAttr(node)}>`,
+    childrenHtml,
     "</section>"
   ].join("");
 
@@ -269,6 +298,7 @@ export function renderContentNode(node: ResolvedContentNode): string {
     case "author":     return renderAuthorNode(node);
     case "abstract":   return renderAbstractNode(node);
     case "section":    return renderSectionNode(node);
+    case "section-heading": return renderSectionHeadingNode(node);
     case "figure":     return renderFigureNode(node);
     case "caption":    return renderCaptionNode(node);
     case "table":      return renderTableNode(node);

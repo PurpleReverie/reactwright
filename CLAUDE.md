@@ -67,13 +67,16 @@ Sub-agents picking up styling work: read the spec § 10 first.
   entry and pointed the renderer at `classAttr(entry.sourceNode)`. The
   same pattern applies to TOC entries, list-of entries, and index
   entries — adding rules for those kinds will need the same plumbing.
-- **`<rule match={{kind:"section"}}>` styles the heading, not the
-  section wrapper.** The section renderer lifts rule-applied classes
-  onto the inner `<h2>`/`<h3>` via `classAttrWithBase(node,
-  "reactwright-section-title", …)`. This is intentional (slice 2.3
-  §3.7) — styling section heads is the common case. Styling the
-  whole section block would need a separate IR concept or a different
-  rule key.
+- **`<rule match={{kind:"section"}}>` styles the wrapper `<section>`;
+  `<rule match={{kind:"section-heading"}}>` styles the `<h2>`/`<h3>`.**
+  Slice 5.1 reversed the slice-2.3 heading-lift: the resolver now
+  prepends a `ResolvedSectionHeadingNode` (`kind:"section-heading"`,
+  `depth:N`) to every section's `children`, so heading bindings live
+  on their own IR node. `renderSectionHeadingNode` is the new home of
+  `classAttrWithBase(node, "reactwright-section-title")`. The section
+  wrapper now carries its OWN `classAttr(node)` for `kind:"section"`
+  rules. To select "first paragraph after a heading", use
+  `<rule match={{kind:"paragraph", follows:{kind:"section-heading"}}}>`.
 
 ## Architecture at a glance
 

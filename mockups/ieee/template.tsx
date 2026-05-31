@@ -143,6 +143,10 @@ export const IEEE_STYLES = `
     text-align: justify;
     prefix: "[" counter(reactwright-bib) "] ";
   }
+
+  .ieee-heading-adjacent-p {
+    text-indent: 0;
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -155,8 +159,10 @@ export const IEEE_CSS = [
   ".reactwright-abstract p + p{margin-top:6pt;}",
 
   // ── Body paragraphs: 1em first-line indent ──────────────────────
+  // The `h2 + p, h3 + p, h4 + p{text-indent:0}` rule moved to the
+  // `.ieee-heading-adjacent-p` class in IEEE_STYLES, bound by a
+  // `paragraph follows section-heading` rule below (slice 5.1).
   ".reactwright-flow p{margin:0;text-indent:1em;}",
-  "h2 + p, h3 + p, h4 + p{text-indent:0;}",
 
   // ── Figures: image sizing only. Container layout + caption "Fig. N. "
   //    moved to `.ieee-figure` + `.ieee-fig-caption` in IEEE_STYLES.
@@ -216,8 +222,12 @@ export function Template() {
       <rule match={{ kind: "abstract" }} className="ieee-abstract" />
       <rule match={{ kind: "code" }} className="ieee-code-inline" />
       <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
-      <rule match={{ kind: "section", depth: 1 }} className="ieee-section-head" />
-      <rule match={{ kind: "section", depth: 2 }} className="ieee-subsection-head" />
+      <rule match={{ kind: "section-heading", depth: 1 }} className="ieee-section-head" />
+      <rule match={{ kind: "section-heading", depth: 2 }} className="ieee-subsection-head" />
+      <rule
+        match={{ kind: "paragraph", follows: { kind: "section-heading" } }}
+        className="ieee-heading-adjacent-p"
+      />
       <rule match={{ kind: "figure" }} className="ieee-figure" />
       <rule match={{ kind: "caption", parent: { kind: "figure" } }} className="ieee-fig-caption" />
       <rule match={{ kind: "table" }} className="ieee-table" />

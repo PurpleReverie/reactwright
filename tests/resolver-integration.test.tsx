@@ -137,12 +137,16 @@ test("resolver applies role rules and stores page-set body flow as a per-regime 
   assert.equal(sec0?.kind, "section");
   if (sec0?.kind !== "section") throw new Error("expected section");
   assert.equal(sec0.title, "World");
-  assert.equal((sec0.children[0] as { variant?: string }).variant, "leadParagraph");
-  assert.equal((sec0.children[1] as { variant?: string }).variant, "framedMap");
-  assert.equal((sec0.children[2] as { variant?: string }).variant, "compactChecklist");
+  // Slice 5.1: children[0] is the synthesized section-heading node;
+  // the original content children shift by one.
+  assert.equal((sec0.children[0] as { kind: string }).kind, "section-heading");
+  assert.equal((sec0.children[1] as { variant?: string }).variant, "leadParagraph");
+  assert.equal((sec0.children[2] as { variant?: string }).variant, "framedMap");
+  assert.equal((sec0.children[3] as { variant?: string }).variant, "compactChecklist");
   const sec1 = region.children[1];
   assert.equal(sec1?.kind, "section");
   if (sec1?.kind !== "section") throw new Error("expected section");
   assert.equal(sec1.variant, "sceneHeading");
-  assert.equal((sec1.children[0] as { variant?: string }).variant, "dialogueBlock");
+  assert.equal((sec1.children[0] as { kind: string }).kind, "section-heading");
+  assert.equal((sec1.children[1] as { variant?: string }).variant, "dialogueBlock");
 });

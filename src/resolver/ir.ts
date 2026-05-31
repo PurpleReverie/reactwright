@@ -211,6 +211,21 @@ export type ResolvedSectionNode = {
   children: ResolvedContentChild[];
 };
 
+// Synthesized heading-node (slice 5.1). Prepended to
+// ResolvedSectionNode.children by the resolver when `title` is non-empty,
+// giving section headings a first-class IR identity that rules can
+// target via `<rule match={{kind:"section-heading"}}>`. The
+// classAttrWithBase(headingNode, "reactwright-section-title") call in
+// renderSectionHeadingNode is where rule-applied classes land on the
+// emitted <h2>/<h3>/...; the parent <section> wrapper no longer carries
+// those classes.
+export type ResolvedSectionHeadingNode = {
+  kind: "section-heading";
+  text: string;
+  depth: number;       // 1 = h2, 2 = h3, 3 = h4, capped at h6
+  className?: string;
+};
+
 export type ResolvedHeadingNode = {
   kind: "heading";
   id?: string;
@@ -576,6 +591,7 @@ export type ResolvedContentNode =
   | ResolvedAuthorNode
   | ResolvedAbstractNode
   | ResolvedSectionNode
+  | ResolvedSectionHeadingNode
   | ResolvedFigureNode
   | ResolvedCaptionNode
   | ResolvedTableNode
@@ -613,6 +629,7 @@ export type ResolvedContentNode =
 
 export type ResolvedContentChild =
   | ResolvedSectionNode
+  | ResolvedSectionHeadingNode
   | ResolvedFigureNode
   | ResolvedTableNode
   | ResolvedBlockQuoteNode
