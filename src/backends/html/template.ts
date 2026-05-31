@@ -309,6 +309,7 @@ export function renderResolvedChild(node: ResolvedChild): string {
     case "section":
     case "section-heading":
     case "figure":
+    case "figure-image":
     case "caption":
     case "table":
     case "row":

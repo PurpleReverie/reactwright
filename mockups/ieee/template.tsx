@@ -94,6 +94,13 @@ export const IEEE_STYLES = `
     break: inside(avoid);
   }
 
+  .ieee-figure-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 4pt auto;
+  }
+
   .ieee-fig-caption {
     font-size: 8pt;
     font-family: 'Times New Roman', Times, serif;
@@ -164,12 +171,10 @@ export const IEEE_CSS = [
   // `paragraph follows section-heading` rule below (slice 5.1).
   ".reactwright-flow p{margin:0;text-indent:1em;}",
 
-  // ── Figures: image sizing only. Container layout + caption "Fig. N. "
-  //    moved to `.ieee-figure` + `.ieee-fig-caption` in IEEE_STYLES.
-  //    The `figure img` descendant selector stays here until slice 3
-  //    can express it (or a separate `<rule match={{kind:"img",
-  //    within:{kind:"figure"}}}>` lands).
-  "figure img{max-width:100%;height:auto;display:block;margin:0 auto 4pt auto;}",
+  // ── Figures: container layout + caption "Fig. N. " moved to
+  //    `.ieee-figure` + `.ieee-fig-caption` in IEEE_STYLES. Inner-image
+  //    sizing (slice 5.2) moved to `.ieee-figure-img`, bound via
+  //    `<rule match={{kind:"figure-image"}}>` below.
 
   // ── Tables: width/table-layout + cell padding stay until slice 3
   //    (column-fit, descendant-cell rules). Container styling + caption
@@ -229,6 +234,7 @@ export function Template() {
         className="ieee-heading-adjacent-p"
       />
       <rule match={{ kind: "figure" }} className="ieee-figure" />
+      <rule match={{ kind: "figure-image" }} className="ieee-figure-img" />
       <rule match={{ kind: "caption", parent: { kind: "figure" } }} className="ieee-fig-caption" />
       <rule match={{ kind: "table" }} className="ieee-table" />
       <rule match={{ kind: "caption", parent: { kind: "table" } }} className="ieee-table-caption" />

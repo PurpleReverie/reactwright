@@ -9,6 +9,7 @@ import type {
   ResolvedContentNode,
   ResolvedDefNode,
   ResolvedDefsNode,
+  ResolvedFigureImageNode,
   ResolvedFigureNode,
   ResolvedHeadingNode,
   ResolvedListItemNode,
@@ -59,12 +60,45 @@ export function renderCaptionNode(node: ResolvedCaptionNode): string {
   return `<figcaption${idAttr(node.id)}${classAttr(node)}>${inner}</figcaption>`;
 }
 
+// Figure-image renderer (slice 5.2). Emits the inner `<img>` of a
+// figure as its own resolved-IR node so rules of the form
+// `<rule match={{kind:"figure-image"}}>` can bind a className to it.
+// Width is emitted as an inline `style="width:..."` (matching the
+// legacy figure emit, where it controlled the rendered image size in
+// the page layout); the inline-image renderer uses the HTML `width`
+// attribute instead — keep these two paths separate.
+export function renderFigureImageNode(node: ResolvedFigureImageNode): string {
+  const widthStyle = node.width != null ? ` style="width:${escapeHtml(node.width)};"` : "";
+  const alt = escapeHtml(node.alt ?? "");
+  return `<img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle}${classAttr(node)} />`;
+}
+
 export function renderFigureNode(node: ResolvedFigureNode): string {
+  // Slice 5.2: prefer the synthesized children sub-tree (figure-image
+  // first, optional caption second) when present, so rule-applied
+  // classes on a `kind:"figure-image"` rule land on the rendered <img>.
+  // Falls back to the legacy inline emit when the resolver did not
+  // synthesize a figure-image child (e.g. a figure with no `src`).
+  if (node.children != null && node.children.length > 0) {
+    const inner = node.children
+      .map((child) => {
+        if (child.kind === "figure-image") return renderFigureImageNode(child);
+        return renderCaptionNode(child);
+      })
+      .join("");
+    return `<figure${idAttr(node.id)}${classAttr(node)}>${inner}</figure>`;
+  }
+  // Back-compat path: figure with no synthesized children. If src is
+  // empty, omit the <img>; otherwise emit it inline as before.
   const widthStyle = node.width != null ? ` style="width:${escapeHtml(node.width)};"` : "";
   // Default alt to empty so a broken-image fallback doesn't double up
   // the figcaption text. Callers that want an explicit accessibility
   // description should set `alt` themselves.
   const alt = escapeHtml(node.alt ?? "");
+  const imgHtml =
+    node.src != null && node.src.length > 0
+      ? `<img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle} />`
+      : "";
   // Prefer node-form caption when present; fall back to legacy string
   // caption prop. Node form lets template rules style it via <rule
   // match={{ kind: "caption" }}>.
@@ -74,7 +108,7 @@ export function renderFigureNode(node: ResolvedFigureNode): string {
       : node.caption != null
         ? `<figcaption>${escapeHtml(node.caption)}</figcaption>`
         : "";
-  return `<figure${idAttr(node.id)}${classAttr(node)}><img src="${escapeHtml(normalizeImageSrc(node.src))}" alt="${alt}"${widthStyle} />${caption}</figure>`;
+  return `<figure${idAttr(node.id)}${classAttr(node)}>${imgHtml}${caption}</figure>`;
 }
 
 export function renderCellNode(node: ResolvedCellNode): string {
@@ -300,6 +334,7 @@ export function renderContentNode(node: ResolvedContentNode): string {
     case "section":    return renderSectionNode(node);
     case "section-heading": return renderSectionHeadingNode(node);
     case "figure":     return renderFigureNode(node);
+    case "figure-image": return renderFigureImageNode(node);
     case "caption":    return renderCaptionNode(node);
     case "table":      return renderTableNode(node);
     case "code-block": return renderCodeBlockNode(node);

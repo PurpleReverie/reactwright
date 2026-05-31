@@ -148,6 +148,26 @@ export type ResolvedFigureNode = {
   caption?: string;            // legacy string form
   captionNode?: ResolvedCaptionNode;
   width?: string;
+  // Slice 5.2: synthesized children sub-tree. When `src` is set, the
+  // resolver prepends a `ResolvedFigureImageNode`; the renderer prefers
+  // this children-walk over the legacy inline emit. `src`/`alt`/`width`
+  // stay populated on the figure for back-compat.
+  children?: Array<ResolvedFigureImageNode | ResolvedCaptionNode>;
+};
+
+// Synthesized figure-image node (slice 5.2). Prepended to
+// ResolvedFigureNode.children by the resolver when `src` is non-empty,
+// giving the inner `<img>` a first-class IR identity. Rules of the form
+// `<rule match={{kind:"figure-image"}}>` land their className on this
+// node; `classAttr(node)` in `renderFigureImageNode` splices it onto
+// the emitted `<img>` tag.
+export type ResolvedFigureImageNode = {
+  kind: "figure-image";
+  src: string;
+  alt?: string;
+  width?: string;
+  height?: string;
+  className?: string;
 };
 
 export type ResolvedCellNode = {
@@ -593,6 +613,7 @@ export type ResolvedContentNode =
   | ResolvedSectionNode
   | ResolvedSectionHeadingNode
   | ResolvedFigureNode
+  | ResolvedFigureImageNode
   | ResolvedCaptionNode
   | ResolvedTableNode
   | ResolvedRowNode

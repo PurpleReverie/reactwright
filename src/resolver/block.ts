@@ -28,6 +28,7 @@ import type {
   ResolvedContentChild,
   ResolvedDefNode,
   ResolvedDefsNode,
+  ResolvedFigureImageNode,
   ResolvedFigureNode,
   ResolvedHeadingNode,
   ResolvedListItemNode,
@@ -61,6 +62,26 @@ export function resolveParagraphNode(node: ParagraphNode): ResolvedParagraphNode
 }
 
 export function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
+  // Slice 5.2: synthesize a `figure-image` child when `src` is set so
+  // `<rule match={{kind:"figure-image"}}>` has something to bind to.
+  // The legacy `src`/`alt`/`width` fields stay populated for back-compat;
+  // the renderer prefers the synthesized child when present, falling
+  // back to the inline emit otherwise.
+  const resolvedCaption =
+    node.captionNode != null ? resolveCaptionNode(node.captionNode) : undefined;
+  const children: Array<ResolvedFigureImageNode | ResolvedCaptionNode> = [];
+  if (node.src != null && node.src.length > 0) {
+    const image: ResolvedFigureImageNode = {
+      kind: "figure-image",
+      src: node.src,
+      ...(node.alt != null ? { alt: node.alt } : {}),
+      ...(node.width != null ? { width: node.width } : {})
+    };
+    children.push(image);
+  }
+  if (resolvedCaption != null) {
+    children.push(resolvedCaption);
+  }
   return {
     kind: "figure",
     ...(node.id != null ? { id: node.id } : {}),
@@ -71,8 +92,9 @@ export function resolveFigureNode(node: FigureNode): ResolvedFigureNode {
     src: node.src,
     alt: node.alt,
     caption: node.caption,
-    ...(node.captionNode != null ? { captionNode: resolveCaptionNode(node.captionNode) } : {}),
-    width: node.width
+    ...(resolvedCaption != null ? { captionNode: resolvedCaption } : {}),
+    width: node.width,
+    children
   };
 }
 

@@ -180,6 +180,35 @@ test("section-heading: numbering tags the <h2>, not the <section>", () => {
   assert.match(html, /\.sec-head::before\{content:counter\(sec,upper-roman\) '\. ';\}/);
 });
 
+test("figure-image: class lands on the <img>, not the <figure> or <figcaption>", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <styles>{`
+        .fig-img { max-width: 100%; height: auto; }
+      `}</styles>
+      <rule match={{ kind: "figure-image" }} className="fig-img" />
+      <region>
+        <slot name="body" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="T">
+      <figure src="/x.png" alt="x">
+        <caption>The caption</caption>
+      </figure>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+  // Slice 5.2: the class lands on the synthesized figure-image node,
+  // which renders as the <img>.
+  assert.match(html, /<img src="[^"]*\/x\.png" alt="x" class="fig-img"\s*\/>/);
+  // The <figure> wrapper does NOT carry the rule-applied class.
+  assert.doesNotMatch(html, /<figure[^>]*class="[^"]*fig-img/);
+  // The <figcaption> does NOT carry it either.
+  assert.doesNotMatch(html, /<figcaption[^>]*class="[^"]*fig-img/);
+});
+
 test("rule on paragraph follows section-heading binds only to first paragraph after the heading", () => {
   const template = (
     <page page={{ size: "a4", margin: "20mm" }}>
