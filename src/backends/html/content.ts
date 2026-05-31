@@ -174,11 +174,15 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   const baseClasses = ["reactwright-section-title"];
   if (depth === 1) baseClasses.push("reactwright-chapter-title");
-  // No node-specific lookup for the section title element itself —
-  // the section node carries the className, the heading is a derived
-  // tag inside it. Authors style the heading by selecting on `section`
-  // and class-cascading to the title, or by using `:has(section)`.
-  const headingClassAttr = ` class="${baseClasses.join(" ")}"`;
+  // Heading-lift (slice 2.3 §3.7): rule-applied classes for
+  // `<rule match={{kind:"section", depth:N}}>` are spliced onto the
+  // inner heading tag, not the <section> wrapper. The section node is
+  // the IR carrier; the heading is where the title text + counter +
+  // ::before generated content land. Authors writing
+  // `numbering: counter(...) "..."` need their class on the <h2> for
+  // the CSS `counter-increment` / `::before { content }` lowering to
+  // fire on the same element that holds the heading text.
+  const headingClassAttr = classAttrWithBase(node, ...baseClasses);
   // Heading tag mirrors nesting depth: depth 1 → h2, depth 2 → h3,
   // depth 3 → h4, capped at h6. Depth 1 is h2 rather than h1 because
   // the document title (rendered separately) already occupies h1.
@@ -197,7 +201,7 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
       ? `<${headingTag}${headingClassAttr}${variantAttr}>${escapeHtml(node.title)}</${headingTag}>`
       : "";
   const sectionHtml = [
-    `<section${idAttr(node.id)}${regimeStyle}${classAttr(node)}>`,
+    `<section${idAttr(node.id)}${regimeStyle}>`,
     titleHeading,
     ...node.children.map((child) =>
       child.kind === "section"

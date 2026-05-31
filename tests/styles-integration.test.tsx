@@ -91,10 +91,12 @@ test("section depth selectors", () => {
     </document>
   );
   const html = renderToHtml(document, template);
-  // Outer section has class "top"
-  assert.match(html, /<section[^>]* class="top">/);
-  // Inner section has class "nested"
-  assert.match(html, /<section[^>]* class="nested">/);
+  // Heading-lift (slice 2.3 §3.7): rule-applied classes on
+  // `<rule match={{kind:"section", depth:N}}>` go on the inner heading
+  // tag (<h2>/<h3>), not on the <section> wrapper, so authors can
+  // attach numbering / generated content to the actual title element.
+  assert.match(html, /<h2 class="reactwright-section-title reactwright-chapter-title top"[^>]*>Outer<\/h2>/);
+  assert.match(html, /<h3 class="reactwright-section-title nested"[^>]*>Inner<\/h3>/);
 });
 
 test("caption-as-node renders and is selectable", () => {
@@ -118,4 +120,36 @@ test("caption-as-node renders and is selectable", () => {
   );
   const html = renderToHtml(document, template);
   assert.match(html, /<figcaption class="cap">The caption text<\/figcaption>/);
+});
+
+test("section heading-lift: numbering tags the <h2>, not the <section>", () => {
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <styles>{`
+        .sec-head {
+          font-size: 10pt;
+          numbering: counter(sec, upper-roman) "$sec. ";
+        }
+      `}</styles>
+      <rule match={{ kind: "section", depth: 1 }} className="sec-head" />
+      <region>
+        <slot name="body" />
+      </region>
+    </page>
+  );
+  const document = (
+    <document title="T">
+      <section title="Intro">
+        <p>x</p>
+      </section>
+    </document>
+  );
+  const html = renderToHtml(document, template);
+  // Class lifted onto the <h2>, alongside the engine base classes.
+  assert.match(html, /<h2 class="reactwright-section-title reactwright-chapter-title sec-head"[^>]*>Intro<\/h2>/);
+  // The <section> wrapper does NOT carry the rule-applied class.
+  assert.doesNotMatch(html, /<section[^>]*class="sec-head"/);
+  // Lowered CSS emits counter-increment + ::before on .sec-head.
+  assert.match(html, /\.sec-head\{[^}]*counter-increment:sec;/);
+  assert.match(html, /\.sec-head::before\{content:counter\(sec,upper-roman\) '\. ';\}/);
 });

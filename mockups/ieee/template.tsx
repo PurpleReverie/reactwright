@@ -58,6 +58,35 @@ export const IEEE_STYLES = `
   .ieee-bibliography {
     font-size: 8pt;
   }
+
+  .ieee-section-head {
+    font-size: 10pt;
+    font-weight: normal;
+    font-style: normal;
+    font-family: 'Times New Roman', Times, serif;
+    text-align: center;
+    text-align-last: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 12pt 0 4pt 0;
+    numbering: counter(ieee-section, upper-roman) "$ieee-section. ";
+    numbering-reset: ieee-subsection;
+    break: after(avoid);
+  }
+
+  .ieee-subsection-head {
+    font-size: 10pt;
+    font-weight: normal;
+    font-style: italic;
+    font-family: 'Times New Roman', Times, serif;
+    text-align: left;
+    text-align-last: left;
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 6pt 0 2pt 0;
+    numbering: counter(ieee-subsection, upper-alpha) "$ieee-subsection. ";
+    break: after(avoid);
+  }
 `;
 
 // The remaining rules still need slice 2/3 concepts (numbering,
@@ -68,18 +97,6 @@ export const IEEE_CSS = [
   //    behaviour the dialect doesn't yet model). ─────────────────────
   ".reactwright-abstract p{margin:0;text-indent:0;}",
   ".reactwright-abstract p + p{margin-top:6pt;}",
-
-  // ── Top-level section heads: ROMAN NUMERAL, centered, small-caps ─
-  "h2.reactwright-section-title{font-size:10pt;font-weight:normal;font-style:normal;font-family:'Times New Roman',Times,serif;text-align:center;text-align-last:center;text-transform:uppercase;letter-spacing:0.04em;margin:12pt 0 4pt 0;break-after:avoid;counter-increment:ieee-section;counter-reset:ieee-subsection;}",
-  "h2.reactwright-section-title::before{content:counter(ieee-section,upper-roman) '. ';}",
-  ".reactwright-flow{counter-reset:ieee-section;}",
-
-  // ── Nested subsection heads (h3): italic, flush left, A./B./C. ──
-  // `text-align-last: left` is required because the parent column-flow
-  // inherits `text-align: justify`, and without an explicit last-line
-  // override the heading line gets word-spread to fill the column.
-  "h3.reactwright-section-title{font-size:10pt;font-weight:normal;font-style:italic;font-family:'Times New Roman',Times,serif;text-align:left;text-align-last:left;text-transform:none;letter-spacing:0;margin:6pt 0 2pt 0;break-after:avoid;counter-increment:ieee-subsection;}",
-  "h3.reactwright-section-title::before{content:counter(ieee-subsection,upper-alpha) '. ';}",
 
   // ── Body paragraphs: 1em first-line indent ──────────────────────
   ".reactwright-flow p{margin:0;text-indent:1em;}",
@@ -141,6 +158,8 @@ export function Template() {
       <rule match={{ kind: "abstract" }} className="ieee-abstract" />
       <rule match={{ kind: "code" }} className="ieee-code-inline" />
       <rule match={{ kind: "bibliography" }} className="ieee-bibliography" />
+      <rule match={{ kind: "section", depth: 1 }} className="ieee-section-head" />
+      <rule match={{ kind: "section", depth: 2 }} className="ieee-subsection-head" />
 
       <rules>
         <role
