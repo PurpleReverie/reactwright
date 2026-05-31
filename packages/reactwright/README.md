@@ -109,7 +109,7 @@ routing) and `page` rules, plus back-matter generators `toc`,
 `rule` (selector + className binding). Author writes a CSS-superset
 dialect targeting our typed selectors (`kind`, `role`, `depth`,
 `follows`, `within`, `has`, …) instead of HTML element names. See
-[docs/styling-spec.md](https://github.com/reactwright/reactwright/blob/main/docs/styling-spec.md).
+[docs/styling-spec.md](https://github.com/PurpleReverie/reactwright/blob/main/docs/styling-spec.md).
 
 **Output formats.** `html` (Paged.js-ready), `pdf` (headless
 Chromium print), `png` (one image per page, useful for visual
@@ -122,9 +122,9 @@ resolver, an HTML emitter, and a Chromium printing harness. Each
 piece is a few hundred lines; together they replace a corpus of TeX
 that took thirty years to write.
 
-See [docs/spec.md](https://github.com/reactwright/reactwright/blob/main/docs/spec.md)
+See [docs/spec.md](https://github.com/PurpleReverie/reactwright/blob/main/docs/spec.md)
 for the full specification and
-[docs/styling-spec.md](https://github.com/reactwright/reactwright/blob/main/docs/styling-spec.md)
+[docs/styling-spec.md](https://github.com/PurpleReverie/reactwright/blob/main/docs/styling-spec.md)
 for the styling system.
 
 ## Pre-built templates

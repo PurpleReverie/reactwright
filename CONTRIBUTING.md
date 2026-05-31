@@ -14,7 +14,7 @@ for the canonical behaviour spec see [`docs/spec.md`](./docs/spec.md).
 ## Setup
 
 ```sh
-git clone https://github.com/reactwright/reactwright.git
+git clone https://github.com/PurpleReverie/reactwright.git
 cd reactwright
 pnpm install
 ```

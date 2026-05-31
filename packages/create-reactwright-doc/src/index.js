@@ -155,7 +155,7 @@ export default function Document() {
           flows through the engine to paginated HTML and PDF.
         </p>
         <p>
-          See <a href="https://github.com/reactwright/reactwright">the
+          See <a href="https://github.com/PurpleReverie/reactwright">the
           documentation</a> for the full primitive vocabulary.
         </p>
       </section>
@@ -204,8 +204,8 @@ Replace the bibliography stub with your real references in the
 
 ## Learn more
 
-- Reactwright docs: https://github.com/reactwright/reactwright
-- Template (${templateKey}): https://github.com/reactwright/reactwright/tree/main/packages/template-${templateKey}
+- Reactwright docs: https://github.com/PurpleReverie/reactwright
+- Template (${templateKey}): https://github.com/PurpleReverie/reactwright/tree/main/packages/template-${templateKey}
 `;
 }
 

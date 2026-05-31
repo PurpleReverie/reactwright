@@ -4,7 +4,7 @@
 
 If you've found a security issue in Reactwright, please **do not file a
 public GitHub issue**. Instead, open a private security advisory via
-GitHub's [security advisories](https://github.com/reactwright/reactwright/security/advisories/new)
+GitHub's [security advisories](https://github.com/PurpleReverie/reactwright/security/advisories/new)
 flow. You can also email the maintainers via the address listed on the
 GitHub organization profile.
 

@@ -4,14 +4,14 @@
   "description": "Scaffolder for new Reactwright documents.",
   "license": "MIT",
   "author": "Reactwright contributors",
-  "homepage": "https://github.com/reactwright/reactwright/tree/main/packages/create-reactwright-doc#readme",
+  "homepage": "https://github.com/PurpleReverie/reactwright/tree/main/packages/create-reactwright-doc#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reactwright/reactwright.git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
     "directory": "packages/create-reactwright-doc"
   },
   "bugs": {
-    "url": "https://github.com/reactwright/reactwright/issues"
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
   },
   "keywords": ["reactwright", "scaffolder", "create-app"],
   "type": "module",

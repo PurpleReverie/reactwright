@@ -17,14 +17,14 @@
   ],
   "license": "MIT",
   "author": "Reactwright contributors",
-  "homepage": "https://github.com/reactwright/reactwright#readme",
+  "homepage": "https://github.com/PurpleReverie/reactwright#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reactwright/reactwright.git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
     "directory": "packages/reactwright"
   },
   "bugs": {
-    "url": "https://github.com/reactwright/reactwright/issues"
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
   },
   "type": "module",
   "exports": {
