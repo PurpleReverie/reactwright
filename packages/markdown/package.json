@@ -1,0 +1,67 @@
+{
+  "name": "@reactwright/markdown",
+  "version": "0.1.0",
+  "description": "Author Reactwright documents in Markdown. Parses CommonMark + YAML frontmatter into Reactwright content JSX so any template (essay, IEEE, report) can render `.md` files to HTML and PDF.",
+  "keywords": [
+    "reactwright",
+    "markdown",
+    "commonmark",
+    "pandoc",
+    "pdf"
+  ],
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "homepage": "https://github.com/PurpleReverie/reactwright/tree/main/packages/markdown#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
+    "directory": "packages/markdown"
+  },
+  "bugs": {
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "bin": {
+    "reactwright-md": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "tsc -p tsconfig.check.json --noEmit",
+    "test": "node --import tsx --test 'tests/*.test.tsx'"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19",
+    "reactwright": "workspace:*"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "marked": "^12.0.0"
+  },
+  "devDependencies": {
+    "@reactwright/template-essay": "workspace:*",
+    "@reactwright/template-ieee": "workspace:*",
+    "@reactwright/template-report": "workspace:*",
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "reactwright": "workspace:*",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}
