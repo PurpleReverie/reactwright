@@ -219,12 +219,10 @@ A claim [^a].
 
 [^a]: support.
 `);
-  const fn = findFirst(tree, (n) => n.kind === "footnote") as
-    | { kind: "footnote"; children: SemanticNode[] }
-    | null;
+  const fn = findFirst(tree, (n) => n.kind === "footnote");
   assert.ok(fn != null);
   // body inline text should include "support"
-  const text = findFirst(fn!, (n) => n.kind === "text") as
+  const text = findFirst(fn as SemanticNode, (n) => n.kind === "text") as
     | { kind: "text"; value: string }
     | null;
   assert.ok(text != null);
