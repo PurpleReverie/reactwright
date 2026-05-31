@@ -1,85 +1,36 @@
-# ReactDoc — Project Instructions
+# Reactwright — Contributor Guide
 
-ReactDoc is a React-authored document engine for paginated output (HTML via Paged.js, PDF via headless Chromium).
+Reactwright is a React-authored document engine for paginated output
+(HTML via Paged.js, PDF via headless Chromium). This file is the
+architecture briefing for anyone — human or AI assistant — making code
+changes in the monorepo. The canonical *behavioural* spec is
+`docs/spec.md`; the styling-dialect spec is `docs/styling-spec.md`.
+When this file and a spec disagree, the spec wins.
 
-## Currently in flight
+## Repo layout
 
-The styling-dialect rollout (`<styles>` + `<rule>` + `className`).
+```
+.
+├── packages/
+│   ├── reactwright/             # the engine
+│   ├── template-ieee/           # @reactwright/template-ieee
+│   ├── template-essay/          # @reactwright/template-essay
+│   ├── template-report/         # @reactwright/template-report
+│   └── (cite-bibtex, cite-csl, code-highlight, charts,
+│        create-reactwright-doc) — adapter stubs, not yet implemented
+├── examples/                    # standalone sample documents
+├── docs/                        # spec, styling-spec, decisions
+├── .changeset/                  # changesets versioning state
+├── pnpm-workspace.yaml          # packages/* + examples/*
+├── turbo.json                   # build/test/check/mockup pipelines
+└── tsconfig.base.json           # shared compiler options
+```
 
-| Phase | Status | Pointer |
-|---|---|---|
-| Spec — design and 12 binding decisions | locked | `docs/styling-spec.md` (§10 = decisions) |
-| Slice 1 — foundation (parser, selector, apply, lower, render, IEEE partial migration, docs) | **complete** | commits `b5ea69c..0e18292`; plan in `docs/styling-slice-1-plan.md` |
-| Slice 2.1 — `numbering` / `numbering-reset` / `prefix` / `suffix` / `break` lowering | **complete** | commit `6079464` |
-| Slice 2.2 — inline renderers honour `classAttr(node)` | **complete** | commit `85fa0f7` |
-| Slice 2.3 — migrate IEEE counter / break / cite rules to dialect | **complete** | commits `0225491..48b6c36`; plan in `docs/styling-slice-2-plan.md` §3 |
-| Slice 2.4 — `wrap: anchor` + IR-transform pass | deferred | mentioned in slice-2 plan §2 |
-| Slice 3 — `indent`, `text-flow`, `column-fit`, `hanging-indent`, `caption-position` | deferred | spec §9 |
-| Slice 4 — engine classes internal-prefix + deprecate `customCss` | deferred | spec §9 |
-| Slice 5 — synthesized IR + selector-vocab gaps | **partial** | 5.1 (`357d2a8`), 5.2 (`d0a0df3`), 5.4 (`0e2a05a`) shipped; 5.3 dropped, superseded by 6.3 |
-| Slice 6 — userland-composable compounds (bibliography/toc/list-of/index/abstract) | **partial** | 6.1 (`49012b1`), 6.2 (`e7e8e31`), 6.6 deprecation warnings shipped; 6.3/6.4/6.5 deferred — 6.3 blocked on bib-data re-entry direction (template vs content reconciler); 6.5 abstract-removal scope (12 files) deferred for separate session |
+Every package has its own `package.json`, `tsconfig.json`, and a
+`README.md`. Engine sources live in `packages/reactwright/src/`; the
+rest of this file describes that subtree.
 
-Open refactors flagged during slice 1/2:
-- task #68 — split `src/resolver/ir.ts` (~700 lines) per-domain
-- task #69 — split `src/resolver/resolve.ts` (orchestrator + dispatch + slot/regime context)
-
-All architectural decisions are binding (`docs/styling-spec.md` §10).
-Sub-agents picking up styling work: read the spec § 10 first.
-
-## Gotchas (collected during slice 1 + 2 work)
-
-- **`cell` requires block children, not raw text.** Wrap values in
-  `<p>` — the `examples/paper/components/data-table.tsx` `DataTable`
-  shows the pattern. Grammar enforces it; symptom is "Content renderer
-  produced no root node."
-- **`npm test` glob needs both patterns.** sh doesn't recurse `**`
-  alone. Script uses `'tests/*.test.tsx' 'tests/**/*.test.tsx'`. Don't
-  collapse.
-- **`classAttr(node)` vs `classAttrWithBase(node, ...base)`:** plain
-  `classAttr` when the renderer emits no engine-internal class.
-  `classAttrWithBase` when the renderer keeps a stable engine class
-  (`reactwright-cite`, `reactwright-math-block`, `reactwright-abstract`,
-  …) AND wants to merge in rule-applied classes.
-- **Caption back-compat:** `figure` and `table` still accept `caption?:
-  string` props. New JSX uses `<caption>…</caption>` child form, which
-  the grammar routes to the parent's `captionNode` field. Renderer
-  prefers `captionNode` over the legacy string.
-- **`ResolvedTemplateRowNode` uses kind `"template-row"`**, not
-  `"row"`. Template-side `<row>` JSX → template-IR kind `"row"` →
-  resolved-IR kind `"template-row"`. The disambiguation exists because
-  the content-side table `ResolvedRowNode` also uses `kind: "row"`;
-  merging them in the `ResolvedChild` discriminated union would break
-  narrowing.
-- **`customCss` lifecycle:** stays through 0.x. Deprecation warning
-  lands at slice 4; removal at v1.0.
-- **`key` prop on intrinsics:** don't try to add to
-  `JSX.IntrinsicAttributes` — TypeScript's JSX checker doesn't honour
-  the namespace augmentation reliably for cross-module-augmented
-  namespaces. Add `key?: Key | null` directly to the prop types
-  used by `.map(...)` loops (currently `RowProps`, `CellProps`).
-- **The 12 styling decisions in `docs/styling-spec.md` §10 are
-  binding.** Re-read before any architectural call. Reversing one
-  requires a spec amendment, not an inline judgment.
-- **Bibliography entries (and other aggregates) are not addressable as
-  IR nodes by default.** `ResolvedBibliographyEntry` is a flat data
-  carrier collected from `ctx.refEntries`; the `<li>` rendered for it
-  has no node identity at render time. To let `<rule match={{kind:
-  "ref-entry"}}>` work, slice 2.3 added a `sourceNode` field on the
-  entry and pointed the renderer at `classAttr(entry.sourceNode)`. The
-  same pattern applies to TOC entries, list-of entries, and index
-  entries — adding rules for those kinds will need the same plumbing.
-- **`<rule match={{kind:"section"}}>` styles the wrapper `<section>`;
-  `<rule match={{kind:"section-heading"}}>` styles the `<h2>`/`<h3>`.**
-  Slice 5.1 reversed the slice-2.3 heading-lift: the resolver now
-  prepends a `ResolvedSectionHeadingNode` (`kind:"section-heading"`,
-  `depth:N`) to every section's `children`, so heading bindings live
-  on their own IR node. `renderSectionHeadingNode` is the new home of
-  `classAttrWithBase(node, "reactwright-section-title")`. The section
-  wrapper now carries its OWN `classAttr(node)` for `kind:"section"`
-  rules. To select "first paragraph after a heading", use
-  `<rule match={{kind:"paragraph", follows:{kind:"section-heading"}}}>`.
-
-## Architecture at a glance
+## Engine architecture at a glance
 
 ```
 content JSX ──[content/]──► contentIR
@@ -92,11 +43,18 @@ template JSX ──[template/]──► templateIR
                         Paged.js ──► PDF (via backends/pdf/)
 ```
 
-Two independent React reconcilers (content + template) produce intermediate representations. Resolver merges them by substituting `<slot>` with content regions. HTML backend emits for Paged.js (CSS Paged Media + GCPM polyfill).
+Two independent React reconcilers (content + template) produce
+intermediate representations. The resolver merges them by substituting
+`<slot>` with content regions. The HTML backend emits for Paged.js
+(CSS Paged Media + GCPM polyfill). The PDF backend hands the HTML to
+headless Chromium for print.
 
-## Project structure
+## Engine source tree (`packages/reactwright/src/`)
 
-Each concern is a directory under `src/`. The directory name carries the verb; files inside name the sub-concern. `render.ts` is always the orchestrator. `ir.ts` is always the type definitions.
+Each concern is a directory. The directory name carries the verb;
+files inside name the sub-concern. `render.ts` is always the
+orchestrator for that directory. `ir.ts` is always the type
+definitions.
 
 ```
 src/
@@ -124,7 +82,7 @@ src/
 │   │   ├── decorations.ts           font, image, running, page-number, page-count
 │   │   ├── footnotes.ts             footnote-area, sidenote-area
 │   │   ├── rules.ts                 role-rule + four prop helpers
-│   │   ├── styles.ts                styles, rule (new dialect — see src/styles/)
+│   │   ├── styles.ts                styles, rule (styling dialect)
 │   │   └── slot.ts                  slot + validateSlotName
 │   └── ir.ts
 ├── styles/                      styling dialect (see docs/styling-spec.md)
@@ -134,14 +92,14 @@ src/
 │   ├── apply.ts                   applyRulesToTree → per-node class lists
 │   └── lower.ts                   StylesheetAst → CSS string
 ├── resolver/                    content IR + template IR → resolved IR
-│   ├── resolve.ts                 orchestrator: resolveDocument + template-tree dispatch  [flagged: split]
+│   ├── resolve.ts                 orchestrator: resolveDocument + template-tree dispatch
 │   ├── inline.ts                  per-inline-kind resolvers
 │   ├── block.ts                   per-block-kind resolvers + resolveContentChild
 │   ├── rules.ts                   RuleMaps, withVariant, assignRoleVariants
 │   ├── collect.ts                 assign* (ids) + collect* (cite keys, ref entries)
 │   ├── collect-styles.ts          collect <styles> + <rule> from template tree
 │   ├── anchors.ts                 resolveFixedAnchor + normalizeCoordinate
-│   └── ir.ts                      [flagged: split per-domain]
+│   └── ir.ts
 └── backends/
     ├── html/                    resolved IR → HTML for Paged.js
     │   ├── render.ts              orchestrator: renderResolvedToHTML
@@ -159,23 +117,48 @@ src/
 
 ## Key patterns
 
-**Page-set (regime declaration):**
-A `<page-set name="X">` declares one CSS Paged Media regime: geometry (size, margin), chrome (header/footer), and body flow template. Its `<slot name="body">` is a marker. When the resolver processes it, body flow gets stored in `regimeFlows[X]` and chrome is hoisted as direct page children. At render time, each `<section page="X">` is wrapped in its regime's flow template (`renderRegimeFlowNode`).
+**Page-set (regime declaration).**
+A `<page-set name="X">` declares one CSS Paged Media regime: geometry
+(size, margin), chrome (header/footer), and body flow template. Its
+`<slot name="body">` is a marker. When the resolver processes it,
+body flow gets stored in `regimeFlows[X]` and chrome is hoisted as
+direct page children. At render time, each `<section page="X">` is
+wrapped in its regime's flow template (`renderRegimeFlowNode`).
 
-**Role rules (semantic routing):**
-`<role match="X" apply="Y" style={...} breakBefore="...">` maps content `role="X"` to presentation variant `Y`. Style pass-through lets templates define what variants look like without the engine baking in role names. Resolved by `assignRoleVariants` (formerly `applyResolvedRules`) using the `withVariant` helper.
+**Role rules (semantic routing).**
+`<role match="X" apply="Y" style={...} breakBefore="...">` maps content
+`role="X"` to presentation variant `Y`. Style pass-through lets
+templates define what variants look like without the engine baking in
+role names. Resolved by `assignRoleVariants` using the `withVariant`
+helper.
 
-**Styling dialect (`<styles>` + `<rule>`):**
-A typed CSS-superset operates on the resolved IR instead of HTML. Authors write `<styles>{`.foo { color: red }`}</styles>` blocks of named classes and bind them to IR patterns via `<rule match={{ kind: "section", depth: 1 }} className="foo" />`. Selectors are IR-shape predicates (`kind`, `role`, `depth`, `follows`, `within`, `has`, …), not HTML selectors. Implementation: `src/styles/{parser,selector,apply,lower}.ts`. Spec: `docs/styling-spec.md`. Slice plan: `docs/styling-slice-1-plan.md`. Slice 1 ships pass-through CSS only; slices 2–3 add `numbering`, `prefix`/`suffix`, `wrap`, `break`, `indent`, `text-flow`, `column-fit`.
+**Styling dialect (`<styles>` + `<rule>`).**
+A typed CSS-superset operates on the resolved IR instead of HTML.
+Authors write `<styles>{`.foo { color: red }`}</styles>` blocks of
+named classes and bind them to IR patterns via
+`<rule match={{ kind: "section", depth: 1 }} className="foo" />`.
+Selectors are IR-shape predicates (`kind`, `role`, `depth`, `follows`,
+`within`, `has`, …), not HTML selectors. Implementation:
+`src/styles/{parser,selector,apply,lower}.ts`. Spec:
+`docs/styling-spec.md`. The 12 binding decisions in spec §10 must be
+re-read before any architectural call in this area — reversing one
+requires a spec amendment, not an inline judgment.
 
-**Running strings (`<set>` + `<running>`):**
-Content: `<set running="chapter-title" value="..." />` captures metadata. Template: `<running name="chapter-title" />` emits it. Wired via CSS string-set + margin boxes.
+**Running strings (`<set>` + `<running>`).**
+Content: `<set running="chapter-title" value="..." />` captures
+metadata. Template: `<running name="chapter-title" />` emits it. Wired
+via CSS string-set + margin boxes.
 
-**Body-stream auto-emit:**
-If no top-level `<slot name="body">` consumes body content but page-sets registered flows, the resolver appends a synthetic `body-stream` node. Lets authors wire content by placing slot inside page-set alone.
+**Body-stream auto-emit.**
+If no top-level `<slot name="body">` consumes body content but
+page-sets registered flows, the resolver appends a synthetic
+`body-stream` node. Lets authors wire content by placing slot inside
+page-set alone.
 
-**Dispatch tables:**
-`createContentNode`, `createTemplateNode`, and `renderResolvedChild` are all dispatch maps (`Record<kind, handler>`), not switches. Adding a primitive = adding one entry plus its factory/renderer.
+**Dispatch tables.**
+`createContentNode`, `createTemplateNode`, and `renderResolvedChild`
+are all dispatch maps (`Record<kind, handler>`), not switches. Adding
+a primitive = adding one entry plus its factory/renderer.
 
 ## Where to add / modify
 
@@ -194,8 +177,7 @@ If no top-level `<slot name="body">` consumes body content but page-sets registe
 ## className propagation checklist
 
 Five touchpoints. Miss any one and `className` silently drops between
-where the author writes it and where the renderer reads it. Sub-agents
-adding a new selectable kind: do all five.
+where the author writes it and where the renderer reads it.
 
 1. **Source IR type** — add `className?: string` to the type in
    `src/content/ir.ts` or `src/template/ir.ts` (whichever side the
@@ -203,43 +185,119 @@ adding a new selectable kind: do all five.
 2. **Resolved IR type** — add `className?: string` to the matching
    `Resolved*Node` type in `src/resolver/ir.ts`.
 3. **Factory** — read it in the factory function. Use
-   `readMetadata(props)` (content side, already includes className)
-   or `readClassName(props)` (template side and inline content).
-4. **Resolver function** — propagate it in the per-kind resolver
-   with the standard idiom:
+   `readMetadata(props)` (content side, already includes className) or
+   `readClassName(props)` (template side and inline content).
+4. **Resolver function** — propagate it in the per-kind resolver with
+   the standard idiom:
    `...(node.className != null ? { className: node.className } : {})`.
    Content resolvers live in `src/resolver/{inline,block}.ts`;
-   template-side propagation lives in `src/resolver/resolve.ts:resolveTemplateContainer`.
+   template-side propagation lives in
+   `src/resolver/resolve.ts:resolveTemplateContainer`.
 5. **Renderer** — splice `classAttr(node)` (when emitting a tag with
    no engine-internal class) or `classAttrWithBase(node, ...baseClasses)`
    (when keeping a stable engine class like `reactwright-cite`) into
    the emitted HTML tag. Both helpers live in
    `src/backends/html/class-bindings.ts`.
 
-Verification: after the change, write a one-line test in
+Verification: write a one-line test in
 `tests/styles-integration.test.tsx` that applies a rule to the new
 kind and asserts the class appears in the rendered HTML.
 
+## Gotchas
+
+- **`cell` requires block children, not raw text.** Wrap values in
+  `<p>` — the `examples/paper/components/data-table.tsx` `DataTable`
+  shows the pattern. Grammar enforces it; symptom is "Content renderer
+  produced no root node."
+- **`npm test` glob needs both patterns.** sh doesn't recurse `**`
+  alone. Script uses `'tests/*.test.tsx' 'tests/**/*.test.tsx'`. Don't
+  collapse to a single glob.
+- **`classAttr(node)` vs `classAttrWithBase(node, ...base)`:** plain
+  `classAttr` when the renderer emits no engine-internal class;
+  `classAttrWithBase` when the renderer keeps a stable engine class
+  (e.g. `reactwright-cite`, `reactwright-math-block`) AND wants to
+  merge in rule-applied classes.
+- **Caption back-compat.** `figure` and `table` still accept
+  `caption?: string` props. New JSX uses `<caption>…</caption>`
+  child form, which the grammar routes to the parent's `captionNode`
+  field. Renderer prefers `captionNode` over the legacy string.
+- **`ResolvedTemplateRowNode` uses kind `"template-row"`**, not
+  `"row"`. Template-side `<row>` JSX → template-IR kind `"row"` →
+  resolved-IR kind `"template-row"`. The disambiguation exists because
+  the content-side table `ResolvedRowNode` also uses `kind: "row"`;
+  merging them in the `ResolvedChild` discriminated union would break
+  narrowing.
+- **`customCss` is deprecated.** Stays through 0.x. Removal targeted
+  for v1.0. New work should reach for `<styles>` + `<rule>`.
+- **`key` prop on intrinsics.** Don't try to add to
+  `JSX.IntrinsicAttributes` — TypeScript's JSX checker doesn't honour
+  the namespace augmentation reliably for cross-module-augmented
+  namespaces. Add `key?: Key | null` directly to the prop types used
+  by `.map(...)` loops (currently `RowProps`, `CellProps`).
+- **Bibliography entries (and other aggregates) are not addressable as
+  IR nodes by default.** `ResolvedBibliographyEntry` is a flat data
+  carrier collected from `ctx.refEntries`; the `<li>` rendered for it
+  has no node identity at render time. To make
+  `<rule match={{kind:"ref-entry"}}>` work, the entry carries a
+  `sourceNode` field and the renderer reads
+  `classAttr(entry.sourceNode)`. The same pattern applies to TOC,
+  list-of, and index entries.
+- **Section heading vs. section wrapper.**
+  `<rule match={{kind:"section"}}>` styles the wrapper `<section>`;
+  `<rule match={{kind:"section-heading"}}>` styles the `<h2>`/`<h3>`.
+  The resolver prepends a `ResolvedSectionHeadingNode`
+  (`kind:"section-heading"`, `depth:N`) to every section's `children`,
+  so heading bindings live on their own IR node. The section wrapper
+  carries its OWN `classAttr(node)` for `kind:"section"` rules. To
+  select "first paragraph after a heading", use
+  `<rule match={{kind:"paragraph", follows:{kind:"section-heading"}}}>`.
+
 ## Conventions
 
-- **Naming verbs:** `render*` (IR → HTML) · `resolve*` (IR → resolved IR) · `build*` (CSS strings) · `collect*` (tree walk → list) · `assign*` (tree walk → mutate ids) · `read*` / `get*` (props extraction) · `*ToCss` / `*ToInlineCss` (style serialization).
-- **One entry-point per concern:** `<dir>/render.ts` is always the orchestrator for that dir.
-- **Subdirectory threshold:** flat up to ~4 files in a concern; subdirectory beyond that (see `template/factories/`).
+- **Naming verbs:** `render*` (IR → HTML) · `resolve*` (IR → resolved
+  IR) · `build*` (CSS strings) · `collect*` (tree walk → list) ·
+  `assign*` (tree walk → mutate ids) · `read*` / `get*` (props
+  extraction) · `*ToCss` / `*ToInlineCss` (style serialization).
+- **One entry-point per concern.** `<dir>/render.ts` is always the
+  orchestrator for that dir.
+- **Subdirectory threshold.** Flat up to ~4 files in a concern;
+  subdirectory beyond that (see `template/factories/`).
 - **`index.ts` only re-exports.** No logic.
 - **Cross-cutting helpers live in `src/shared/`.** Keep small.
+- **Most engine files are under ~350 lines.** Use the source-tree map
+  above to navigate; don't speculatively re-read large files.
 
-## Testing / validation
+## Workflow
 
-- **Unit tests:** `npm run test` (100 tests across `tests/*.test.tsx` and `tests/styles/*.test.tsx`)
-- **Integration tests:** `npm run mockup:all` (renders 5 mockups; PDFs are live validation)
-- **Type check:** `npm run check`
-- **Single-mockup smoke test:** `npm run mockup:story-bible` exercises every regime + role-rule + drop-cap + running-string + two-sided geometry + external font path in one ~3s run.
+From the repo root:
 
-All 5 mockups must produce healthy PDFs. Check file sizes: if a PDF drops to ~900B, that regime's content was filtered out (likely a resolver bug).
+```sh
+pnpm install            # one-time
+pnpm test               # 129 unit tests across the workspace
+pnpm check              # typecheck every package
+pnpm mockup:all         # renders every example to HTML + PDF
+```
 
-For HTML-emit refactors, byte-diff `build/mockups/*.html` against a pre-refactor snapshot to confirm no behavior drift.
+Per-package:
 
-## Test files
+```sh
+pnpm --filter reactwright test
+pnpm --filter @reactwright/template-ieee check
+pnpm --filter @example/story-bible build
+```
+
+Single-mockup smoke test: `pnpm --filter @example/story-bible build`
+exercises every regime + role-rule + drop-cap + running-string +
+two-sided geometry + external font path in one ~3s run.
+
+All mockups must produce healthy PDFs. If a PDF file size drops to
+~900B, that regime's content was filtered out — likely a resolver bug.
+
+For HTML-emit refactors, byte-diff `build/mockups/*.html` (or the
+example's own `build/` output) against a pre-refactor snapshot to
+confirm no behaviour drift.
+
+## Test files (engine)
 
 - `tests/content-render.test.tsx` — content reconciler unit tests
 - `tests/template-render.test.tsx` — template reconciler unit tests
@@ -250,17 +308,16 @@ For HTML-emit refactors, byte-diff `build/mockups/*.html` against a pre-refactor
 - `tests/styles/parser.test.tsx` — CSS-dialect parser (selectors, pseudos, combinators, errors)
 - `tests/styles/selector.test.tsx` — matchNode predicate (atomic keys + combinators + boolean)
 - `tests/styles/apply.test.tsx` — class-application walker (sibling/depth tracking, caption-as-child)
-- `tests/styles-integration.test.tsx` — end-to-end <styles>+<rule> through resolver and renderer
+- `tests/styles-integration.test.tsx` — end-to-end `<styles>+<rule>` through resolver and renderer
 - `tests/row-caption-render.test.tsx` — template-row layout + caption-as-node rendering
 
 ## Spec vs. source
 
-**The spec (`docs/spec.md`) is canonical.** When spec and code disagree, trust the spec.
+The spec (`docs/spec.md`) is canonical. When spec and code disagree,
+trust the spec and file a bug against the code.
 
-## Context-saving notes
+## Contributing
 
-- The codebase is now uniformly small files (most < 350 lines). Use the project-structure tree above to navigate; don't re-read large files speculatively.
-- `regimeFlows` map is the load-bearing concept: per-regime body templates, instantiated per section at render time.
-- Don't thread an explicit `RenderCtx` through the HTML renderers — `renderScopeRegimeFlows` is a documented module-level variable in `backends/html/content.ts` because the call chain through 15+ functions made threading not worth it.
-- `npm run mockup:all` is fast (~5s); run after any structural change.
-- `npm run mockup:story-bible` is the single best end-to-end smoke test (3s).
+Changesets is the source of truth for versioning. Any change that
+should ship to npm needs a `pnpm changeset` entry on the same branch.
+See `CONTRIBUTING.md` for the full workflow.
