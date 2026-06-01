@@ -1,17 +1,23 @@
 # Reactwright
 
+[![npm](https://img.shields.io/npm/v/reactwright?label=reactwright)](https://www.npmjs.com/package/reactwright)
+[![License](https://img.shields.io/npm/l/reactwright)](./LICENSE)
+[![Node](https://img.shields.io/node/v/reactwright)](#prerequisites)
+
 **Author paginated documents in React.** Two reconcilers compile JSX
 content and a template tree into CSS Paged Media HTML, then headless
 Chromium prints it to PDF. Papers, essays, reports, screenplays,
 story bibles, Tufte-style sidenote essays — all from the same engine.
 
-> **Status: alpha.** APIs may shift between 0.x releases. Output is
-> stable across pinned versions.
+> **Status: alpha (0.1.x on npm).** APIs may shift between 0.x
+> releases. Output is stable across pinned versions.
 
 ## Quick start
 
+The fastest path is the scaffolder — it sets up a starter project
+wired to the template of your choice:
+
 ```sh
-# scaffold a new document
 npm create reactwright-doc my-doc -- --template=essay
 
 cd my-doc
@@ -19,8 +25,32 @@ npm install
 npm run build
 ```
 
+That produces `my-doc.html` and `my-doc.pdf` alongside the source.
+Six templates ship out of the box: `essay`, `ieee`, `ieee-report`,
+`report`, `book`, `letter`.
+
 See [`docs/getting-started.md`](./docs/getting-started.md) for the
-full walkthrough.
+full walkthrough including the Markdown-first path.
+
+## Install (manual)
+
+If you'd rather wire your own project without the scaffolder:
+
+```sh
+# the engine
+npm install reactwright react
+
+# one or more templates
+npm install @reactwright/template-essay
+npm install @reactwright/template-ieee
+npm install @reactwright/template-book        # any of the six
+
+# optional: Markdown loader and CLI
+npm install @reactwright/markdown
+```
+
+`reactwright` declares `react` as a peer dependency (works with React
+19), so install React explicitly in your project.
 
 ## Workspace layout
 
@@ -28,21 +58,26 @@ This repository is a pnpm + Turborepo monorepo.
 
 ### Packages
 
-| Package | Purpose |
-|---|---|
-| [`reactwright`](./packages/reactwright) | The engine — content + template reconcilers, resolver, HTML/PDF backends. |
-| [`@reactwright/markdown`](./packages/markdown) | Markdown (+ YAML frontmatter) loader and `reactwright-md` CLI. |
-| [`@reactwright/template-essay`](./packages/template-essay) | MLA-style academic-essay template. |
-| [`@reactwright/template-ieee`](./packages/template-ieee) | IEEE conference-paper template (two-column). |
-| [`@reactwright/template-ieee-report`](./packages/template-ieee-report) | IEEE long-form report template (single-column). |
-| [`@reactwright/template-report`](./packages/template-report) | Business / technical report template. |
-| [`@reactwright/template-book`](./packages/template-book) | Long-form chaptered book template (trade paperback). |
-| [`@reactwright/template-letter`](./packages/template-letter) | Formal business letter template. |
-| [`create-reactwright-doc`](./packages/create-reactwright-doc) | `npm create` scaffolder. |
-| [`@reactwright/cite-bibtex`](./packages/cite-bibtex) | BibTeX (`.bib`) citation adapter. ***Not yet implemented*** (private; not on npm). |
-| [`@reactwright/cite-csl`](./packages/cite-csl) | Citation Style Language adapter. ***Not yet implemented*** (private; not on npm). |
-| [`@reactwright/code-highlight`](./packages/code-highlight) | Shiki/Prism code-block adapter. ***Not yet implemented*** (private; not on npm). |
-| [`@reactwright/charts`](./packages/charts) | SVG chart primitives. ***Not yet implemented*** (private; not on npm). |
+| Package | npm | Source | Purpose |
+|---|---|---|---|
+| `reactwright` | [npm](https://www.npmjs.com/package/reactwright) | [src](./packages/reactwright) | The engine — content + template reconcilers, resolver, HTML/PDF backends. |
+| `@reactwright/markdown` | [npm](https://www.npmjs.com/package/@reactwright/markdown) | [src](./packages/markdown) | Markdown (+ YAML frontmatter) loader and `reactwright-md` CLI. |
+| `@reactwright/template-essay` | [npm](https://www.npmjs.com/package/@reactwright/template-essay) | [src](./packages/template-essay) | MLA-style academic-essay template. |
+| `@reactwright/template-ieee` | [npm](https://www.npmjs.com/package/@reactwright/template-ieee) | [src](./packages/template-ieee) | IEEE conference-paper template (two-column). |
+| `@reactwright/template-ieee-report` | [npm](https://www.npmjs.com/package/@reactwright/template-ieee-report) | [src](./packages/template-ieee-report) | IEEE long-form report template (single-column). |
+| `@reactwright/template-report` | [npm](https://www.npmjs.com/package/@reactwright/template-report) | [src](./packages/template-report) | Business / technical report template. |
+| `@reactwright/template-book` | [npm](https://www.npmjs.com/package/@reactwright/template-book) | [src](./packages/template-book) | Long-form chaptered book template (trade paperback). |
+| `@reactwright/template-letter` | [npm](https://www.npmjs.com/package/@reactwright/template-letter) | [src](./packages/template-letter) | Formal business letter template. |
+| `create-reactwright-doc` | [npm](https://www.npmjs.com/package/create-reactwright-doc) | [src](./packages/create-reactwright-doc) | `npm create` scaffolder. |
+| `@reactwright/cite-bibtex` | — | [src](./packages/cite-bibtex) | BibTeX (`.bib`) citation adapter. ***Not yet implemented*** (private). |
+| `@reactwright/cite-csl` | — | [src](./packages/cite-csl) | Citation Style Language adapter. ***Not yet implemented*** (private). |
+| `@reactwright/code-highlight` | — | [src](./packages/code-highlight) | Shiki/Prism code-block adapter. ***Not yet implemented*** (private). |
+| `@reactwright/charts` | — | [src](./packages/charts) | SVG chart primitives. ***Not yet implemented*** (private). |
+
+The `@reactwright/*` scoped packages are published under the
+[`reactwright` npm organization](https://www.npmjs.com/org/reactwright).
+The unscoped `reactwright` and `create-reactwright-doc` follow the
+convention used by `react`, `create-react-app`, `create-vite`, etc.
 
 ### Examples
 
