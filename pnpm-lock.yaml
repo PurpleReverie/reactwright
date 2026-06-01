@@ -368,6 +368,9 @@ importers:
       react-reconciler:
         specifier: ^0.31.0
         version: 0.31.0(react@19.2.6)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
     devDependencies:
       '@types/node':
         specifier: ^22.15.18
@@ -384,9 +387,6 @@ importers:
       react:
         specifier: ^19.1.0
         version: 19.2.6
-      tsx:
-        specifier: ^4.19.2
-        version: 4.22.3
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

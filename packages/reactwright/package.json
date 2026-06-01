@@ -43,9 +43,13 @@
   },
   "files": [
     "src",
+    "bin",
     "LICENSE",
     "README.md"
   ],
+  "bin": {
+    "reactwright": "./bin/reactwright.js"
+  },
   "scripts": {
     "dev": "node --import tsx -e \"import('reactwright').then(() => console.log('reactwright package entry loaded'))\"",
     "check": "tsc --noEmit",
@@ -61,7 +65,8 @@
     "react": "^19.0.0"
   },
   "dependencies": {
-    "react-reconciler": "^0.31.0"
+    "react-reconciler": "^0.31.0",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
@@ -69,7 +74,6 @@
     "katex": "^0.17.0",
     "puppeteer-core": "^25.1.0",
     "react": "^19.1.0",
-    "tsx": "^4.19.2",
     "typescript": "^5.8.3"
   }
 }

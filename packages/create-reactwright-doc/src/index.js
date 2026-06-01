@@ -110,7 +110,7 @@ function main() {
     private: true,
     type: "module",
     scripts: {
-      build: `reactwright build ${entryFile}`
+      build: `reactwright ${entryFile} --format html,pdf --out .`
     },
     dependencies: {
       [template.pkg]: TEMPLATE_VERSION,
