@@ -8,10 +8,16 @@ import { renderContentToIR } from "../src/content/render.js";
 import { resolveDocument } from "../src/resolver/resolve.js";
 import { renderTemplateToIR } from "../src/template/render.js";
 import { registerTemplateIntrinsic } from "../src/template/registry.js";
+import { Bibliography } from "../src/userland/Bibliography.js";
+import { Index as UserlandIndex } from "../src/userland/Index.js";
+import { ListOf } from "../src/userland/ListOf.js";
+import { Toc } from "../src/userland/Toc.js";
 
 // HTML backend tests that assert on the emitted HTML body content
 // (figures, tables, custom intrinsics, fixed overlays, and the
-// reference-graph machinery: list-of, toc, index, bibliography).
+// reference-graph machinery exposed through userland helpers:
+// ListOf, Toc, Index, Bibliography — each composing the engine
+// data-source primitives).
 
 function createPaper() {
   return (
@@ -150,7 +156,7 @@ test("fixed overlay renders with data attributes for anchor and when", () => {
   assert.match(html, /data-node="page-number"/);
 });
 
-test("list-of template primitive collects figures with auto-generated ids", () => {
+test("list-of (userland) collects figures with auto-generated ids", () => {
   const documentTree = renderContentToIR(
     <document title="ListOf Test">
       <section title="Body">
@@ -172,7 +178,7 @@ test("list-of template primitive collects figures with auto-generated ids", () =
   const template = (
     <page page={{ size: "a4", margin: "20mm" }}>
       <stack>
-        <list-of of="figure" title="List of Figures" />
+        <ListOf of="figure" title="List of Figures" />
         <slot name="body" />
       </stack>
     </page>
@@ -180,13 +186,13 @@ test("list-of template primitive collects figures with auto-generated ids", () =
 
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
-  assert.match(html, /data-node="list-of" data-of="figure"/);
   assert.match(html, /href="#reactwright-fig-1"/);
   assert.match(html, /href="#fig-named"/);
   assert.match(html, /Tiny swatch one/);
+  assert.match(html, /class="reactwright-list-of-link"/);
 });
 
-test("toc template primitive collects sections with auto-generated ids", () => {
+test("toc (userland) collects sections with auto-generated ids", () => {
   const documentTree = renderContentToIR(
     <document title="Toc Test">
       <section title="Introduction">
@@ -204,7 +210,7 @@ test("toc template primitive collects sections with auto-generated ids", () => {
   const template = (
     <page page={{ size: "a4", margin: "20mm" }}>
       <stack>
-        <toc title="Contents" depth={2} />
+        <Toc title="Contents" />
         <slot name="body" />
       </stack>
     </page>
@@ -212,14 +218,13 @@ test("toc template primitive collects sections with auto-generated ids", () => {
 
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
-  assert.match(html, /data-node="toc"/);
   assert.match(html, /href="#reactwright-sec-introduction"/);
   assert.match(html, /href="#body"/);
   assert.match(html, /Subsection/);
   assert.match(html, /reactwright-toc-page::after\{content:target-counter/);
 });
 
-test("index entries collect to back-matter index with anchor refs", () => {
+test("index (userland) collects term anchors to a back-matter index", () => {
   const documentTree = renderContentToIR(
     <document title="Indexed">
       <section title="Chapter">
@@ -240,22 +245,24 @@ test("index entries collect to back-matter index with anchor refs", () => {
     <page page={{ size: "a4", margin: "20mm" }}>
       <stack>
         <slot name="body" />
-        <index title="Index" />
+        <UserlandIndex title="Index" />
       </stack>
     </page>
   );
 
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
-  assert.match(html, /data-node="index"/);
-  assert.match(html, /data-node="index-entry"/);
+  // The collected per-term anchor ids end up on the in-body
+  // `<index term=...>` markers; the userland helper links each into
+  // the back-matter section.
   assert.match(html, /id="reactwright-idx-magic-1"/);
   assert.match(html, /id="reactwright-idx-magic-2"/);
   assert.match(html, /id="reactwright-idx-aspect-1"/);
-  assert.match(html, /data-index-term="magic"/);
+  assert.match(html, /href="#reactwright-idx-magic-1"/);
+  assert.match(html, /class="reactwright-index-pagerefs"/);
 });
 
-test("cite + bibliography collect cited keys and emit a bibliography section", () => {
+test("cite + bibliography (userland) emit a bibliography section keyed to cited refs", () => {
   const documentTree = renderContentToIR(
     <document title="Cited">
       <section title="Body">
@@ -263,6 +270,11 @@ test("cite + bibliography collect cited keys and emit a bibliography section", (
           Per <cite cite="smith-2024" />, the result is robust.
         </p>
       </section>
+      <refs>
+        <ref-entry refKey="smith-2024">
+          Smith, A. (2024). <em>Robust Results.</em>
+        </ref-entry>
+      </refs>
     </document>
   );
 
@@ -270,13 +282,7 @@ test("cite + bibliography collect cited keys and emit a bibliography section", (
     <page page={{ size: "a4", margin: "20mm" }}>
       <stack>
         <slot name="body" />
-        <bibliography
-          title="References"
-          entries={[
-            { key: "smith-2024", text: "Smith, A. (2024). Robust Results." },
-            { key: "unused", text: "Unused." }
-          ]}
-        />
+        <Bibliography title="References" />
       </stack>
     </page>
   );
@@ -284,9 +290,11 @@ test("cite + bibliography collect cited keys and emit a bibliography section", (
   const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
 
   assert.match(html, /data-node="cite"/);
-  assert.match(html, /data-node="bibliography"/);
+  // Userland <Bibliography> sets data-counter="reactwright-bib" on
+  // the rendered <section>, so the static cite cross-ref machinery
+  // resolves against this list.
+  assert.match(html, /<section[^>]*data-counter="reactwright-bib"/);
   assert.match(html, /id="reactwright-bib-smith-2024"/);
-  assert.match(html, /data-bib-key="smith-2024" data-used="true"/);
-  assert.match(html, /data-bib-key="unused"/);
-  assert.ok(!/data-bib-key="unused" data-used/.test(html));
+  // The ref-entry inline body survives substitution (the <em> renders).
+  assert.match(html, /<em>Robust Results\.<\/em>/);
 });

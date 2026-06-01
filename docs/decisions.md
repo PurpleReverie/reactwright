@@ -50,10 +50,12 @@ API as of v1.0.
 ### D8 — `customCss` deprecation warning: defer
 Wait until IEEE_CSS hits zero. Warning the only consumer is noise.
 
-### D9 — Engine compound removal at v1.0: confirmed
-`<bibliography>`, `<toc>`, `<list-of>`, `<index>` removed at v1.0.
-@deprecated warnings landed in slice 6.6 (`58d88d9`). Plan §5.6
-removal timeline stands.
+### D9 — Engine compound removal: done in 0.3.0
+`<bibliography>`, `<toc>`, `<list-of>`, and the template-side
+`<index>` were removed in 0.3.0 (pre-1.0 breaking change). Authors
+use the `<Bibliography>`, `<Toc>`, `<ListOf>`, `<Index>` userland
+helpers from `reactwright/userland`, which compose the data-source
+primitives. The `<index term=...>` content-side marker remains.
 
 ### D10 — Default helpers location: `src/userland/`
 Single-package. Don't fragment into a separate `@reactwright/defaults`

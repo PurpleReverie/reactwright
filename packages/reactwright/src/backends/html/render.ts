@@ -60,15 +60,12 @@ const STATIC_DEFAULTS_CSS = [
   ".reactwright-cite::after{content:target-counter(attr(href url), reactwright-bib);}",
   // Bibliography counter wiring lives in CSS rules (not inline
   // styles on the <li>) so that target-counter() resolves
-  // correctly across Paged.js page chunks.
-  ".reactwright-bibliography{counter-reset:reactwright-bib;}",
-  ".reactwright-bibliography ol > li{counter-increment:reactwright-bib;}",
-  // Slice 6.3: the userland `<Bibliography>` helper sets
-  // `counter="reactwright-bib"` on its `<section>`, which emits as
-  // `data-counter="reactwright-bib"`. Mirror the engine-compound
-  // counter wiring so `<cite>` cross-refs (which resolve via
-  // `target-counter(attr(href url), reactwright-bib)`) still produce
-  // `[1]`, `[2]`, …
+  // correctly across Paged.js page chunks. The userland
+  // `<Bibliography>` helper sets `counter="reactwright-bib"` on its
+  // `<section>`, which emits as `data-counter="reactwright-bib"`,
+  // so `<cite>` cross-refs (resolved via
+  // `target-counter(attr(href url), reactwright-bib)`) produce
+  // `[1]`, `[2]`, … against the entry list.
   "[data-counter=\"reactwright-bib\"]{counter-reset:reactwright-bib;}",
   "[data-counter=\"reactwright-bib\"] ol > li{counter-increment:reactwright-bib;}",
   // reactwright-ref counter: incremented on every id-bearing element
@@ -82,12 +79,16 @@ const STATIC_DEFAULTS_CSS = [
   ".reactwright-index-pageref::after{content:target-counter(attr(href url), page);}",
   ".reactwright-index-pagerefs a + a::before{content:', ';}",
   // ── machinery: TOC / list-of leader formatting ────────────────
-  ".reactwright-toc ol{list-style:none;padding-left:0;}",
-  ".reactwright-toc-entry{display:flex;justify-content:space-between;}",
+  // Classes consumed by the userland `<Toc>` / `<ListOf>` helpers in
+  // `reactwright/userland`. The page-number column is an empty
+  // anchor; ::after pulls in the target page via target-counter().
+  // Userland `<Toc>` / `<ListOf>` wrap their two link siblings in a
+  // `<p>` (the `<item>` grammar requires a block child), so the flex
+  // layout lives on the inner `<p>`, not the `<li>` wrapper.
+  ".reactwright-toc-entry > p{display:flex;justify-content:space-between;}",
   ".reactwright-toc-link,.reactwright-toc-page{text-decoration:none;color:inherit;}",
   ".reactwright-toc-page::after{content:target-counter(attr(href url), page);}",
-  ".reactwright-list-of ol{list-style:none;padding-left:0;}",
-  ".reactwright-list-of-entry{display:flex;justify-content:space-between;}",
+  ".reactwright-list-of-entry > p{display:flex;justify-content:space-between;}",
   ".reactwright-list-of-link,.reactwright-list-of-page{text-decoration:none;color:inherit;}",
   ".reactwright-list-of-page::after{content:target-counter(attr(href url), page);}",
   // ── reset: block elements have no UA margin ───────────────────

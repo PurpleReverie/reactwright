@@ -50,12 +50,19 @@ nest to depth 6.
 
 ### `<heading>`
 
-Free-standing heading not tied to a section.
+Free-standing heading not tied to a section. Most documents should
+prefer `<section title="...">` — it auto-derives heading depth from
+nesting, participates in TOC collection, and accepts a role for
+template-driven styling. Reach for `<heading>` only for one-off
+headings that aren't meant to open a section (e.g. a marginal label
+inside a figure block).
 
-| Prop    | Type             | Required | Default | Description                |
-|---------|------------------|----------|---------|----------------------------|
-| `level` | `1\|2\|3\|4\|5\|6`| no       | `1`    | Heading depth.             |
-| `title` | `string`         | yes      | —       | Heading text.              |
+| Prop    | Type              | Required | Default | Description    |
+|---------|-------------------|----------|---------|----------------|
+| `level` | `1\|2\|3\|4\|5\|6`| no       | `1`     | Heading depth. |
+| `title` | `string`          | yes      | —       | Heading text.  |
+| `id`    | `string`          | no       | —       | Anchor id.     |
+| `role`  | `string`          | no       | —       | Routes through `<role match="...">` rules. |
 
 ### `<p>`
 
@@ -404,47 +411,33 @@ Emit a running-string value (typically inside `<header>` /
 Counter sinks for the current page number and total page count.
 Both accept a `typography` / `style` group.
 
-### `<bibliography>` (deprecated)
+### Userland helpers — `<Bibliography>`, `<Toc>`, `<ListOf>`, `<Index>`
 
-Engine compound for an automatic bibliography. **Deprecated;** will
-be removed at v1.0. Prefer the userland `<Bibliography>` helper from
-`reactwright/userland` or compose your own from `<bib-data>`.
+Authored back-matter sections live in `reactwright/userland` and
+compose the data-source primitives below. Import them as ordinary
+React components:
 
-### `<toc>` (deprecated)
+```tsx
+import { Bibliography, Toc, ListOf, Index } from "reactwright/userland";
+```
 
-Engine compound for a table of contents. **Deprecated;** will be
-removed at v1.0. Compose from `<toc-data>` for new work.
+| Component       | Props                                            |
+|-----------------|--------------------------------------------------|
+| `<Bibliography>`| `{ title?: string }` — default title `"References"`. |
+| `<Toc>`         | `{ title?: string }` — default title `"Contents"`.   |
+| `<ListOf>`      | `{ of: "figure" \| "table" \| "equation"; title?: string }` |
+| `<Index>`       | `{ title?: string }` — default title `"Index"`.      |
 
-| Prop       | Type      | Required | Default | Description                |
-|------------|-----------|----------|---------|----------------------------|
-| `title`    | `string`  | no       | —       | TOC heading.               |
-| `depth`    | `number`  | no       | —       | Max section depth to list. |
-| `numbered` | `boolean` | no       | `false` | Show section numbers.      |
-
-### `<list-of>` (deprecated)
-
-Engine compound for a list of figures / tables / equations.
-**Deprecated;** compose from `<list-of-data>`.
-
-| Prop    | Type                                  | Required | Default | Description                |
-|---------|---------------------------------------|----------|---------|----------------------------|
-| `of`    | `"figure" \| "table" \| "equation"`    | yes      | —       | Kind to list.              |
-| `title` | `string`                              | no       | —       | List heading.              |
-
-### `<index>` (template form, deprecated)
-
-Engine compound that emits a back-of-book index. **Deprecated;**
-compose from `<index-data>`.
-
-| Prop    | Type     | Required | Default | Description    |
-|---------|----------|----------|---------|----------------|
-| `title` | `string` | no       | —       | Index heading. |
+The engine compounds `<bibliography>`, `<toc>`, `<list-of>`, and the
+template-side `<index>` were removed in 0.3.0; use the userland
+helpers above (or compose your own from the data-source primitives).
 
 ### Data-source primitives — `<bib-data>`, `<toc-data>`, `<list-of-data>`, `<index-data>`
 
 Render-prop primitives that surface the engine's collected data.
 Each takes a function-as-child that receives an array of entries and
-returns JSX.
+returns JSX. Use these when the userland helpers above aren't
+flexible enough for your layout.
 
 `<list-of-data>` additionally requires `of` as above.
 

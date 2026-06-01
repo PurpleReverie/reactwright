@@ -14,18 +14,10 @@ import type {
 } from "../template/ir.js";
 
 import type {
-  ResolvedBibliographyEntry,
-  ResolvedBibliographyHeadingNode,
-  ResolvedBibliographyListNode,
-  ResolvedBibliographyNode,
   ResolvedChild,
   ResolvedColumnNode,
   ResolvedColumnsNode,
-  ResolvedIndexEntry,
-  ResolvedIndexTemplateNode,
   ResolvedSidenoteAreaNode,
-  ResolvedTocNode,
-  ResolvedListOfNode,
   ResolvedFontNode,
   ResolvedFixedNode,
   ResolvedFooterNode,
@@ -183,97 +175,7 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
           ...(child.format != null ? { format: child.format } : {})
         } satisfies ResolvedFontNode
       ];
-    case "list-of": {
-      const entries = ctx.listOf[child.of];
-      return [
-        {
-          kind: "list-of",
-          of: child.of,
-          ...(child.title != null ? { title: child.title } : {}),
-          entries,
-          style: child.style
-        } satisfies ResolvedListOfNode
-      ];
-    }
-    case "toc": {
-      const maxDepth = child.depth ?? Number.POSITIVE_INFINITY;
-      const entries = ctx.tocEntries.filter((e) => e.depth <= maxDepth);
-      return [
-        {
-          kind: "toc",
-          ...(child.title != null ? { title: child.title } : {}),
-          ...(child.depth != null ? { depth: child.depth } : {}),
-          ...(child.numbered === true ? { numbered: true } : {}),
-          entries,
-          style: child.style
-        } satisfies ResolvedTocNode
-      ];
-    }
-    case "index-template": {
-      const entries: ResolvedIndexEntry[] = [...ctx.indexEntries.entries()]
-        .map(([term, anchorIds]) => ({ term, anchorIds }))
-        .sort((a, b) => a.term.localeCompare(b.term));
-      return [
-        {
-          kind: "index-template",
-          ...(child.title != null ? { title: child.title } : {}),
-          entries,
-          style: child.style
-        } satisfies ResolvedIndexTemplateNode
-      ];
-    }
-    case "bibliography": {
-      // Bibliography entries come from two places:
-      //  1. Content-side <refs><ref-entry key=... >...</ref-entry></refs>
-      //     blocks. Authors write entries as content with full inline
-      //     formatting (em, strong, link, etc).
-      //  2. Optional template-prop `entries` for when the bibliography is
-      //     known at template time (legacy / for boilerplate templates).
-      // Content-side entries take precedence when a key appears in both.
-      const provided = child.entries ?? [];
-      const seen = new Set<string>();
-      const entries: ResolvedBibliographyEntry[] = [];
-      // Content-side entries first. Carry the source `ResolvedRefEntryNode`
-      // forward as `sourceNode` so `renderBibliographyNode` can look up
-      // rule-applied class bindings keyed on that node identity.
-      for (const [key, refEntryNode] of ctx.refEntries) {
-        seen.add(key);
-        entries.push({
-          key,
-          inline: refEntryNode.children,
-          used: ctx.citeKeys.has(key),
-          sourceNode: refEntryNode
-        } as ResolvedBibliographyEntry);
-      }
-      // Template-prop entries that don't conflict.
-      for (const e of provided) {
-        if (seen.has(e.key)) continue;
-        seen.add(e.key);
-        entries.push({ key: e.key, text: e.text, used: ctx.citeKeys.has(e.key) });
-      }
-      // Cited keys with no entry at all get placeholder text.
-      for (const key of ctx.citeKeys) {
-        if (!seen.has(key)) {
-          entries.push({ key, text: key, used: true });
-        }
-      }
-      return [
-        {
-          kind: "bibliography",
-          ...(child.title != null ? { title: child.title } : {}),
-          entries,
-          style: child.style,
-          // Synthesized addressability for the rendered <h2> + <ol>
-          // wrappers (slice 5.3). Heading only exists when there's a
-          // title to render.
-          ...(child.title != null
-            ? { headingNode: { kind: "bibliography-heading", text: child.title } as ResolvedBibliographyHeadingNode }
-            : {}),
-          listNode: { kind: "bibliography-list" } as ResolvedBibliographyListNode
-        } satisfies ResolvedBibliographyNode
-      ];
-    }
-    // --- Slice 6.3 (D1): data-source primitives ------------------
+    // --- Data-source primitives ----------------------------------
     // Each builds the per-domain entries array from ctx, invokes the
     // render-prop with it, re-enters the **content** reconciler on
     // the returned JSX, resolves the content subtree, and splice-
@@ -454,10 +356,6 @@ export function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx
     case "image":
     case "footnote-area":
     case "sidenote-area":
-    case "bibliography":
-    case "index-template":
-    case "toc":
-    case "list-of":
     case "bib-data":
     case "toc-data":
     case "list-of-data":

@@ -301,42 +301,9 @@ export type SidenoteAreaNode = {
   style?: TemplateStyle;
 };
 
-export type BibliographyEntry = {
-  key: string;
-  text: string;
-};
-
-export type BibliographyNode = {
-  kind: "bibliography";
-  title?: string;
-  entries?: BibliographyEntry[];
-  style?: TemplateStyle;
-};
-
-export type IndexTemplateNode = {
-  kind: "index-template";
-  title?: string;
-  style?: TemplateStyle;
-};
-
-export type TocNode = {
-  kind: "toc";
-  title?: string;
-  depth?: number;
-  numbered?: boolean;
-  style?: TemplateStyle;
-};
-
 export type ListOfKind = "figure" | "table" | "equation";
 
-export type ListOfNode = {
-  kind: "list-of";
-  of: ListOfKind;
-  title?: string;
-  style?: TemplateStyle;
-};
-
-// Slice 6.2: data-source primitives. Each captures a render-prop
+// Data-source primitives. Each captures a render-prop
 // function child; the resolver invokes it with the aggregated entries,
 // re-enters the template reconciler on the returned JSX, and recursively
 // expands the result. None of these carry a renderer — their resolution
@@ -473,11 +440,7 @@ export type TemplateNode =
   | RunningNode
   | ImageNode
   | FootnoteAreaNode
-  | BibliographyNode
-  | IndexTemplateNode
   | SidenoteAreaNode
-  | TocNode
-  | ListOfNode
   | BibDataNode
   | TocDataNode
   | ListOfDataNode
@@ -512,11 +475,7 @@ export type TemplateChild =
   | RunningNode
   | ImageNode
   | FootnoteAreaNode
-  | BibliographyNode
-  | IndexTemplateNode
   | SidenoteAreaNode
-  | TocNode
-  | ListOfNode
   | BibDataNode
   | TocDataNode
   | ListOfDataNode

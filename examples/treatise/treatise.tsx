@@ -1,4 +1,5 @@
 import "reactwright/jsx";
+import { Bibliography, ListOf, Toc } from "reactwright/userland";
 
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,8 +11,8 @@ const SWATCH_PATH = resolve(
 
 // Treatise — academic paper mockup.
 // Exercises: abstract, sections with ids, figures with auto-numbered captions
-// (via role+numbering), <ref> cross-references, <cite> + <bibliography>,
-// <footnote> + <footnote-area>, inline+block <math>/<m>, <list-of>, <toc>.
+// (via role+numbering), <ref> cross-references, <cite> + <Bibliography>,
+// <footnote> + <footnote-area>, inline+block <math>/<m>, <ListOf>, <Toc>.
 
 export function Template() {
   return (
@@ -55,11 +56,11 @@ export function Template() {
         </region>
 
         <region>
-          <toc title="Contents" depth={2} />
+          <Toc title="Contents" />
         </region>
 
         <region>
-          <list-of of="figure" title="List of Figures" />
+          <ListOf of="figure" title="List of Figures" />
         </region>
 
         <region>
@@ -67,7 +68,7 @@ export function Template() {
         </region>
 
         <region>
-          <bibliography title="References" />
+          <Bibliography title="References" />
         </region>
       </stack>
     </page>

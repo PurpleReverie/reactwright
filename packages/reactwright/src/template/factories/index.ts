@@ -7,13 +7,9 @@ import { columnNode, columnsNode, fixedNode, layerNode, regionNode, stackNode, t
 import { footerNode, headerNode } from "./margin-matter.js";
 import {
   bibDataNode,
-  bibliographyNode,
   indexDataNode,
-  indexTemplateNode,
   listOfDataNode,
-  listOfNode,
-  tocDataNode,
-  tocNode
+  tocDataNode
 } from "./reference.js";
 import {
   fontNode,
@@ -41,10 +37,6 @@ const FACTORIES: Record<string, (props: TemplateProps) => TemplateNode> = {
   fixed: fixedNode,
   header: headerNode,
   footer: footerNode,
-  bibliography: bibliographyNode,
-  toc: tocNode,
-  "list-of": listOfNode,
-  index: indexTemplateNode,
   "bib-data": bibDataNode,
   "toc-data": tocDataNode,
   "list-of-data": listOfDataNode,

@@ -35,9 +35,8 @@ These classes are currently the de facto interface between custom CSS and engine
 | `reactwright-chapter-title` | `<h2>` from `<section role="chapter">` | no |
 | `reactwright-abstract` | div from `<abstract>` | no |
 | `reactwright-cite` | `<a>` from `<cite>` | no |
-| `reactwright-bibliography` | div from `<bibliography>` | no |
-| `reactwright-toc`, `-toc-entry`, `-toc-link`, `-toc-page` | TOC machinery | no |
-| `reactwright-list-of`, `-list-of-entry`, `-list-of-link`, `-list-of-page` | list-of-figures machinery | no |
+| `reactwright-toc-entry`, `-toc-link`, `-toc-page` | TOC machinery (consumed by the `<Toc>` userland helper) | no |
+| `reactwright-list-of-entry`, `-list-of-link`, `-list-of-page` | list-of-figures machinery (consumed by `<ListOf>`) | no |
 | `reactwright-ref-number`, `-ref-page`, `-ref-title`, `-ref-number-and-page` | `<ref>` rendered forms | no |
 | `reactwright-running-{name}-source`, `reactwright-running-{name}` | running-string source / sink | no |
 | `reactwright-footnote`, `reactwright-sidenote` | floating note markers | no |
@@ -123,8 +122,13 @@ Anything that survives into the resolved tree is a valid selector target. Concre
 **Template containers (resolved)** — every layout container the template emits into the rendered tree:
 `region`, `stack`, `row` *(new, see below)*, `columns`, `column`, `layer`, `fixed`, `header`, `footer`, `regime-flow` (resolver-generated).
 
-**Back-matter generators** — appear in the resolved tree as block-level kinds:
-`bibliography`, `toc`, `list-of`, `index-template`.
+**Back-matter generators** — composed in userland from the
+data-source primitives (`bib-data`, `toc-data`, `list-of-data`,
+`index-data`) and rendered as ordinary content sections. Target the
+emitted nodes via their content kinds (`section`, `list`, `item`,
+`paragraph`, …); engine-internal classes
+(`reactwright-toc-entry`, `reactwright-list-of-link`, etc.) supply
+the leader / target-counter machinery.
 
 **Not selectable** — these are control / structural artefacts that don't survive to render:
 - `slot` — replaced by its substituted content during resolution. Use the `slot` *combinator* (4.2) to select content that landed in a named slot.
@@ -151,7 +155,7 @@ These are small content-IR changes (a few fields each, one expansion in `assignR
 
 | Key | Type | Matches |
 |---|---|---|
-| `kind` | IR kind string | content or template IR node kind (`section`, `paragraph`, `figure`, `cite`, `table`, `bibliography`, `region`, etc.) |
+| `kind` | IR kind string | content or template IR node kind (`section`, `paragraph`, `figure`, `cite`, `table`, `region`, etc.) |
 | `role` | string | the `role` attribute the content author wrote |
 | `variant` | string | the role-rule variant the resolver assigned |
 | `depth` | number \| `{ gte: N }` \| `{ lte: N }` | nesting depth for `section` |
@@ -466,8 +470,8 @@ export function Template() {
       <rule match={{ kind: "cell", attr: { header: true } }}           className="table-header-cell" />
       <rule match={{ kind: "code", attr: { inline: true } }}           className="code-inline" />
       <rule match={{ kind: "cite" }}                                   className="cite" />
-      <rule match={{ kind: "bibliography" }}                           className="bibliography" />
-      <rule match={{ kind: "bibliography", has: { kind: "heading" } }} className="bibliography-heading" />
+      <rule match={{ kind: "section", role: "bibliography" }}          className="bibliography" />
+      <rule match={{ kind: "section", role: "bibliography", has: { kind: "heading" } }} className="bibliography-heading" />
       <rule match={{ kind: "ref-entry" }}                              className="bibliography-entry" />
 
       <header anchor="top-center" when="not-first-page" style={{ fontSize: "8pt", fontStyle: "italic" }}>
@@ -485,7 +489,7 @@ export function Template() {
         <region style={{ columns: 2, columnGap: "4.24mm", textAlign: "justify" }}>
           <slot name="abstract" />
           <slot name="body" />
-          <bibliography title="References" />
+          <Bibliography title="References" />
         </region>
       </stack>
     </page>

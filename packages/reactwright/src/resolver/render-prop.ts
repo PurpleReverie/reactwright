@@ -90,10 +90,10 @@ export function buildBibDataEntries(ctx: ResolveContext): {
   used: boolean;
   text?: string;
 }[] {
-  // Same merge order as the engine `<bibliography>` case: content-side
-  // <ref-entry> first (no `text`, body lives in ctx.refEntries), then
-  // cite-only placeholders. The template-prop `entries={...}` path
-  // doesn't apply here — userland helpers compose data via JSX.
+  // Merge order: content-side <ref-entry> first (no `text`; body
+  // lives in ctx.refEntries and is spliced in by the userland helper
+  // via <bib-entry-content>), then cite-only placeholders for keys
+  // cited but never defined.
   const seen = new Set<string>();
   const result: { key: string; used: boolean; text?: string }[] = [];
   for (const [key] of ctx.refEntries) {

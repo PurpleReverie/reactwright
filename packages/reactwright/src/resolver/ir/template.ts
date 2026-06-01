@@ -1,10 +1,4 @@
 import type { TemplateStyle } from "../../template/ir.js";
-import type {
-  ResolvedBibliographyNode,
-  ResolvedIndexTemplateNode,
-  ResolvedListOfNode,
-  ResolvedTocNode,
-} from "./aggregate.js";
 import type { ResolvedContentNode } from "./block.js";
 import type {
   ResolvedFontNode,
@@ -189,11 +183,7 @@ export type ResolvedTemplateNode =
   | ResolvedRunningNode
   | ResolvedImageNode
   | ResolvedFootnoteAreaNode
-  | ResolvedBibliographyNode
-  | ResolvedIndexTemplateNode
   | ResolvedSidenoteAreaNode
-  | ResolvedTocNode
-  | ResolvedListOfNode
   | ResolvedFontNode
   | ResolvedCustomTemplateNode;
 

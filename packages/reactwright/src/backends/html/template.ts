@@ -1,7 +1,6 @@
 import type { TemplateStyle } from "../../template/ir.js";
 import { getTemplateIntrinsic } from "../../template/registry.js";
 import type {
-  ResolvedBibliographyNode,
   ResolvedChild,
   ResolvedColumnNode,
   ResolvedColumnsNode,
@@ -9,17 +8,14 @@ import type {
   ResolvedCustomTemplateNode,
   ResolvedFixedNode,
   ResolvedImageNode,
-  ResolvedIndexTemplateNode,
   ResolvedLayerNode,
-  ResolvedListOfNode,
   ResolvedPageCountNode,
   ResolvedPageNode,
   ResolvedPageNumberNode,
   ResolvedRegionNode,
   ResolvedRunningNode,
   ResolvedStackNode,
-  ResolvedTemplateRowNode,
-  ResolvedTocNode
+  ResolvedTemplateRowNode
 } from "../../resolver/ir.js";
 import {
   anchorToCss,
@@ -29,10 +25,9 @@ import {
   regionPositioningCss,
   runningClassFor
 } from "./utils.js";
-import { renderInlineNode } from "./inline.js";
 import { styleToCss, styleToInlineCss, type MarginMatterEntry } from "./css.js";
 import { renderContentNode, renderSectionNode } from "./content.js";
-import { classAttr, classAttrWithBase } from "./class-bindings.js";
+import { classAttr } from "./class-bindings.js";
 
 // Render an array of children to a single HTML string. Used at every
 // container call-site that needs to pass its rendered children into a
@@ -160,84 +155,6 @@ export function renderImageNode(node: ResolvedImageNode): string {
   return `<img data-node="image" src="${escapeHtml(normalizeImageSrc(node.src))}"${altAttr}${styleAttr} />`;
 }
 
-// --- Reference renderers --------------------------------------------
-
-// TOC and list-of entries split the row into two sibling anchors:
-// one wraps the title text, one is the empty page-number node whose
-// ::after content reads via target-counter(attr(href url), page).
-// Both anchors must carry the href so attr(href url) resolves on
-// each of them — putting the page span inside the title <a> meant
-// the page span had no href and target-counter returned 0.
-export function renderListOfNode(node: ResolvedListOfNode): string {
-  const title = node.title != null ? `<h2 class="reactwright-list-of-title">${escapeHtml(node.title)}</h2>` : "";
-  const items = node.entries
-    .map((e) => {
-      const href = `#${escapeHtml(e.id)}`;
-      return `<li class="reactwright-list-of-entry"><a class="reactwright-list-of-link" href="${href}"><span class="reactwright-list-of-text">${escapeHtml(e.caption)}</span></a><a class="reactwright-list-of-page" href="${href}"></a></li>`;
-    })
-    .join("");
-  return `<nav data-node="list-of" data-of="${escapeHtml(node.of)}" class="reactwright-list-of">${title}<ol>${items}</ol></nav>`;
-}
-
-export function renderTocNode(node: ResolvedTocNode): string {
-  const title = node.title != null ? `<h2 class="reactwright-toc-title">${escapeHtml(node.title)}</h2>` : "";
-  const items = node.entries
-    .map((e) => {
-      const depthClass = ` class="reactwright-toc-entry reactwright-toc-depth-${e.depth}"`;
-      const numberedAttr = node.numbered === true ? ` data-numbered="true"` : "";
-      const href = `#${escapeHtml(e.id)}`;
-      return `<li${depthClass}${numberedAttr}><a class="reactwright-toc-link" href="${href}"><span class="reactwright-toc-text">${escapeHtml(e.title)}</span></a><a class="reactwright-toc-page" href="${href}"></a></li>`;
-    })
-    .join("");
-  return `<nav data-node="toc" class="reactwright-toc">${title}<ol>${items}</ol></nav>`;
-}
-
-export function renderIndexTemplateNode(node: ResolvedIndexTemplateNode): string {
-  const title = node.title != null ? `<h2 class="reactwright-index-title">${escapeHtml(node.title)}</h2>` : "";
-  const items = node.entries
-    .map((e) => {
-      const refs = e.anchorIds
-        .map((id) => `<a class="reactwright-index-pageref" href="#${escapeHtml(id)}"></a>`)
-        .join(", ");
-      return `<li data-index-term="${escapeHtml(e.term)}">${escapeHtml(e.term)}<span class="reactwright-index-pagerefs"> ${refs}</span></li>`;
-    })
-    .join("");
-  return `<section data-node="index" class="reactwright-index">${title}<ul>${items}</ul></section>`;
-}
-
-export function renderBibliographyNode(node: ResolvedBibliographyNode): string {
-  // Slice 5.3: the synthesized headingNode / listNode carry any
-  // rule-applied classes via `classAttr` so authors can target the
-  // rendered <h2>/<ol> via kind:"bibliography-heading" / kind:"bibliography-list".
-  const headingClassAttr = node.headingNode != null
-    ? classAttrWithBase(node.headingNode, "reactwright-bibliography-title")
-    : ' class="reactwright-bibliography-title"';
-  const listClassAttr = node.listNode != null ? classAttr(node.listNode) : "";
-  const title = node.title != null ? `<h2${headingClassAttr}>${escapeHtml(node.title)}</h2>` : "";
-  // Bibliography counter wiring: counter-reset on the section and
-  // counter-increment per <li> are emitted via STATIC_DEFAULTS_CSS
-  // class rules (.reactwright-bibliography / .reactwright-bibliography ol > li)
-  // rather than inline styles. Paged.js's target-counter() does not
-  // see inline-style counter-increments when resolving cross-page
-  // <cite> references — using CSS rules fixes that.
-  const items = node.entries
-    .map((e) => {
-      const usedAttr = e.used ? ` data-used="true"` : "";
-      const body =
-        e.inline != null && e.inline.length > 0
-          ? e.inline.map((c) => renderInlineNode(c)).join("")
-          : escapeHtml(e.text ?? e.key);
-      // The entry's source `ResolvedRefEntryNode` (when present) is the
-      // identity rules bind to — look up its class list so a
-      // `<rule match={{ kind: "ref-entry" }} className="..." />` lands
-      // on the rendered <li>.
-      const entryClass = e.sourceNode != null ? classAttr(e.sourceNode) : "";
-      return `<li id="reactwright-bib-${escapeHtml(e.key)}" data-bib-key="${escapeHtml(e.key)}"${usedAttr}${entryClass}>${body}</li>`;
-    })
-    .join("");
-  return `<section data-node="bibliography" class="reactwright-bibliography">${title}<ol${listClassAttr}>${items}</ol></section>`;
-}
-
 // --- Custom intrinsic --------------------------------------------------
 
 function renderCustomNode(node: ResolvedCustomTemplateNode): string {
@@ -292,10 +209,6 @@ export function renderResolvedChild(node: ResolvedChild): string {
     case "footnote-area":
       // Extracted to @footnote margin-box CSS at the page level.
       return "";
-    case "bibliography":   return renderBibliographyNode(node);
-    case "index-template": return renderIndexTemplateNode(node);
-    case "toc":            return renderTocNode(node);
-    case "list-of":        return renderListOfNode(node);
     case "sidenote-area":
       // Extracted to absolute-positioned margin CSS at the page level.
       return "";

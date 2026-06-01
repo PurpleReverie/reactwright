@@ -1,8 +1,9 @@
 import "reactwright/jsx";
+import { Index, Toc } from "reactwright/userland";
 
 // Field Notes — Tufte-style essay with sidenotes in the outside margin.
-// Exercises: <sidenote> + <sidenote-area>, <defs>/<def>, <ref>, <toc>,
-// <index>, dropCap on opener paragraphs, declarative <font>.
+// Exercises: <sidenote> + <sidenote-area>, <defs>/<def>, <ref>, <Toc>,
+// <Index>, dropCap on opener paragraphs, declarative <font>.
 
 export function Template() {
   return (
@@ -45,7 +46,7 @@ export function Template() {
         </region>
 
         <region>
-          <toc title="Contents" depth={2} />
+          <Toc title="Contents" />
         </region>
 
         <region>
@@ -53,7 +54,7 @@ export function Template() {
         </region>
 
         <region style={{ borderTop: "1px solid #cbd5e1", paddingTop: "4mm" }}>
-          <index title="Index" />
+          <Index title="Index" />
         </region>
       </stack>
     </page>

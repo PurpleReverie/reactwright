@@ -62,15 +62,9 @@ export type {
 
 export type {
   ResolvedBibliographyEntry,
-  ResolvedBibliographyHeadingNode,
-  ResolvedBibliographyListNode,
-  ResolvedBibliographyNode,
   ResolvedIndexEntry,
-  ResolvedIndexTemplateNode,
   ResolvedListOfEntry,
-  ResolvedListOfNode,
   ResolvedTocEntry,
-  ResolvedTocNode,
 } from "./ir/aggregate.js";
 
 export type {

@@ -39,6 +39,10 @@
     "./contract": {
       "types": "./src/public/contract.ts",
       "default": "./src/public/contract.ts"
+    },
+    "./userland": {
+      "types": "./src/userland/userland.ts",
+      "default": "./src/userland/userland.ts"
     }
   },
   "files": [

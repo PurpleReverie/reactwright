@@ -161,21 +161,11 @@ type CiteProps = WithClassName & {
 };
 
 type IndexProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
-  // Content-side: marks a term to include in the index (required there).
-  // Template-side: declares the back-matter index; accepts optional title.
+  // Content-side primitive: marks a term to include in the index.
+  // Use the `<Index>` userland helper from `reactwright/userland` to
+  // render the back-matter index page (composes the `<index-data>`
+  // data-source primitive).
   term?: string;
-  title?: string;
-};
-
-type TocProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
-  title?: string;
-  depth?: number;
-  numbered?: boolean;
-};
-
-type ListOfProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
-  of: "figure" | "table" | "equation";
-  title?: string;
 };
 
 type FontProps = {
@@ -186,17 +176,7 @@ type FontProps = {
   format?: string;
 };
 
-type BibliographyEntryProp = {
-  key: string;
-  text: string;
-};
-
-type BibliographyProps = Omit<TemplateStyleBag, "children"> & WithClassName & {
-  title?: string;
-  entries?: BibliographyEntryProp[];
-};
-
-// --- Slice 6.2: data-source primitives ------------------------------
+// --- Data-source primitives -----------------------------------------
 // Each accepts a function child (render-prop). Per-entry shapes mirror
 // the resolver-side aggregation types in src/template/ir.ts.
 
@@ -603,7 +583,6 @@ declare module "react" {
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
-      bibliography: BibliographyProps;
       "bib-data": BibDataProps;
       "toc-data": TocDataProps;
       "list-of-data": ListOfDataProps;
@@ -612,8 +591,6 @@ declare module "react" {
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
-      toc: TocProps;
-      "list-of": ListOfProps;
       font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
@@ -675,7 +652,6 @@ declare module "react/jsx-runtime" {
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
-      bibliography: BibliographyProps;
       "bib-data": BibDataProps;
       "toc-data": TocDataProps;
       "list-of-data": ListOfDataProps;
@@ -684,8 +660,6 @@ declare module "react/jsx-runtime" {
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
-      toc: TocProps;
-      "list-of": ListOfProps;
       font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
@@ -747,7 +721,6 @@ declare module "react/jsx-dev-runtime" {
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
-      bibliography: BibliographyProps;
       "bib-data": BibDataProps;
       "toc-data": TocDataProps;
       "list-of-data": ListOfDataProps;
@@ -756,8 +729,6 @@ declare module "react/jsx-dev-runtime" {
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
-      toc: TocProps;
-      "list-of": ListOfProps;
       font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
@@ -819,7 +790,6 @@ declare global {
       math: MathProps;
       m: InlineMathProps;
       cite: CiteProps;
-      bibliography: BibliographyProps;
       "bib-data": BibDataProps;
       "toc-data": TocDataProps;
       "list-of-data": ListOfDataProps;
@@ -828,8 +798,6 @@ declare global {
       refs: RefsProps;
       "ref-entry": RefEntryProps;
       index: IndexProps;
-      toc: TocProps;
-      "list-of": ListOfProps;
       font: FontProps;
       quote: QuoteProps;
       "code-block": CodeBlockProps;
