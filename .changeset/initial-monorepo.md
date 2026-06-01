@@ -1,13 +1,23 @@
 ---
 "reactwright": patch
-"@reactwright/template-ieee": patch
 "@reactwright/template-essay": patch
+"@reactwright/template-ieee": patch
+"@reactwright/template-ieee-report": patch
 "@reactwright/template-report": patch
+"@reactwright/template-book": patch
+"@reactwright/template-letter": patch
+"@reactwright/markdown": patch
+"create-reactwright-doc": patch
 ---
 
-Initial monorepo layout. The engine moved into
-`packages/reactwright/` and three opinionated templates were
-extracted into `@reactwright/template-{ieee,essay,report}`. No
-behavioural changes to engine or template output; this entry exists
-so the first multi-package publish records a coordinated version
-bump.
+Initial public release. The repository is organised as a pnpm +
+Turborepo monorepo:
+
+- `reactwright` — the engine
+- `@reactwright/template-{essay,ieee,ieee-report,report,book,letter}`
+  — six opinionated templates
+- `@reactwright/markdown` — markdown-to-Reactwright loader and CLI
+- `create-reactwright-doc` — scaffolder
+
+This entry exists so the first publish records every package
+at a coordinated version on the registry.
