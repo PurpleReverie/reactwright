@@ -11,13 +11,16 @@ story bibles, Tufte-style sidenote essays — all from the same engine.
 ## Quick start
 
 ```sh
-# scaffold a new document (stub — see packages/create-reactwright-doc)
+# scaffold a new document
 npm create reactwright-doc my-doc -- --template=essay
 
 cd my-doc
 npm install
 npm run build
 ```
+
+See [`docs/getting-started.md`](./docs/getting-started.md) for the
+full walkthrough.
 
 ## Workspace layout
 
@@ -28,26 +31,36 @@ This repository is a pnpm + Turborepo monorepo.
 | Package | Purpose |
 |---|---|
 | [`reactwright`](./packages/reactwright) | The engine — content + template reconcilers, resolver, HTML/PDF backends. |
-| [`@reactwright/template-ieee`](./packages/template-ieee) | IEEE conference-paper template. |
+| [`@reactwright/markdown`](./packages/markdown) | Markdown (+ YAML frontmatter) loader and `reactwright-md` CLI. |
 | [`@reactwright/template-essay`](./packages/template-essay) | MLA-style academic-essay template. |
-| [`@reactwright/template-report`](./packages/template-report) | Technical/business-report template. |
-| [`@reactwright/cite-bibtex`](./packages/cite-bibtex) | BibTeX (`.bib`) citation adapter. *Stub.* |
-| [`@reactwright/cite-csl`](./packages/cite-csl) | Citation Style Language adapter. *Stub.* |
-| [`@reactwright/code-highlight`](./packages/code-highlight) | Shiki/Prism code-block adapter. *Stub.* |
-| [`@reactwright/charts`](./packages/charts) | SVG chart primitives. *Stub.* |
-| [`create-reactwright-doc`](./packages/create-reactwright-doc) | `npm create` scaffolder. *Stub.* |
+| [`@reactwright/template-ieee`](./packages/template-ieee) | IEEE conference-paper template (two-column). |
+| [`@reactwright/template-ieee-report`](./packages/template-ieee-report) | IEEE long-form report template (single-column). |
+| [`@reactwright/template-report`](./packages/template-report) | Business / technical report template. |
+| [`@reactwright/template-book`](./packages/template-book) | Long-form chaptered book template (trade paperback). |
+| [`@reactwright/template-letter`](./packages/template-letter) | Formal business letter template. |
+| [`create-reactwright-doc`](./packages/create-reactwright-doc) | `npm create` scaffolder. |
+| [`@reactwright/cite-bibtex`](./packages/cite-bibtex) | BibTeX (`.bib`) citation adapter. ***Not yet implemented*** (private; not on npm). |
+| [`@reactwright/cite-csl`](./packages/cite-csl) | Citation Style Language adapter. ***Not yet implemented*** (private; not on npm). |
+| [`@reactwright/code-highlight`](./packages/code-highlight) | Shiki/Prism code-block adapter. ***Not yet implemented*** (private; not on npm). |
+| [`@reactwright/charts`](./packages/charts) | SVG chart primitives. ***Not yet implemented*** (private; not on npm). |
 
 ### Examples
 
 [`examples/`](./examples) contains sample documents that consume the
 engine plus a template package. They are workspace-only (not
-published) — each is a runnable demonstration.
+published) — each is a runnable demonstration. See
+[`examples/README.md`](./examples/README.md) for the full index and
+a recommended reading order.
 
 | Example | What it shows |
 |---|---|
 | `essay-sample` | Short MLA-style essay using `@reactwright/template-essay`. |
+| `letter-sample` | One-page formal business letter using `@reactwright/template-letter`. |
+| `book-sample` | Short novella using `@reactwright/template-book`. |
 | `report-sample` | Technical report using `@reactwright/template-report`. |
 | `ieee-strict` | Strict IEEE paper, single-file content. |
+| `ieee-report-sample` | IEEE long-form report (single-column variant). |
+| `markdown-sample` | End-to-end `reactwright-md` demo (Markdown + frontmatter). |
 | `paper` | Multi-file IEEE paper — sections per file, CSV-driven tables, typed citations. |
 | `story-bible` | Three regimes in one document (chapter / portrait plate / script). |
 | `treatise` | Academic paper with inline template, footnotes, math, list-of, toc. |
@@ -95,14 +108,27 @@ that PR publishes the bumped packages.
 
 ## Documentation
 
+User-facing guides:
+
+- [`docs/getting-started.md`](./docs/getting-started.md) — first
+  document, end-to-end (scaffolder + Markdown paths).
+- [`docs/api-reference.md`](./docs/api-reference.md) — every JSX
+  intrinsic and its props (content side + template side).
+- [`docs/cli.md`](./docs/cli.md) — `reactwright`, `reactwright-md`,
+  and `create-reactwright-doc` reference.
+- [`docs/template-authoring.md`](./docs/template-authoring.md) —
+  write your own template from scratch.
+- [`docs/styling-guide.md`](./docs/styling-guide.md) — the `<styles>`
+  + `<rule>` dialect, with recipes.
+
+Specifications and history:
+
 - [`docs/spec.md`](./docs/spec.md) — canonical engine specification.
 - [`docs/styling-spec.md`](./docs/styling-spec.md) — spec for the
   `<styles>` + `<rule>` styling dialect (twelve binding decisions in
   §10).
 - [`docs/decisions.md`](./docs/decisions.md) — architectural
   decision log.
-- [`CLAUDE.md`](./CLAUDE.md) — contributor-facing architecture guide
-  (source-tree map, dispatch tables, gotchas).
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — workflow + commit style.
 
 ## License
