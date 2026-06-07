@@ -1,4 +1,5 @@
 import "reactwright/jsx";
+import React from "react";
 
 // Formal business-letter template. One page, US Letter, 1" margins,
 // Times 11pt block-style body (no indent, paragraph spacing). The

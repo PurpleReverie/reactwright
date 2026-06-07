@@ -1,5 +1,6 @@
 import "reactwright/jsx";
-import { Bibliography } from "../../reactwright/src/userland/Bibliography.js";
+import React from "react";
+import { Bibliography } from "reactwright/userland";
 
 // Long-form book template. Trade-paperback dimensions (5.5" × 8.5"),
 // chapter-based flow, serif body. Distinguishes three section roles:

@@ -1,6 +1,6 @@
 {
   "name": "create-reactwright-doc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scaffolder for new Reactwright documents.",
   "license": "MIT",
   "author": "Reactwright contributors",
@@ -13,7 +13,11 @@
   "bugs": {
     "url": "https://github.com/PurpleReverie/reactwright/issues"
   },
-  "keywords": ["reactwright", "scaffolder", "create-app"],
+  "keywords": [
+    "reactwright",
+    "scaffolder",
+    "create-app"
+  ],
   "type": "module",
   "bin": {
     "create-reactwright-doc": "./src/index.js"

@@ -1,5 +1,6 @@
 import "reactwright/jsx";
-import { Bibliography } from "../../reactwright/src/userland/Bibliography.js";
+import React from "react";
+import { Bibliography } from "reactwright/userland";
 
 // IEEE technical-report template. Same authority and brand as the
 // conference paper template (Times serif, italic abstract preamble,

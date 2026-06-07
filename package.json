@@ -10,7 +10,9 @@
     "build": "turbo build",
     "test": "turbo test",
     "check": "turbo check",
-    "mockup:all": "turbo mockup --filter='./examples/*'"
+    "mockup:all": "turbo mockup --filter='./examples/*'",
+    "test:pack-leak": "node scripts/check-pack-no-workspace-leak.mjs",
+    "test:scaffold": "node scripts/check-scaffold-build.mjs"
   },
   "engines": {
     "node": ">=20",

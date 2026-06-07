@@ -41,7 +41,7 @@ const TEMPLATES = {
   }
 };
 
-const REACTWRIGHT_VERSION = "^0.2.0";
+const REACTWRIGHT_VERSION = "^0.1.0";
 const TEMPLATE_VERSION = "^0.1.0";
 
 function parseArgs(argv) {
@@ -130,6 +130,11 @@ function main() {
   );
 
   fs.writeFileSync(
+    path.join(targetDir, "tsconfig.json"),
+    starterTsconfig()
+  );
+
+  fs.writeFileSync(
     path.join(targetDir, "README.md"),
     starterReadme(args.name, args.template, entryFile)
   );
@@ -138,6 +143,7 @@ function main() {
 
   ${args.name}/
   ├── package.json
+  ├── tsconfig.json
   ├── ${entryFile}
   └── README.md
 
@@ -154,6 +160,7 @@ function starterTsx(templateKey, name) {
   const template = TEMPLATES[templateKey];
   if (templateKey === "letter") {
     return `import "reactwright/jsx";
+import React from "react";
 import { Template } from "${template.pkg}";
 
 export { Template };
@@ -202,6 +209,7 @@ export default function Document() {
   }
   if (templateKey === "book") {
     return `import "reactwright/jsx";
+import React from "react";
 import { Template } from "${template.pkg}";
 
 export { Template };
@@ -235,6 +243,7 @@ export default function Document() {
 `;
   }
   return `import "reactwright/jsx";
+import React from "react";
 import { Template } from "${template.pkg}";
 
 export { Template };
@@ -249,8 +258,8 @@ export default function Document() {
           flows through the engine to paginated HTML and PDF.
         </p>
         <p>
-          See <a href="https://github.com/PurpleReverie/reactwright">the
-          documentation</a> for the full primitive vocabulary.
+          See <link href="https://github.com/PurpleReverie/reactwright">the
+          documentation</link> for the full primitive vocabulary.
         </p>
       </section>
 
@@ -269,6 +278,24 @@ export default function Document() {
       </refs>
     </document>
   );
+}
+`;
+}
+
+function starterTsconfig() {
+  return `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "noEmit": true
+  },
+  "include": ["*.tsx", "*.ts"]
 }
 `;
 }

@@ -1,5 +1,6 @@
 import "reactwright/jsx";
-import { Bibliography } from "../../reactwright/src/userland/Bibliography.js";
+import React from "react";
+import { Bibliography } from "reactwright/userland";
 
 // Business/technical report template, packaged as a reusable module.
 // Templates that want the same report styling can:

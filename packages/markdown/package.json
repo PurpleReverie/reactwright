@@ -1,6 +1,6 @@
 {
   "name": "@reactwright/markdown",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Author Reactwright documents in Markdown. Parses CommonMark + YAML frontmatter into Reactwright content JSX so any template (essay, IEEE, report) can render `.md` files to HTML and PDF.",
   "keywords": [
     "reactwright",
