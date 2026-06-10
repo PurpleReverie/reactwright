@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import React from "react";
 
 import { renderResolvedToHTML } from "../src/backends/html/render.js";
 import { renderContentToIR } from "../src/content/render.js";
@@ -615,5 +616,39 @@ test("rule without className or style is rejected at factory time", () => {
         <stack><slot name="body" /></stack>
       </page>
     )
+  );
+});
+
+test("template renderer surfaces unknown-intrinsic errors instead of swallowing them", () => {
+  // react-reconciler catches sync throws from createInstance and
+  // aborts the commit silently, leaving the author with a useless
+  // "produced no root node" downstream. The host config now stashes
+  // those errors on the container so renderTemplateToIR rethrows
+  // the real cause.
+  assert.throws(
+    () =>
+      renderTemplateToIR(
+        <page style={{ size: "a4" }}>
+          {/* div is not a template intrinsic */}
+          {React.createElement("div", { className: "oops" })}
+          <stack><slot name="body" /></stack>
+        </page>
+      ),
+    /Unsupported template intrinsic: div/
+  );
+});
+
+test("content renderer surfaces unknown-intrinsic errors instead of swallowing them", () => {
+  assert.throws(
+    () =>
+      renderContentToIR(
+        <document title="x">
+          <section title="A">
+            {/* widget is not a content intrinsic */}
+            {React.createElement("widget", { foo: 1 })}
+          </section>
+        </document>
+      ),
+    /Unsupported content intrinsic: widget/
   );
 });

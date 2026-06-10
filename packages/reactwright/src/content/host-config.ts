@@ -16,6 +16,12 @@ import type {
 export type ContentContainer = {
   root: SemanticNode | null;
   children: SemanticNode[];
+  // react-reconciler swallows sync errors thrown from createInstance
+  // and aborts the commit silently — the symptom is a useless
+  // "produced no root node" downstream. We catch errors here so the
+  // top-level renderer can rethrow them with the author's actual
+  // mistake (e.g. "Unsupported content intrinsic: div").
+  errors?: Error[];
 };
 
 function appendChildToContainerNode(container: ContentContainer, child: SemanticNode): void {
@@ -38,8 +44,19 @@ export const contentHostConfig = {
   getPublicInstance(instance: SemanticNode): SemanticNode {
     return instance;
   },
-  createInstance(type: string, props: ContentProps): SemanticNode {
-    return createContentNode(type, props);
+  createInstance(
+    type: string,
+    props: ContentProps,
+    rootContainer: ContentContainer
+  ): SemanticNode {
+    try {
+      return createContentNode(type, props);
+    } catch (err) {
+      const list = rootContainer.errors ?? (rootContainer.errors = []);
+      list.push(err instanceof Error ? err : new Error(String(err)));
+      // Stub so reconciliation completes; renderContentToIR rethrows.
+      return { kind: "text", value: "" };
+    }
   },
   appendInitialChild(parent: SemanticContainerNode, child: SemanticNode): void {
     appendSemanticChild(parent, child);

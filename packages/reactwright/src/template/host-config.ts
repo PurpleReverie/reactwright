@@ -31,6 +31,12 @@ type AppendParent = TemplateContainerNode | StylesNode;
 export type TemplateContainer = {
   root: TemplateNode | null;
   children: TemplateNode[];
+  // react-reconciler swallows sync errors thrown from createInstance
+  // and aborts the commit silently — the symptom is a useless
+  // "produced no root node" downstream. We catch errors here so the
+  // top-level renderer can rethrow them with the author's actual
+  // mistake (e.g. "Unsupported template intrinsic: div").
+  errors?: Error[];
 };
 
 function isWhitespaceOnlyText(node: TemplateNode): boolean {
@@ -98,8 +104,20 @@ export const templateHostConfig = {
   getPublicInstance(instance: TemplateNode): TemplateNode {
     return instance;
   },
-  createInstance(type: string, props: TemplateProps): TemplateNode {
-    return createTemplateNode(type, props);
+  createInstance(
+    type: string,
+    props: TemplateProps,
+    rootContainer: TemplateContainer
+  ): TemplateNode {
+    try {
+      return createTemplateNode(type, props);
+    } catch (err) {
+      const list = rootContainer.errors ?? (rootContainer.errors = []);
+      list.push(err instanceof Error ? err : new Error(String(err)));
+      // Return a stub so reconciliation completes; renderTemplateToIR
+      // checks container.errors and rethrows the real cause.
+      return { kind: "text", value: "" };
+    }
   },
   appendInitialChild(parent: AppendParent, child: TemplateNode): void {
     appendTemplateChild(parent, child);

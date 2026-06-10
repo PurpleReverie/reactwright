@@ -42,6 +42,7 @@ function renderToContainer(node: ReactNode): TemplateContainer {
 // this IR alongside the content IR.
 export function renderTemplateToIR(node: ReactNode): PageNode {
   const container = renderToContainer(node);
+  throwIfContainerErrors(container);
 
   if (container.root == null) {
     throw new Error("Template renderer produced no root node.");
@@ -61,7 +62,20 @@ export function renderTemplateToIR(node: ReactNode): PageNode {
 // turned into TemplateNodes for the resolver to walk.
 export function renderTemplateFragmentToIR(node: ReactNode): TemplateNode[] {
   const container = renderToContainer(node);
+  throwIfContainerErrors(container);
   return container.children;
+}
+
+// react-reconciler catches sync throws from createInstance and aborts
+// the commit. The host config stashes those errors on the container;
+// surface them here so authors see the real cause instead of a
+// useless "produced no root node" downstream.
+function throwIfContainerErrors(container: TemplateContainer): void {
+  const errs = container.errors;
+  if (errs == null || errs.length === 0) return;
+  if (errs.length === 1) throw errs[0];
+  const message = errs.map((e, i) => `[${i + 1}] ${e.message}`).join("\n");
+  throw new Error(`Template renderer encountered ${errs.length} errors:\n${message}`);
 }
 
 export type { PageNode, TemplateNode };
