@@ -545,3 +545,75 @@ test("styles dialect can target sections by pageVariant via attr selector", () =
   const html = renderResolvedToHTML(resolveDocument(doc, template));
   assert.match(html, /<section[^>]*class="opener-section"/);
 });
+
+test("rule with inline style lifts declarations into a synthetic class", () => {
+  // Authors can attach one-off declarations directly via
+  // <rule style={...}> instead of writing a <styles> block + binding.
+  // Matches the symmetry with <role style={...}>. Promoted concepts
+  // (flow-span etc.) lower through the same path.
+  const doc = renderContentToIR(
+    <document title="X">
+      <section title="A">
+        <figure variant="wide" src="x.png" />
+        <p>body</p>
+      </section>
+    </document>
+  );
+  const template = renderTemplateToIR(
+    <page style={{ size: "a4", margin: "20mm" }}>
+      <rule
+        match={{ kind: "figure", variant: "wide" }}
+        style={{ flowSpan: "container", margin: "8pt 0" }}
+      />
+      <region style={{ columns: 2 }}><slot name="body" /></region>
+    </page>
+  );
+  const html = renderResolvedToHTML(resolveDocument(doc, template));
+  // A synthetic class was generated, attached to the matching figure,
+  // and emitted with both the lowered flow-span concept and the raw
+  // margin passthrough.
+  assert.match(html, /<figure[^>]*class="__rwsyn-\d+"/);
+  assert.match(html, /\.__rwsyn-\d+\{[^}]*column-span:all/);
+  assert.match(html, /\.__rwsyn-\d+\{[^}]*margin:8pt 0/);
+});
+
+test("rule accepts both className and style; node gets both classes", () => {
+  // When both are provided the rule produces two bindings — the
+  // named class and the synthetic. Useful for layering one-off
+  // overrides on top of a shared style.
+  const doc = renderContentToIR(
+    <document title="X">
+      <section title="A"><figure variant="wide" src="x.png" /></section>
+    </document>
+  );
+  const template = renderTemplateToIR(
+    <page style={{ size: "a4", margin: "20mm" }}>
+      <styles>{`.shared { padding: 4pt; }`}</styles>
+      <rule
+        match={{ kind: "figure", variant: "wide" }}
+        className="shared"
+        style={{ marginTop: "12pt" }}
+      />
+      <stack><slot name="body" /></stack>
+    </page>
+  );
+  const html = renderResolvedToHTML(resolveDocument(doc, template));
+  // Both classes land on the figure.
+  assert.match(html, /<figure[^>]*class="[^"]*shared[^"]*"/);
+  assert.match(html, /<figure[^>]*class="[^"]*__rwsyn-\d+[^"]*"/);
+  // Both class definitions emitted.
+  assert.match(html, /\.shared\{padding:4pt/);
+  assert.match(html, /\.__rwsyn-\d+\{margin-top:12pt/);
+});
+
+test("rule without className or style is rejected at factory time", () => {
+  // Catches a common mistake: forgetting both forms.
+  assert.throws(() =>
+    renderTemplateToIR(
+      <page style={{ size: "a4" }}>
+        <rule match={{ kind: "figure" }} />
+        <stack><slot name="body" /></stack>
+      </page>
+    )
+  );
+});

@@ -579,9 +579,13 @@ type StylesMatchProp = {
   or?: StylesMatchProp[];
 };
 
-type RuleProps = {
+// <rule> binds a Match selector to a className (defined in a
+// sibling <styles> block) and/or an inline `style` whose declarations
+// the resolver lifts into a synthetic class. At least one of the
+// two must be provided.
+type RuleProps = TemplateStyleBag & {
   match: StylesMatchProp;
-  className: string;
+  className?: string;
 };
 
 // Template-side <row> — horizontal-flex container, symmetric to

@@ -1,6 +1,6 @@
+import { mergeTemplateStyleGroups, type TemplateProps } from "../prop-readers.js";
 import type { Match } from "../../styles/ir.js";
 import type { RuleNode, StylesNode } from "../ir.js";
-import type { TemplateProps } from "../prop-readers.js";
 
 // <styles>{`...`}</styles> — its children are the CSS-dialect source.
 // React's host config delivers the children as a single text node, which
@@ -12,23 +12,35 @@ export function stylesNode(_props: TemplateProps): StylesNode {
 }
 
 // <rule match={...} className="X" /> — binds a Match selector to a
-// className that must be defined in a sibling <styles> block. The
-// resolver evaluates the match against every node in the resolved IR
-// and tags matching nodes with the className.
+// className that must be defined in a sibling <styles> block.
+// <rule match={...} style={{ ... }} /> — inline declarations the
+// resolver lifts into a synthetic class (the same form <role> accepts).
+// Both may be provided; the rule binds both class names.
 export function ruleNode(props: TemplateProps): RuleNode {
   const match = (props as Record<string, unknown>).match;
   if (match == null || typeof match !== "object" || Array.isArray(match)) {
     throw new Error("`rule` requires a `match` object.");
   }
 
-  const className = (props as Record<string, unknown>).className;
-  if (typeof className !== "string" || className.trim().length === 0) {
-    throw new Error("`rule` requires a non-empty `className` string.");
+  const rawClassName = (props as Record<string, unknown>).className;
+  const className =
+    typeof rawClassName === "string" && rawClassName.trim().length > 0
+      ? rawClassName.trim()
+      : undefined;
+
+  // mergeTemplateStyleGroups picks up style + the typed groups
+  // (page/typography/...). For <rule> only `style` is meaningful.
+  const style = mergeTemplateStyleGroups(props);
+  const hasStyle = style != null && Object.keys(style).length > 0;
+
+  if (className == null && !hasStyle) {
+    throw new Error("`rule` requires `className`, `style`, or both.");
   }
 
   return {
     kind: "rule",
     match: match as Match,
-    className: className.trim()
+    ...(className != null ? { className } : {}),
+    ...(hasStyle ? { style } : {})
   };
 }

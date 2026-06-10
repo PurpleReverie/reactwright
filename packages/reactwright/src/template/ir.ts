@@ -128,13 +128,16 @@ export type PageRuleNode = {
   use: string;
 };
 
-// New-style rule binding: a Match selector and a className. Lives
-// alongside legacy <role>-rules under <rules> (and as a direct sibling).
-// Declarations live in a <styles> block keyed by className.
+// New-style rule binding: a Match selector and either a className
+// (binding to a named class defined in a <styles> block), a style
+// (inline declarations the resolver lifts into a synthetic class),
+// or both. Matches <role>'s style passthrough so authors don't have
+// to write a <styles> block just to attach a one-off declaration.
 export type RuleNode = {
   kind: "rule";
   match: Match;
-  className: string;
+  className?: string;
+  style?: TemplateStyle;
 };
 
 // A block of styles-dialect text. Compiled at HTML emit time.
