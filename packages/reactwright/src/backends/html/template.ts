@@ -259,6 +259,7 @@ export function renderResolvedChild(node: ResolvedChild): string {
     case "sidenote":
     case "refs":
     case "ref-entry":
+    case "meta":
     case "text":
     case "page-break":
     case "set-running":

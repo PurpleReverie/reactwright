@@ -304,6 +304,33 @@ function maskRanges(source: string, claimed: { start: number; end: number }[]): 
   return chars.join("");
 }
 
+// Detect "this paragraph is just one image": exactly one image
+// token, optionally surrounded by whitespace-only text tokens. Returns
+// the image's href and alt text on a match, null otherwise. Mixed
+// content (image plus other text/links) returns null so the image
+// stays inline.
+function findSoloImage(
+  tokens: Token[] | undefined
+): { href: string; alt: string } | null {
+  if (tokens == null) return null;
+  let image: Tokens.Image | null = null;
+  for (const tok of tokens) {
+    if (tok.type === "image") {
+      if (image != null) return null; // more than one image
+      image = tok as Tokens.Image;
+      continue;
+    }
+    if (tok.type === "text") {
+      const text = (tok as Tokens.Text).text ?? "";
+      if (text.trim().length > 0) return null; // non-whitespace text
+      continue;
+    }
+    return null; // any other token kind disqualifies
+  }
+  if (image == null) return null;
+  return { href: image.href, alt: image.text ?? "" };
+}
+
 // ---- Block rendering -------------------------------------------------------
 
 function renderBlockToken(token: Token, ctx: ParseContext): ReactNode {
@@ -318,6 +345,26 @@ function renderBlockToken(token: Token, ctx: ParseContext): ReactNode {
       const display = /^\$\$([\s\S]+)\$\$$/.exec(trimmed);
       if (display != null) {
         return withKey(<math src={display[1].trim()} />, nextKey(ctx));
+      }
+      // A paragraph that is *only* an image (optionally with
+      // surrounding whitespace) is the Markdown idiom for "this is a
+      // figure." Lift it to <figure> so the template can style it via
+      // the standard figure-image / caption rules instead of having to
+      // post-process the rendered HTML. The image's alt text becomes
+      // the caption (the same intuition Pandoc applies). Inline images
+      // mixed into prose stay as inline <img>.
+      const onlyImage = findSoloImage(t.tokens);
+      if (onlyImage != null) {
+        return withKey(
+          onlyImage.alt.length > 0 ? (
+            <figure src={onlyImage.href} alt={onlyImage.alt}>
+              <caption>{onlyImage.alt}</caption>
+            </figure>
+          ) : (
+            <figure src={onlyImage.href} />
+          ),
+          nextKey(ctx)
+        );
       }
       return withKey(<p>{renderInlineTokens(t.tokens, ctx)}</p>, nextKey(ctx));
     }

@@ -33,7 +33,7 @@ export type MatchContext = {
   siblingIndex: number;            // 0-based position among siblings of the same kind
   siblingCount: number;            // total siblings of the same kind under the parent
   depth: number;                   // hierarchical depth (sections only; 0 otherwise)
-  slot?: "title" | "author" | "abstract" | "body";
+  slot?: string;
   children: SelectableNode[];      // direct children of the node
 };
 

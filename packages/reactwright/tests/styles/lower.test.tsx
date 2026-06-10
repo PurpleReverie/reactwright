@@ -93,3 +93,13 @@ test("lower: malformed numbering falls through to pass-through", () => {
   const css = lower(`.x { numbering: "foo"; }`);
   assert.match(css, /numbering:"foo";/);
 });
+
+test("lower: flow-span container lowers to column-span:all", () => {
+  const css = lower(`.wide { flow-span: container; }`);
+  assert.equal(css, ".wide{column-span:all;}");
+});
+
+test("lower: flow-span none lowers to column-span:none", () => {
+  const css = lower(`.x { flow-span: none; }`);
+  assert.equal(css, ".x{column-span:none;}");
+});

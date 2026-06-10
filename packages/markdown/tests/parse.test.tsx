@@ -143,14 +143,44 @@ test("[text](url) becomes <link href=url>", () => {
   assert.equal(link!.href, "https://example.com");
 });
 
-test("![alt](src) becomes inline <img>", () => {
+test("image-only paragraph ![alt](src) is lifted to <figure>", () => {
+  // Pandoc-style: a paragraph that is just an image becomes a figure
+  // with the alt text as caption. Templates can then style figures
+  // (numbering, sizing, layout) without post-render HTML surgery.
   const tree = ir("# H\n![alt text](/a.png)");
+  const fig = findFirst(tree, (n) => n.kind === "figure") as
+    | { kind: "figure"; src: string; alt?: string; captionNode?: { children: { kind: string; value?: string }[] } }
+    | null;
+  assert.ok(fig != null);
+  assert.equal(fig!.src, "/a.png");
+  assert.equal(fig!.alt, "alt text");
+  // Caption is set from alt; text node lives inside captionNode.children.
+  assert.ok(fig!.captionNode != null);
+  assert.equal(fig!.captionNode!.children[0]!.kind, "text");
+  assert.equal(fig!.captionNode!.children[0]!.value, "alt text");
+});
+
+test("image without alt is lifted to <figure> with no caption", () => {
+  const tree = ir("# H\n![](/no-alt.png)");
+  const fig = findFirst(tree, (n) => n.kind === "figure") as
+    | { kind: "figure"; src: string; captionNode?: unknown }
+    | null;
+  assert.ok(fig != null);
+  assert.equal(fig!.src, "/no-alt.png");
+  assert.equal(fig!.captionNode, undefined);
+});
+
+test("image inline with prose stays as inline <img>", () => {
+  // Mixed content (image + text in the same paragraph) is not the
+  // figure idiom — leave the image inline.
+  const tree = ir("# H\nLook at this ![alt text](/a.png) here.");
   const img = findFirst(tree, (n) => n.kind === "img") as
     | { kind: "img"; src: string; alt?: string }
     | null;
   assert.ok(img != null);
   assert.equal(img!.src, "/a.png");
-  assert.equal(img!.alt, "alt text");
+  // The lifted-figure path must not fire when the image isn't alone.
+  assert.equal(findFirst(tree, (n) => n.kind === "figure"), null);
 });
 
 test("> blockquote becomes <blockquote>", () => {

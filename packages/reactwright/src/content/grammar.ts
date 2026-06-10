@@ -41,9 +41,9 @@ const SECTION_CHILD_KINDS = new Set<Kind>([
   ...BLOCK_KINDS, "section", "refs"
 ]);
 
-// Document-level — block primitives plus section/refs.
+// Document-level — block primitives plus section/refs/meta.
 const DOCUMENT_CHILD_KINDS = new Set<Kind>([
-  ...BLOCK_KINDS, "section", "refs"
+  ...BLOCK_KINDS, "section", "refs", "meta"
 ]);
 
 type GrammarRule = {
@@ -55,6 +55,8 @@ const GRAMMAR: Partial<Record<Kind, GrammarRule>> = {
   document:   { allowed: DOCUMENT_CHILD_KINDS, message: "`document` may only contain document-level block primitives." },
   section:    { allowed: SECTION_CHILD_KINDS,  message: "`section` may only contain block primitives." },
   blockquote: { allowed: SECTION_CHILD_KINDS,  message: "`blockquote` may only contain block primitives." },
+
+  meta:      { allowed: INLINE_KINDS, message: "`meta` may only contain inline primitives." },
 
   paragraph: { allowed: INLINE_KINDS, message: "`p` may only contain inline primitives." },
   em:        { allowed: INLINE_KINDS, message: "`em` may only contain inline primitives." },

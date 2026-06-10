@@ -7,10 +7,11 @@ import {
   buildBibDataEntries,
   expandRenderProp
 } from "./render-prop.js";
-import type {
-  TemplateChild,
-  TemplateNode,
-  TemplateStyle
+import {
+  PAGE_VARIANT_SEP,
+  type TemplateChild,
+  type TemplateNode,
+  type TemplateStyle
 } from "../template/ir.js";
 
 import type {
@@ -38,7 +39,11 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
   switch (child.kind) {
     case "slot":
       if (child.name !== "body") {
-        return slots[child.name];
+        // Slot names are open (post-meta-primitive). A template may
+        // reference a slot the document never provided; expand to
+        // nothing rather than error so authors can incrementally wire
+        // metadata.
+        return slots[child.name] ?? [];
       }
       // Inside a page-set, the body slot is a marker — the renderer fills
       // it per-section as each section routes to its regime. At the page
@@ -47,7 +52,7 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
         return [{ kind: "body-slot" }];
       }
       ctx.bodyState.consumed = true;
-      return slots[child.name];
+      return slots[child.name] ?? [];
     case "page":
     case "region":
     case "stack":
@@ -79,7 +84,22 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
       //     with the section's content). Sections still stream in document
       //     order — the regime only controls per-section layout, never
       //     content grouping.
-      const setChildren = child.children.flatMap((grandchild) =>
+      //
+      // <page-variant name="V"> children are extracted first and resolved
+      // separately into derived regimes (see expandPageVariants below);
+      // they share the parent's chrome and flow by inheritance, with the
+      // variant's own declarations overlaying per-anchor.
+      const variantNodes: TemplateNode[] = [];
+      const nonVariantChildren: TemplateChild[] = [];
+      for (const grandchild of child.children) {
+        if (grandchild.kind === "page-variant") {
+          variantNodes.push(grandchild);
+        } else {
+          nonVariantChildren.push(grandchild);
+        }
+      }
+
+      const setChildren = nonVariantChildren.flatMap((grandchild) =>
         expandTemplateChild(grandchild, slots, {
           ...ctx,
           currentPageSet: child.name,
@@ -99,7 +119,17 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
       if (bodyFlow.length > 0 || !ctx.regimeFlows.has(child.name)) {
         ctx.regimeFlows.set(child.name, bodyFlow);
       }
-      return chrome;
+
+      const variantChrome = expandPageVariants(
+        child.name,
+        child.style,
+        chrome,
+        bodyFlow,
+        variantNodes,
+        slots,
+        ctx
+      );
+      return [...chrome, ...variantChrome];
     }
     case "rules":
     case "rule":
@@ -211,6 +241,12 @@ export function expandTemplateChild(child: TemplateChild, slots: SlotMap, ctx: R
         .sort((a, b) => a.term.localeCompare(b.term));
       return expandRenderProp(child.render(indexEntries) as ReactNode, ctx);
     }
+    case "page-variant":
+      // Reached only when <page-variant> is placed outside a <page-set>.
+      // The page-set case extracts and processes its own variant
+      // children before recursion; a lone variant here is an authoring
+      // error.
+      throw new Error("`page-variant` must be a direct child of `page-set`.");
   }
 }
 
@@ -347,6 +383,11 @@ export function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx
     case "page-set":
       // Page-sets are flattened by expandTemplateChild (chrome hoisted,
       // body flow stored in regimeFlows); never reached here.
+    case "page-variant":
+      // <page-variant> must live inside a <page-set>. The page-set case
+      // in expandTemplateChild intercepts variant children before they
+      // reach here; if we land here, the author placed <page-variant>
+      // outside a page-set.
     case "rules":
     case "rule":
     case "styles":
@@ -369,4 +410,102 @@ export function resolveTemplateContainer(node: TemplateNode, slots: SlotMap, ctx
     case "text":
       throw new Error("Top-level template text nodes are not supported.");
   }
+}
+
+// Process each <page-variant> inside a page-set. For each variant:
+//
+//   1. Register a derived regime named `<parent>__<variant>` with the
+//      parent's style overlaid by the variant's style.
+//   2. Walk the variant's children → variantChrome + variantFlow.
+//   3. The variant's body flow is its own flow if declared, else the
+//      parent's flow. Stored in regimeFlows[derivedName].
+//   4. The variant's chrome is its own chrome + parent chrome at any
+//      anchor (or layer slot) the variant doesn't itself define.
+//      Cloned per-entry with regime swapped to the derived name; the
+//      DOM keeps one running element per clone (Paged.js needs each
+//      `@page` to reference its own element name).
+//
+// Returns the additional chrome that should be appended to the page's
+// child list (the parent chrome was already returned by the caller).
+function expandPageVariants(
+  parentName: string,
+  parentStyle: TemplateStyle | undefined,
+  parentChrome: ResolvedChild[],
+  parentFlow: ResolvedChild[],
+  variantNodes: TemplateNode[],
+  slots: SlotMap,
+  ctx: ResolveContext
+): ResolvedChild[] {
+  const out: ResolvedChild[] = [];
+
+  for (const variant of variantNodes) {
+    if (variant.kind !== "page-variant") continue;
+    const derivedName = `${parentName}${PAGE_VARIANT_SEP}${variant.name}`;
+
+    const mergedStyle: TemplateStyle | undefined =
+      parentStyle == null && variant.style == null
+        ? undefined
+        : { ...(parentStyle ?? {}), ...(variant.style ?? {}) };
+
+    if (!ctx.pageRegimes.some((r) => r.name === derivedName)) {
+      ctx.pageRegimes.push({
+        name: derivedName,
+        ...(mergedStyle != null ? { style: mergedStyle } : {})
+      });
+    }
+
+    const variantChildren = variant.children.flatMap((g) =>
+      expandTemplateChild(g, slots, {
+        ...ctx,
+        currentPageSet: derivedName,
+        inPageSetBody: true
+      })
+    );
+    const variantChrome: ResolvedChild[] = [];
+    const variantFlow: ResolvedChild[] = [];
+    for (const c of variantChildren) {
+      if (c.kind === "header" || c.kind === "footer" || c.kind === "layer") {
+        variantChrome.push(c);
+      } else {
+        variantFlow.push(c);
+      }
+    }
+
+    // Body flow inheritance: variant's own flow wins if declared,
+    // otherwise the variant inherits the parent's body flow so authors
+    // who only want to change chrome or geometry don't have to repeat
+    // the flow template.
+    if (variantFlow.length > 0) {
+      ctx.regimeFlows.set(derivedName, variantFlow);
+    } else if (parentFlow.length > 0) {
+      ctx.regimeFlows.set(derivedName, parentFlow);
+    }
+
+    // Chrome inheritance: for each parent chrome entry, clone it with
+    // regime swapped to the derived name UNLESS the variant already
+    // defines chrome at the same anchor (header/footer) or has any
+    // layer of its own (layers don't have a per-anchor key so we
+    // dedup at the kind level).
+    const variantHeaderAnchors = new Set<string>();
+    const variantFooterAnchors = new Set<string>();
+    let variantHasLayer = false;
+    for (const c of variantChrome) {
+      if (c.kind === "header") variantHeaderAnchors.add(c.anchor);
+      else if (c.kind === "footer") variantFooterAnchors.add(c.anchor);
+      else if (c.kind === "layer") variantHasLayer = true;
+    }
+    for (const c of parentChrome) {
+      if (c.kind === "header" && !variantHeaderAnchors.has(c.anchor)) {
+        variantChrome.push({ ...c, regime: derivedName });
+      } else if (c.kind === "footer" && !variantFooterAnchors.has(c.anchor)) {
+        variantChrome.push({ ...c, regime: derivedName });
+      } else if (c.kind === "layer" && !variantHasLayer) {
+        variantChrome.push({ ...c, regime: derivedName });
+      }
+    }
+
+    out.push(...variantChrome);
+  }
+
+  return out;
 }

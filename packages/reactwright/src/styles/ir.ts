@@ -6,10 +6,12 @@
 //
 // See docs/styling-spec.md for the design.
 
-// Matches the SlotName union in template/ir.ts. Inlined here to avoid
-// a circular type dependency between the styles IR and the template IR
-// (template IR imports Match from this file).
-type SlotName = "title" | "author" | "abstract" | "body";
+// Matches the SlotName alias in template/ir.ts. Inlined to avoid a
+// circular type dependency between the styles IR and the template IR.
+// Slot names are open strings (post-meta-primitive): the canonical
+// names title / author / abstract / body always exist, and any other
+// name may exist if the document provided a `<meta name="X">` entry.
+type SlotName = string;
 
 export type SourceLoc = {
   file?: string;

@@ -170,6 +170,7 @@ export type ResolvedSectionNode = {
   title: string;
   role?: string;
   page?: string;
+  pageVariant?: string;
   variant?: string;
   className?: string;
   counter?: string;
@@ -225,6 +226,18 @@ export type ResolvedRefsNode = {
   children: ResolvedRefEntryNode[];
 };
 
+// Resolved <meta name="X">…inline…</meta>. The slot map drops these
+// into `slots[name]` so `<slot name="X" />` picks them up. The renderer
+// emits `<div data-meta="X">…</div>` and is fully styleable via the
+// dialect — e.g. `<rule match={{ kind: "meta" }}>` (all metas) or
+// `<rule match={{ kind: "meta", attr: { name: "doi" } }}>` (one name).
+export type ResolvedMetaNode = {
+  kind: "meta";
+  name: string;
+  className?: string;
+  children: ResolvedInlineNode[];
+};
+
 export type ResolvedContentNode =
   | ResolvedTitleNode
   | ResolvedAuthorNode
@@ -261,6 +274,7 @@ export type ResolvedContentNode =
   | ResolvedMathNode
   | ResolvedRefsNode
   | ResolvedRefEntryNode
+  | ResolvedMetaNode
   | ResolvedCiteNode
   | ResolvedIndexEntryNode
   | ResolvedSidenoteNode

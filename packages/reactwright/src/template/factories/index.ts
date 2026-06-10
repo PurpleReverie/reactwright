@@ -2,7 +2,7 @@ import { getTemplateIntrinsic } from "../registry.js";
 import { mergeTemplateStyleGroups, type TemplateProps } from "../prop-readers.js";
 import type { CustomTemplateNode, TemplateNode } from "../ir.js";
 
-import { pageNode, pageSetNode } from "./page.js";
+import { pageNode, pageSetNode, pageVariantNode } from "./page.js";
 import { columnNode, columnsNode, fixedNode, layerNode, regionNode, stackNode, templateRowNode } from "./regions.js";
 import { footerNode, headerNode } from "./margin-matter.js";
 import {
@@ -28,6 +28,7 @@ import { ruleNode, stylesNode } from "./styles.js";
 const FACTORIES: Record<string, (props: TemplateProps) => TemplateNode> = {
   page: pageNode,
   "page-set": pageSetNode,
+  "page-variant": pageVariantNode,
   region: regionNode,
   layer: layerNode,
   stack: stackNode,

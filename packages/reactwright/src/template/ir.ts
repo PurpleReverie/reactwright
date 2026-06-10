@@ -86,7 +86,14 @@ export type TemplateBreaksProps = {
   clearFloats?: boolean;
 };
 
-export type SlotName = "title" | "author" | "abstract" | "body";
+// Slot names are open strings. The canonical names "title", "author",
+// "abstract", and "body" are populated from DocumentNode scalar props
+// and the structural body stream. Any other name is populated by
+// `<meta name="X">` content entries. Templates declare what they
+// expect; the engine does not interpret names.
+export type SlotName = string;
+export const CANONICAL_SLOT_NAMES = ["title", "author", "abstract", "body"] as const;
+export type CanonicalSlotName = typeof CANONICAL_SLOT_NAMES[number];
 
 export type BreakValue = "auto" | "always" | "avoid" | "page" | "left" | "right" | "recto" | "verso";
 
@@ -158,6 +165,32 @@ export type PageSetNode = {
   className?: string;
   children: TemplateChild[];
 };
+
+// `<page-variant name="V">` declared inside a `<page-set name="P">`.
+// Sections opt in via `<section page="P" pageVariant="V">`. The resolver
+// materializes this as a derived regime `P__V` whose style overlays
+// the parent's, whose body flow falls back to the parent's when not
+// declared, and whose chrome inherits the parent's chrome on any
+// anchor the variant doesn't itself define.
+//
+// One level deep only — variants cannot nest variants. The constraint
+// keeps the resolver merge logic bounded and matches the IEEE / book
+// design need ("chapter opener", "feature spread") without opening a
+// rabbit hole.
+export type PageVariantNode = {
+  kind: "page-variant";
+  name: string;
+  style?: TemplateStyle;
+  className?: string;
+  children: TemplateChild[];
+};
+
+// Engine-internal delimiter between page-set name and variant name in
+// the derived regime name (e.g. `main__opener`). Not part of the
+// authoring surface — authors write `pageVariant="opener"`, never see
+// the combined form. Kept as a constant so the resolver and renderer
+// agree on the spelling.
+export const PAGE_VARIANT_SEP = "__";
 
 export type RegionPositioning = {
   fill?: boolean;
@@ -385,7 +418,30 @@ export type MarginAnchor =
   | "right-middle"
   | "right-bottom";
 
-export type MarginMatterWhen = "all" | "first-page" | "not-first-page";
+// `when` policy for chrome (header/footer). Scope is whatever the
+// chrome lives in: chrome inside a `<page-set>` is regime-scoped (so
+// `first-page` means first page of THAT regime); chrome at page root
+// is document-scoped. Authors don't think about that distinction —
+// they just say "first" relative to the chrome's containing scope.
+//
+//   first-page     — first page of the containing scope
+//   not-first-page — every page except the first of the containing scope
+//   left / right   — even/odd pages (CSS `@page :left` / `:right`).
+//                    Useful for two-sided layouts where header text
+//                    differs by side and the inside/outside anchor
+//                    mirroring isn't enough.
+//   blank / not-blank — applies to (or suppresses on) implicit blank
+//                    pages CSS Paged Media inserts to align spreads
+//                    (CSS `@page :blank`). Paged.js support varies.
+//   all (default)  — every page in scope
+export type MarginMatterWhen =
+  | "all"
+  | "first-page"
+  | "not-first-page"
+  | "left"
+  | "right"
+  | "blank"
+  | "not-blank";
 
 export type HeaderNode = {
   kind: "header";
@@ -426,6 +482,7 @@ export type TemplateTextNode = {
 export type TemplateNode =
   | PageNode
   | PageSetNode
+  | PageVariantNode
   | RegionNode
   | StackNode
   | TemplateRowNode
@@ -456,6 +513,7 @@ export type TemplateNode =
 export type TemplateContainerNode =
   | PageNode
   | PageSetNode
+  | PageVariantNode
   | RegionNode
   | StackNode
   | TemplateRowNode

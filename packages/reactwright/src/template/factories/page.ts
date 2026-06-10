@@ -5,7 +5,13 @@ import {
   readRequiredTemplateToken,
   type TemplateProps
 } from "../prop-readers.js";
-import type { PageNode, PageRuleNode, PageSetNode, TemplateNode } from "../ir.js";
+import type {
+  PageNode,
+  PageRuleNode,
+  PageSetNode,
+  PageVariantNode,
+  TemplateNode
+} from "../ir.js";
 
 // `<page>` is dual-shape:
 //   - `<page match="X" use="Y" />` is a page-rule (sits inside <rules>)
@@ -34,6 +40,15 @@ export function pageSetNode(props: TemplateProps): PageSetNode {
     name: readRequiredTemplateToken(props, "name"),
     style: mergeTemplateStyleGroups(props),
     ...(anchors != null ? { anchors } : {}),
+    children: []
+  };
+}
+
+export function pageVariantNode(props: TemplateProps): PageVariantNode {
+  return {
+    kind: "page-variant",
+    name: readRequiredTemplateToken(props, "name"),
+    style: mergeTemplateStyleGroups(props),
     children: []
   };
 }

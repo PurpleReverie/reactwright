@@ -21,9 +21,23 @@ type DocumentProps = {
   children?: ReactNode;
 };
 
+// `<meta name="X">` — document-wide metadata routed into the named
+// slot bucket. Use `value` for a plain-string shorthand or pass inline
+// children for richer markup.
+type MetaProps = {
+  name: string;
+  value?: string;
+  className?: string;
+  children?: ReactNode;
+};
+
 type SectionProps = ContentMetadataProps & {
   title: string;
   counter?: string;
+  // Opts the section into a `<page-variant name="X">` declared on its
+  // page-set. Requires `page` (inherited from ContentMetadataProps) to
+  // be set.
+  pageVariant?: string;
   children?: ReactNode;
 };
 
@@ -399,6 +413,13 @@ type PageSetProps = TemplateStyleBag & {
   anchors?: Record<string, CoordinateAnchorProp>;
 };
 
+// `<page-variant name="V">` inside `<page-set name="P">`. Declares a
+// derived regime `P__V` that overlays the parent's style and inherits
+// its chrome / body flow per-anchor.
+type PageVariantProps = TemplateStyleBag & {
+  name: string;
+};
+
 type RegionProps = TemplateStyleBag & {
   fill?: boolean;
   cover?: boolean;
@@ -468,21 +489,37 @@ type MarginAnchorName =
   | "right-middle"
   | "right-bottom";
 
+// Per-page-instance policy. Scope is whatever the chrome lives in:
+// chrome inside `<page-set>` is regime-scoped (so `first-page` means
+// first page of THAT regime); chrome at page root is document-scoped.
+type MarginMatterWhenName =
+  | "all"
+  | "first-page"
+  | "not-first-page"
+  | "left"
+  | "right"
+  | "blank"
+  | "not-blank";
+
 type HeaderProps = TemplateStyleBag & {
   anchor: MarginAnchorName;
-  when?: "all" | "first-page" | "not-first-page";
+  when?: MarginMatterWhenName;
 };
 
 type FooterProps = TemplateStyleBag & {
   anchor: MarginAnchorName;
-  when?: "all" | "first-page" | "not-first-page";
+  when?: MarginMatterWhenName;
 };
 
 type PageNumberProps = Omit<TemplateStyleBag, "children">;
 type PageCountProps = Omit<TemplateStyleBag, "children">;
 
 type SlotProps = {
-  name: "title" | "author" | "abstract" | "body";
+  // Slot names are open: the canonical names (title, author, abstract,
+  // body) always exist, and any name a `<meta name="X">` provides
+  // becomes a valid slot too. Authoring against an unknown name is
+  // harmless — the slot expands to nothing.
+  name: string;
 };
 
 type RulesProps = {
@@ -560,6 +597,7 @@ declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       document: DocumentProps;
+      meta: MetaProps;
       section: SectionProps;
       heading: HeadingProps;
       p: ParagraphProps;
@@ -605,6 +643,7 @@ declare module "react" {
       image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
+      "page-variant": PageVariantProps;
       region: RegionProps;
       stack: StackProps;
       columns: ColumnsProps;
@@ -629,6 +668,7 @@ declare module "react/jsx-runtime" {
   namespace JSX {
     interface IntrinsicElements {
       document: DocumentProps;
+      meta: MetaProps;
       section: SectionProps;
       heading: HeadingProps;
       p: ParagraphProps;
@@ -674,6 +714,7 @@ declare module "react/jsx-runtime" {
       image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
+      "page-variant": PageVariantProps;
       region: RegionProps;
       stack: StackProps;
       columns: ColumnsProps;
@@ -698,6 +739,7 @@ declare module "react/jsx-dev-runtime" {
   namespace JSX {
     interface IntrinsicElements {
       document: DocumentProps;
+      meta: MetaProps;
       section: SectionProps;
       heading: HeadingProps;
       p: ParagraphProps;
@@ -743,6 +785,7 @@ declare module "react/jsx-dev-runtime" {
       image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
+      "page-variant": PageVariantProps;
       region: RegionProps;
       stack: StackProps;
       columns: ColumnsProps;
@@ -767,6 +810,7 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       document: DocumentProps;
+      meta: MetaProps;
       section: SectionProps;
       heading: HeadingProps;
       p: ParagraphProps;
@@ -812,6 +856,7 @@ declare global {
       image: ImageElementProps;
       page: PageElementProps;
       "page-set": PageSetProps;
+      "page-variant": PageVariantProps;
       region: RegionProps;
       stack: StackProps;
       columns: ColumnsProps;

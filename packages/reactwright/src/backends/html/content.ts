@@ -14,6 +14,7 @@ import type {
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedMathNode,
+  ResolvedMetaNode,
   ResolvedPageBreakNode,
   ResolvedParagraphNode,
   ResolvedPreNode,
@@ -192,6 +193,17 @@ export function renderAuthorNode(node: ResolvedAuthorNode): string {
   return `<p${classAttr(node)}>${escapeHtml(node.value)}</p>`;
 }
 
+// Meta entries from `<meta name="X">…</meta>`. Engine emits a neutral
+// `<div data-meta="X">` wrapper containing the resolved inline
+// children — templates own visual presentation entirely via the styles
+// dialect. The `data-meta` attribute mirrors `kind`/`name` so a rule
+// like `<rule match={{ kind: "meta", attr: { name: "doi" } }}>` can
+// target one variety.
+export function renderMetaNode(node: ResolvedMetaNode): string {
+  const inner = node.children.map(renderInlineNode).join("");
+  return `<div data-meta="${escapeHtml(node.name)}"${classAttr(node)}>${inner}</div>`;
+}
+
 // Section heading renderer (slice 5.1). The slice-2.3 heading-lift
 // (splicing rule-applied classes onto the <h2>) now lives here: the
 // heading's own IR node carries the bindings, so `classAttrWithBase`
@@ -217,10 +229,17 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   // `page=<name>` was set. Paged.js honours `page: <name>` to put the
   // element on a page of that type, and inserts the appropriate
   // page-break between adjacent sections targeting different regimes.
-  const regimeStyle =
+  // When `pageVariant` is set, route to the derived regime
+  // `<page>__<pageVariant>` instead (registered by the resolver from a
+  // `<page-variant>` declared inside the matching `<page-set>`).
+  const effectivePage =
     depth === 1 && typeof node.page === "string" && node.page.length > 0
-      ? ` style="page:${escapeHtml(node.page)};"`
-      : "";
+      ? node.pageVariant != null
+        ? `${node.page}__${node.pageVariant}`
+        : node.page
+      : null;
+  const regimeStyle =
+    effectivePage != null ? ` style="page:${escapeHtml(effectivePage)};"` : "";
   // Slice 5.1: if a section-heading child has been synthesized by the
   // resolver, walk children and dispatch — the heading is now a
   // first-class IR node. Falls back to the legacy inline emit only when
@@ -278,12 +297,9 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
   // each section already implies a page break when the named page
   // changes, so no explicit break marker is needed here.
   const useRegimeFlow =
-    depth === 1 &&
-    typeof node.page === "string" &&
-    node.page.length > 0 &&
-    renderScopeRegimeFlows != null;
+    effectivePage != null && renderScopeRegimeFlows != null;
   if (useRegimeFlow) {
-    const flow = renderScopeRegimeFlows![node.page!];
+    const flow = renderScopeRegimeFlows![effectivePage!];
     if (flow != null && flow.length > 0) {
       const flowHtml = flow.map((c) => renderRegimeFlowNode(c, sectionHtml)).join("");
       // If the regime declares no body-slot AND the section has no
@@ -310,7 +326,7 @@ export function renderSectionNode(node: ResolvedSectionNode, depth = 1): string 
         // they remain document-relative, not page-relative
         // (page-set regime isolation refactor #55 Path C still pending).
         return (
-          `<div style="page:${escapeHtml(node.page!)};min-height:100vh;"></div>` +
+          `<div style="page:${escapeHtml(effectivePage!)};min-height:100vh;"></div>` +
           flowHtml
         );
       }
@@ -327,6 +343,7 @@ export function renderContentNode(node: ResolvedContentNode): string {
   switch (node.kind) {
     case "title":      return renderTitleNode(node);
     case "author":     return renderAuthorNode(node);
+    case "meta":       return renderMetaNode(node);
     case "section":    return renderSectionNode(node);
     case "section-heading": return renderSectionHeadingNode(node);
     case "figure":     return renderFigureNode(node);

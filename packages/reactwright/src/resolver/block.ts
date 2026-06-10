@@ -250,6 +250,7 @@ export function resolveSectionNode(node: SectionNode, depth = 1): ResolvedSectio
     ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
+    ...(node.pageVariant != null ? { pageVariant: node.pageVariant } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
     ...(node.className != null ? { className: node.className } : {}),
     ...(node.counter != null ? { counter: node.counter } : {}),

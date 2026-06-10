@@ -19,14 +19,11 @@ import type { SlotMap } from "./context.js";
 import { resolveTemplateContainer } from "./expand-template.js";
 import { buildSlotMap } from "./slot-map.js";
 import type {
-  ResolvedAuthorNode,
   ResolvedChild,
   ResolvedListOfEntry,
   ResolvedPageNode,
   ResolvedPageRegime,
   ResolvedRefEntryNode,
-  ResolvedSectionNode,
-  ResolvedTitleNode,
   ResolvedTocEntry
 } from "./ir.js";
 
@@ -37,12 +34,14 @@ export function resolveDocument(document: DocumentNode, template: TemplateNode):
 
   const rules = buildRuleMaps(template);
   const rawSlots = buildSlotMap(document);
-  const slots = {
-    title: rawSlots.title.map((node) => assignRoleVariants(node, rules)) as ResolvedTitleNode[],
-    author: rawSlots.author.map((node) => assignRoleVariants(node, rules)) as ResolvedAuthorNode[],
-    abstract: rawSlots.abstract.map((node) => assignRoleVariants(node, rules)) as ResolvedSectionNode[],
-    body: rawSlots.body.map((node) => assignRoleVariants(node, rules))
-  } satisfies SlotMap;
+  // Apply role-variant assignment to every slot bucket. Canonical
+  // buckets (title, author, abstract, body) and meta-driven buckets
+  // share the same uniform ResolvedContentNode[] shape, so one loop
+  // covers them all.
+  const slots: SlotMap = {};
+  for (const [name, bucket] of Object.entries(rawSlots)) {
+    slots[name] = bucket.map((node) => assignRoleVariants(node, rules));
+  }
   const citeKeys = new Set<string>();
   collectCiteKeysFromSlotMap(slots, citeKeys);
   const indexEntries = new Map<string, string[]>();

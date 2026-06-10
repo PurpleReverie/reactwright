@@ -65,10 +65,16 @@ function documentNode(props: ContentProps): SemanticNode {
 
 function sectionNode(props: ContentProps): SemanticNode {
   const counter = getNonEmptyStringIfPresent(props, "counter");
+  const pageVariant = getNonEmptyStringIfPresent(props, "pageVariant");
+  const metadata = readMetadata(props);
+  if (pageVariant != null && metadata.page == null) {
+    throw new Error("`section` `pageVariant` requires `page` to be set.");
+  }
   return {
     kind: "section",
     title: String(props.title ?? ""),
-    ...readMetadata(props),
+    ...metadata,
+    ...(pageVariant != null ? { pageVariant } : {}),
     ...(counter != null ? { counter } : {}),
     children: []
   };
@@ -340,6 +346,28 @@ function pageBreakNode(_props: ContentProps): SemanticNode {
   return { kind: "page-break" } satisfies PageBreakNode;
 }
 
+// Generic document-wide metadata. `<meta name="X">` routes its inline
+// children into the named slot bucket; the template consumes it via
+// `<slot name="X" />`. `value="..."` is a leaf shorthand — the factory
+// pre-creates a single text child so the resolver path is uniform.
+function metaNode(props: ContentProps): SemanticNode {
+  const name = getTrimmedString(props, "name");
+  if (name == null) {
+    throw new Error("`meta` requires a non-empty `name`.");
+  }
+  const value = getString(props, "value");
+  const children =
+    value != null && value.length > 0
+      ? [{ kind: "text" as const, value }]
+      : [];
+  return {
+    kind: "meta",
+    name,
+    ...readClassName(props),
+    children
+  };
+}
+
 function setNode(props: ContentProps): SemanticNode {
   const name = getTrimmedString(props, "running");
   if (name == null) {
@@ -371,6 +399,7 @@ function bibEntryContentContentNode(props: ContentProps): SemanticNode {
 // here plus its factory function above.
 const FACTORIES: Record<string, (props: ContentProps) => SemanticNode> = {
   document: documentNode,
+  meta: metaNode,
   section: sectionNode,
   heading: headingNode,
   p: paragraphNode,

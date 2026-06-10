@@ -17,6 +17,11 @@ import type { DeclarationAst, StylesheetAst } from "./ir.js";
 //       → ::after{content:<expr>;}
 //   break: before(VAL) after(VAL) inside(VAL)
 //       → break-* + page-break-* (legacy fallback)
+//   flow-span: container | none
+//       → column-span: all | none. A render-target-agnostic concept
+//         for "this element escapes its local flow." HTML/Paged.js
+//         lowers to column-span; a future backend would translate to
+//         its own equivalent.
 //
 // Authors who don't reach for promoted concepts get raw pass-through
 // CSS — those properties are emitted unchanged.
@@ -62,6 +67,23 @@ function lowerClassRule(className: string, decls: DeclarationAst[]): string[] {
       case "suffix":
         afterContent.push(d.value);
         break;
+
+      case "flow-span": {
+        // Promoted concept: "this element escapes its local flow."
+        // HTML backend lowers to CSS `column-span`. Other values pass
+        // through so authors can still write raw column-span values if
+        // they need finer control (and have accepted the portability
+        // cost).
+        const v = d.value.trim();
+        if (v === "container") {
+          baseDeclarations.push("column-span:all;");
+        } else if (v === "none") {
+          baseDeclarations.push("column-span:none;");
+        } else {
+          baseDeclarations.push(`column-span:${v};`);
+        }
+        break;
+      }
 
       case "break": {
         const parsed = parseBreakValue(d.value);

@@ -222,8 +222,11 @@ function applyPseudo(l: Lexer, match: Match, name: string): Match {
       expectChar(l, "(");
       const name = readIdent(l);
       expectChar(l, ")");
-      if (name !== "title" && name !== "author" && name !== "abstract" && name !== "body") {
-        throw new StylesParseError(`Unknown slot name '${name}' (expected title|author|abstract|body)`, loc(l));
+      // Slot names are open (post-meta-primitive). Any identifier is
+      // accepted; matching against an empty bucket is a no-op at apply
+      // time.
+      if (name.length === 0) {
+        throw new StylesParseError("Empty slot name in :slot()", loc(l));
       }
       return { ...match, slot: name };
     }

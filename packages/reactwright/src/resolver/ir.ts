@@ -38,6 +38,7 @@ export type {
   ResolvedListItemNode,
   ResolvedListNode,
   ResolvedMathNode,
+  ResolvedMetaNode,
   ResolvedPageBreakNode,
   ResolvedParagraphNode,
   ResolvedPreNode,

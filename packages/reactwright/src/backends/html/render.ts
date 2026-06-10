@@ -104,8 +104,14 @@ const STATIC_DEFAULTS_CSS = [
   // on the final line.
   ".reactwright-flow p{text-align-last:left;}",
   // Inline code: monospace font only. No background, padding, or
-  // border — those are opinionated cosmetics.
-  "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;}",
+  // border — those are opinionated cosmetics. The overflow-wrap rule
+  // is layout safety, not styling: long unbreakable strings in <code>
+  // (URLs, identifiers, hashes) must not escape the column.
+  "code{font-family:'SFMono-Regular',Consolas,Menlo,monospace;overflow-wrap:anywhere;word-break:break-word;}",
+  // Block <pre>: switch to pre-wrap so long source lines wrap inside
+  // the column instead of overflowing the page. Templates that want
+  // strict no-wrap behavior can override on .reactwright-flow pre.
+  "pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;}",
   // Table cells need border-collapse for any border styling to
   // compose; width:100% is a sensible default. No cell borders.
   "table{border-collapse:collapse;width:100%;}",

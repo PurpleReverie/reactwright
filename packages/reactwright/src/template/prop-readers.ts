@@ -201,15 +201,27 @@ export function readMarginAnchor(props: TemplateProps, kind: "header" | "footer"
 // `when` policy for margin matter (header/footer): controls whether
 // the box appears on the first page, every page except the first, or
 // always.
+const MARGIN_MATTER_WHEN_VALUES = [
+  "all",
+  "first-page",
+  "not-first-page",
+  "left",
+  "right",
+  "blank",
+  "not-blank"
+] as const;
+
 export function readMarginMatterWhen(
   props: TemplateProps,
   kind: "header" | "footer"
 ): MarginMatterWhen | undefined {
   if (props.when == null) return undefined;
-  if (props.when === "all" || props.when === "first-page" || props.when === "not-first-page") {
-    return props.when;
+  if ((MARGIN_MATTER_WHEN_VALUES as readonly string[]).includes(props.when as string)) {
+    return props.when as MarginMatterWhen;
   }
-  throw new Error(`\`${kind}\` \`when\` must be \`all\`, \`first-page\`, or \`not-first-page\`.`);
+  throw new Error(
+    `\`${kind}\` \`when\` must be one of ${MARGIN_MATTER_WHEN_VALUES.map((v) => `\`${v}\``).join(", ")}.`
+  );
 }
 
 export function readLayerWhen(props: TemplateProps): LayerWhen | undefined {

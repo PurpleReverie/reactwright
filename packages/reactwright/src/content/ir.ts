@@ -255,6 +255,10 @@ export type SectionNode = {
   title: string;
   role?: string;
   page?: string;
+  // Opts into a `<page-variant name="X">` declared inside the section's
+  // page-set. Requires `page` to be set. Renders as `page:<set>__<X>`
+  // so Paged.js routes the section to the derived regime.
+  pageVariant?: string;
   variant?: string;
   className?: string;
   counter?: string;
@@ -280,6 +284,20 @@ export type SetRunningNode = {
   kind: "set-running";
   name: string;
   value: string;
+};
+
+// Generic document-wide metadata carrier. Each <meta name="X"> entry
+// becomes a named slot bucket the template can consume via
+// <slot name="X" />. The engine does not interpret `name` — title,
+// author, doi, keywords, affiliation, … are all opaque labels routed
+// from content to template. Title and author also have scalar props on
+// DocumentNode for back-compat; meta entries with those names are
+// concatenated into the same slot bucket.
+export type MetaNode = {
+  kind: "meta";
+  name: string;
+  className?: string;
+  children: InlineNode[];
 };
 
 export type DocumentNode = {
@@ -324,10 +342,11 @@ export type SemanticBlockChild =
   | PageBreakNode
   | SetRunningNode;
 
-export type DocumentChild = SemanticBlockChild;
+export type DocumentChild = SemanticBlockChild | MetaNode;
 
 export type SemanticNode =
   | DocumentNode
+  | MetaNode
   | SectionNode
   | ParagraphNode
   | FigureNode
@@ -367,6 +386,7 @@ export type SemanticNode =
 
 export type SemanticContainerNode =
   | DocumentNode
+  | MetaNode
   | SectionNode
   | ParagraphNode
   | FigureNode

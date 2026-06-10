@@ -224,6 +224,7 @@ export function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
   const atPageLeft = atPage(" :left");
   const atPageRight = atPage(" :right");
   const atPageFirst = atPage(" :first");
+  const atPageBlank = atPage(" :blank");
 
   for (const e of entries) {
     const box = marginAnchorToCssBox(e.anchor);
@@ -241,6 +242,16 @@ export function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
 
       if (e.when === "first-page") {
         rules.push(`${atPageFirst(e)}{${leftBox}{content:element(${e.flowName});}${rightBox}{content:element(${e.flowName});}}`);
+      } else if (e.when === "left") {
+        rules.push(`${atPageLeft(e)}{${leftBox}{content:element(${e.flowName});}}`);
+      } else if (e.when === "right") {
+        rules.push(`${atPageRight(e)}{${rightBox}{content:element(${e.flowName});}}`);
+      } else if (e.when === "blank") {
+        rules.push(`${atPageBlank(e)}{${leftBox}{content:element(${e.flowName});}${rightBox}{content:element(${e.flowName});}}`);
+      } else if (e.when === "not-blank") {
+        rules.push(`${atPageLeft(e)}{${leftBox}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageRight(e)}{${rightBox}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageBlank(e)}{${leftBox}{content:none;}${rightBox}{content:none;}}`);
       } else {
         rules.push(`${atPageLeft(e)}{${leftBox}{content:element(${e.flowName});}}`);
         rules.push(`${atPageRight(e)}{${rightBox}{content:element(${e.flowName});}}`);
@@ -254,6 +265,15 @@ export function buildMarginMatterCss(entries: MarginMatterEntry[]): string {
       } else if (e.when === "not-first-page") {
         rules.push(`${atPageDefault(e)}{${box}{content:element(${e.flowName});}}`);
         rules.push(`${atPageFirst(e)}{${box}{content:none;}}`);
+      } else if (e.when === "left") {
+        rules.push(`${atPageLeft(e)}{${box}{content:element(${e.flowName});}}`);
+      } else if (e.when === "right") {
+        rules.push(`${atPageRight(e)}{${box}{content:element(${e.flowName});}}`);
+      } else if (e.when === "blank") {
+        rules.push(`${atPageBlank(e)}{${box}{content:element(${e.flowName});}}`);
+      } else if (e.when === "not-blank") {
+        rules.push(`${atPageDefault(e)}{${box}{content:element(${e.flowName});}}`);
+        rules.push(`${atPageBlank(e)}{${box}{content:none;}}`);
       } else {
         rules.push(`${atPageDefault(e)}{${box}{content:element(${e.flowName});}}`);
       }
