@@ -134,9 +134,18 @@ export const IEEE_REPORT_STYLES = `
     numbering: counter(ieeer-figure) "Fig. $ieeer-figure. ";
   }
 
+  /*
+   * Ported from template-ieee so report tables render with the same
+   * "thin top/bottom rule on the header, thin bottom rule on the last
+   * row" chrome IEEE expects. The conference template's defaults are
+   * already battle-tested for the same paper grid; reuse them here
+   * with the `ieeer-` prefix so report-only style overrides remain
+   * isolated.
+   */
   .ieeer-table {
     margin: 10pt 0;
     border-collapse: collapse;
+    border-spacing: 0;
     font-size: 9pt;
     width: 100%;
     table-layout: fixed;
@@ -144,21 +153,24 @@ export const IEEE_REPORT_STYLES = `
   }
 
   .ieeer-table-cell {
-    padding: 2pt 4pt;
+    padding: 3pt 5pt;
     text-align: left;
     text-indent: 0;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    vertical-align: top;
   }
 
   .ieeer-table-header-cell {
     font-weight: bold;
-    border-top: 0.5pt solid #000;
+    text-align: left;
+    border-top: 0.75pt solid #000;
     border-bottom: 0.5pt solid #000;
+    padding: 4pt 5pt;
   }
 
   .ieeer-table-last-row-cell {
-    border-bottom: 0.5pt solid #000;
+    border-bottom: 0.75pt solid #000;
   }
 
   .ieeer-table-caption {
