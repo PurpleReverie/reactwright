@@ -136,10 +136,10 @@ export const IEEE_REPORT_STYLES = `
 
   /*
    * Ported from template-ieee so report tables render with the same
-   * "thin top/bottom rule on the header, thin bottom rule on the last
-   * row" chrome IEEE expects. The conference template's defaults are
-   * already battle-tested for the same paper grid; reuse them here
-   * with the `ieeer-` prefix so report-only style overrides remain
+   * thin-top / thin-bottom rule on the header and thin-bottom rule
+   * on the last row that IEEE expects. The conference template's
+   * defaults are battle-tested for the same paper grid; reuse them
+   * here with the ieeer- prefix so report-only overrides remain
    * isolated.
    */
   .ieeer-table {
