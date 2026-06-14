@@ -1,7 +1,7 @@
 import Reconciler from "react-reconciler";
 import type { ReactNode } from "react";
 
-import { contentHostConfig, type ContentContainer } from "./host-config.js";
+import { contentHostConfig, withActiveContainer, type ContentContainer } from "./host-config.js";
 import type { DocumentNode, SemanticNode } from "./ir.js";
 
 // Module-level reconciler instance. Holds no per-render mutable state —
@@ -30,8 +30,10 @@ function renderToContainer(node: ReactNode): ContentContainer {
     null
   );
 
-  contentReconciler.updateContainerSync(node, root, null, null);
-  contentReconciler.flushSyncWork();
+  withActiveContainer(container, () => {
+    contentReconciler.updateContainerSync(node, root, null, null);
+    contentReconciler.flushSyncWork();
+  });
   return container;
 }
 

@@ -96,6 +96,52 @@ test("content renderer rejects block children inside p", () => {
   );
 });
 
+// RW-1 — factory exceptions used to be silently swallowed; the user
+// only saw "Content renderer produced no root node." The wrapper
+// error now carries the intrinsic name and the underlying message.
+test("factory errors surface with the intrinsic name and original message", () => {
+  let thrown: Error | null = null;
+  try {
+    renderContentToIR(
+      <document title="Heading test">
+        {/* `<heading>` requires a non-empty `title`. */}
+        <heading level={1} title="" />
+      </document>
+    );
+  } catch (err) {
+    thrown = err as Error;
+  }
+  assert.ok(thrown, "expected an error to be thrown");
+  assert.match(thrown!.message, /\[reactwright\] <heading>/);
+  assert.match(thrown!.message, /title/);
+  assert.doesNotMatch(thrown!.message, /produced no root node/);
+});
+
+// RW-2 — grammar violations carried informative per-rule messages
+// that never reached the user. The wrapper now exposes them and adds
+// the parent > child kinds as context.
+test("grammar violations surface with parent>child context and the rule message", () => {
+  let thrown: Error | null = null;
+  try {
+    renderContentToIR(
+      <document title="Grammar test">
+        <section title="L">
+          <list>
+            {/* `list` may only contain `item` children. */}
+            <p>not allowed</p>
+          </list>
+        </section>
+      </document>
+    );
+  } catch (err) {
+    thrown = err as Error;
+  }
+  assert.ok(thrown, "expected an error to be thrown");
+  assert.match(thrown!.message, /\[reactwright\] <list> > <paragraph>/);
+  assert.match(thrown!.message, /may only contain `item` children/);
+  assert.doesNotMatch(thrown!.message, /produced no root node/);
+});
+
 test("content renderer carries routing props and page-break primitive", () => {
   const result = renderContentToIR(
     <document title="Paged Test">
