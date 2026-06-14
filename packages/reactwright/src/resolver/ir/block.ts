@@ -197,7 +197,14 @@ export type ResolvedHeadingNode = {
   id?: string;
   className?: string;
   level: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Plain-text projection. Always populated; used for running strings, TOC, etc. */
   title: string;
+  /**
+   * Inline marks form. When non-empty, the renderer uses this instead
+   * of `title`. Lets headings carry `<em>`, `<cite>`, `<m>` and friends
+   * (RW-6).
+   */
+  children?: ResolvedInlineNode[];
   role?: string;
   page?: string;
   variant?: string;

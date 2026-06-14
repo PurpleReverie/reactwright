@@ -104,8 +104,9 @@ test("factory errors surface with the intrinsic name and original message", () =
   try {
     renderContentToIR(
       <document title="Heading test">
-        {/* `<heading>` requires a non-empty `title`. */}
-        <heading level={1} title="" />
+        {/* `<heading>` `level` must be 1-6 — invalid by design. */}
+        {/* @ts-expect-error invalid level on purpose */}
+        <heading level={7} title="Too tall" />
       </document>
     );
   } catch (err) {
@@ -113,7 +114,7 @@ test("factory errors surface with the intrinsic name and original message", () =
   }
   assert.ok(thrown, "expected an error to be thrown");
   assert.match(thrown!.message, /\[reactwright\] <heading>/);
-  assert.match(thrown!.message, /title/);
+  assert.match(thrown!.message, /level/);
   assert.doesNotMatch(thrown!.message, /produced no root node/);
 });
 
@@ -272,7 +273,7 @@ test("content renderer carries id prop on block primitives", () => {
         title: "Introduction",
         children: [{ kind: "paragraph", id: "opening", children: [{ kind: "text", value: "Opening line." }] }]
       },
-      { kind: "heading", id: "part-two", level: 1, title: "Part Two" }
+      { kind: "heading", id: "part-two", level: 1, title: "Part Two", children: [] }
     ]
   });
 });
@@ -289,8 +290,8 @@ test("content renderer supports standalone heading primitive", () => {
     kind: "document",
     title: "Headings",
     children: [
-      { kind: "heading", level: 1, title: "Part One" },
-      { kind: "heading", level: 3, title: "Side note", role: "ornament" }
+      { kind: "heading", level: 1, title: "Part One", children: [] },
+      { kind: "heading", level: 3, title: "Side note", role: "ornament", children: [] }
     ]
   });
 });
@@ -597,6 +598,25 @@ test("list type=\"ul\" emits an unordered list", () => {
     )
   );
   assert.match(html, /<ul[^>]*><li><p>a<\/p><\/li><\/ul>/);
+});
+
+// RW-6 — `<heading>` accepts children with inline marks. Previously
+// only a string `title` was accepted, which made `<em>` / `<cite>` /
+// `<m>` impossible inside headings.
+test("heading accepts inline children for marks like em/strong", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Inline heading" author="T">
+          <heading level={2}>
+            An <em>empirical</em> study
+          </heading>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<h2[^>]*>An <em>empirical<\/em> study<\/h2>/);
 });
 
 // `<row header>` sugar: every cell inside a header row should render

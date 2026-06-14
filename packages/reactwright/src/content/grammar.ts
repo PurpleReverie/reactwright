@@ -59,6 +59,7 @@ const GRAMMAR: Partial<Record<Kind, GrammarRule>> = {
   meta:      { allowed: INLINE_KINDS, message: "`meta` may only contain inline primitives." },
 
   paragraph: { allowed: INLINE_KINDS, message: "`p` may only contain inline primitives." },
+  heading:   { allowed: INLINE_KINDS, message: "`heading` may only contain inline primitives." },
   em:        { allowed: INLINE_KINDS, message: "`em` may only contain inline primitives." },
   strong:    { allowed: INLINE_KINDS, message: "`strong` may only contain inline primitives." },
   link:      { allowed: INLINE_KINDS, message: "`link` may only contain inline primitives." },

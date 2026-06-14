@@ -276,7 +276,20 @@ export type HeadingNode = {
   kind: "heading";
   id?: string;
   level: 1 | 2 | 3 | 4 | 5 | 6;
+  /**
+   * Plain-string heading text. Kept for back-compat — callers that
+   * want inline marks (`<em>`, `<cite>`, `<m>`) should supply
+   * `children` instead. Always populated, so renderers and the
+   * resolver can rely on it; when `children` are present, the
+   * resolver derives a plain-text version here for running strings
+   * and the TOC.
+   */
   title: string;
+  /**
+   * Inline-bearing form. When non-empty, this is the authoritative
+   * rendered content; `title` is the plain-text projection.
+   */
+  children?: InlineNode[];
   role?: string;
   page?: string;
   variant?: string;

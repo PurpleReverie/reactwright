@@ -186,7 +186,13 @@ export function renderTitleNode(node: ResolvedTitleNode): string {
 export function renderHeadingNode(node: ResolvedHeadingNode): string {
   const variantAttr = node.variant != null ? ` data-variant="${escapeHtml(node.variant)}"` : "";
   const tag = `h${node.level}`;
-  return `<${tag}${idAttr(node.id)}${variantAttr}${classAttr(node)}>${escapeHtml(node.title)}</${tag}>`;
+  // Prefer inline-marks children when present; fall back to the
+  // plain-text `title` for the legacy string-only form.
+  const body =
+    node.children != null && node.children.length > 0
+      ? node.children.map(renderInlineNode).join("")
+      : escapeHtml(node.title);
+  return `<${tag}${idAttr(node.id)}${variantAttr}${classAttr(node)}>${body}</${tag}>`;
 }
 
 export function renderAuthorNode(node: ResolvedAuthorNode): string {

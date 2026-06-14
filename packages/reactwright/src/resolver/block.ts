@@ -168,16 +168,50 @@ export function resolveDefNode(node: DefNode): ResolvedDefNode {
 }
 
 export function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
+  const inlineChildren = node.children ?? [];
+  const resolvedChildren = inlineChildren.map(resolveInlineNode);
+  // If the author supplied inline children but no explicit `title`,
+  // derive a plain-text projection so running-strings / TOC / aria
+  // labels still have something to lift. Strips marks and keeps text.
+  const derivedTitle =
+    node.title.length === 0 && inlineChildren.length > 0
+      ? inlineToPlainText(inlineChildren)
+      : node.title;
   return {
     kind: "heading",
     level: node.level,
-    title: node.title,
+    title: derivedTitle,
+    ...(resolvedChildren.length > 0 ? { children: resolvedChildren } : {}),
     ...(node.id != null ? { id: node.id } : {}),
     ...(node.role != null ? { role: node.role } : {}),
     ...(node.page != null ? { page: node.page } : {}),
     ...(node.variant != null ? { variant: node.variant } : {}),
     ...(node.className != null ? { className: node.className } : {})
   };
+}
+
+function inlineToPlainText(nodes: import("../content/ir.js").InlineNode[]): string {
+  let out = "";
+  for (const n of nodes) {
+    switch (n.kind) {
+      case "text":  out += n.value; break;
+      case "em":
+      case "strong":
+      case "link":
+      case "sub":
+      case "sup":
+        out += inlineToPlainText(n.children as import("../content/ir.js").InlineNode[]);
+        break;
+      case "code":
+        for (const t of n.children) out += t.value;
+        break;
+      case "br": out += " "; break;
+      // ref / footnote / m / cite / index / sidenote / img have no
+      // meaningful plain-text projection in a heading; skip.
+      default: break;
+    }
+  }
+  return out.trim();
 }
 
 export function resolveDefsNode(node: DefsNode): ResolvedDefsNode {

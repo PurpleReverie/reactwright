@@ -85,14 +85,19 @@ function headingNode(props: ContentProps): SemanticNode {
   if (![1, 2, 3, 4, 5, 6].includes(level)) {
     throw new Error("`heading` `level` must be 1-6.");
   }
-  const title = getString(props, "title");
-  if (title == null || title.length === 0) {
-    throw new Error("`heading` requires a non-empty `title`.");
-  }
+  // Two equivalent shapes: `title="…"` (string-only, back-compat) and
+  // inline-bearing children (`<heading level={2}>An <em>empirical</em>
+  // study</heading>`). The reconciler appends children into the IR
+  // node's `children` array via the grammar table; if neither form is
+  // populated we wait for the grammar to fail, not the factory — that
+  // way the empty-children case still flows through the same error
+  // surfacing as inline marks.
+  const title = getString(props, "title") ?? "";
   return {
     kind: "heading",
     level: level as 1 | 2 | 3 | 4 | 5 | 6,
     title,
+    children: [],
     ...readMetadata(props)
   };
 }

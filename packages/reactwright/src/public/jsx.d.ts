@@ -43,7 +43,16 @@ type SectionProps = ContentMetadataProps & {
 
 type HeadingProps = ContentMetadataProps & {
   level: 1 | 2 | 3 | 4 | 5 | 6;
-  title: string;
+  /**
+   * Plain-string heading text. Either this or `children` must be
+   * supplied. Use `children` when the heading needs inline marks
+   * (`<em>`, `<cite>`, `<m>`); use `title` for the string-only
+   * common case (running strings still pull from the plain-text
+   * projection, which the engine derives from `children` when
+   * `title` is omitted).
+   */
+  title?: string;
+  children?: ReactNode;
 };
 
 type ParagraphProps = ContentMetadataProps & {
