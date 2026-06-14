@@ -168,7 +168,7 @@ export function resolveDefNode(node: DefNode): ResolvedDefNode {
 }
 
 export function resolveHeadingNode(node: HeadingNode): ResolvedHeadingNode {
-  const inlineChildren = node.children ?? [];
+  const inlineChildren = node.children;
   const resolvedChildren = inlineChildren.map(resolveInlineNode);
   // If the author supplied inline children but no explicit `title`,
   // derive a plain-text projection so running-strings / TOC / aria

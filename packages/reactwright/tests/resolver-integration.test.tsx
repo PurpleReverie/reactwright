@@ -327,7 +327,7 @@ test("bib-data without a function child throws a clear error at resolve time", (
   const template = renderTemplateToIR(
     <page>
       <region>
-        {/* @ts-expect-error - intentionally missing the render-prop child */}
+        {/* intentionally missing the render-prop / children — caught at expand time */}
         <bib-data />
       </region>
     </page>

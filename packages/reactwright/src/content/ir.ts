@@ -287,9 +287,11 @@ export type HeadingNode = {
   title: string;
   /**
    * Inline-bearing form. When non-empty, this is the authoritative
-   * rendered content; `title` is the plain-text projection.
+   * rendered content; `title` is the plain-text projection. Always
+   * present (the factory initialises to `[]`); test for inline-marks
+   * form via `children.length > 0`.
    */
-  children?: InlineNode[];
+  children: InlineNode[];
   role?: string;
   page?: string;
   variant?: string;
