@@ -14,23 +14,26 @@ export function Toc({
   title = "Contents"
 }: { title?: string } = {}): React.ReactElement {
   return (
-    <toc-data>
-      {(entries) => (
-        <section title={title} role="toc">
-          <list ordered>
-            {entries.map((e) => (
-              <item key={e.id} className="reactwright-toc-entry">
-                <p>
-                  <link href={`#${e.id}`} className="reactwright-toc-link">
-                    {e.title}
-                  </link>
-                  <link href={`#${e.id}`} className="reactwright-toc-page" />
-                </p>
-              </item>
-            ))}
-          </list>
-        </section>
-      )}
-    </toc-data>
+    <toc-data
+      render={(entries) => {
+        if (entries.length === 0) return null;
+        return (
+          <section title={title} role="toc">
+            <list ordered>
+              {entries.map((e) => (
+                <item key={e.id} className="reactwright-toc-entry">
+                  <p>
+                    <link href={`#${e.id}`} className="reactwright-toc-link">
+                      {e.title}
+                    </link>
+                    <link href={`#${e.id}`} className="reactwright-toc-page" />
+                  </p>
+                </item>
+              ))}
+            </list>
+          </section>
+        );
+      }}
+    />
   );
 }

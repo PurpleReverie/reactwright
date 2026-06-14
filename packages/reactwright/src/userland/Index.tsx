@@ -13,27 +13,30 @@ export function Index({
   title = "Index"
 }: { title?: string } = {}): React.ReactElement {
   return (
-    <index-data>
-      {(entries) => (
-        <section title={title} role="index">
-          <list>
-            {entries.map((e) => (
-              <item key={e.term}>
-                <p className="reactwright-index-pagerefs">
-                  {e.term}{" "}
-                  {e.anchorIds.map((id) => (
-                    <link
-                      key={id}
-                      href={`#${id}`}
-                      className="reactwright-index-pageref"
-                    />
-                  ))}
-                </p>
-              </item>
-            ))}
-          </list>
-        </section>
-      )}
-    </index-data>
+    <index-data
+      render={(entries) => {
+        if (entries.length === 0) return null;
+        return (
+          <section title={title} role="index">
+            <list>
+              {entries.map((e) => (
+                <item key={e.term}>
+                  <p className="reactwright-index-pagerefs">
+                    {e.term}{" "}
+                    {e.anchorIds.map((id) => (
+                      <link
+                        key={id}
+                        href={`#${id}`}
+                        className="reactwright-index-pageref"
+                      />
+                    ))}
+                  </p>
+                </item>
+              ))}
+            </list>
+          </section>
+        );
+      }}
+    />
   );
 }

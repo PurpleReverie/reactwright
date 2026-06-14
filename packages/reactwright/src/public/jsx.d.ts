@@ -216,7 +216,10 @@ type BibDataEntryProp = {
 };
 
 type BibDataProps = {
-  children: (entries: BibDataEntryProp[]) => ReactNode;
+  /** Preferred form — passing the render fn via a prop avoids React's "Functions are not valid as a React child" warning. */
+  render?: (entries: BibDataEntryProp[]) => ReactNode;
+  /** Legacy: render fn passed as children. Still supported. */
+  children?: (entries: BibDataEntryProp[]) => ReactNode;
 };
 
 type TocDataEntryProp = {
@@ -226,7 +229,8 @@ type TocDataEntryProp = {
 };
 
 type TocDataProps = {
-  children: (entries: TocDataEntryProp[]) => ReactNode;
+  render?: (entries: TocDataEntryProp[]) => ReactNode;
+  children?: (entries: TocDataEntryProp[]) => ReactNode;
 };
 
 type ListOfDataEntryProp = {
@@ -236,7 +240,8 @@ type ListOfDataEntryProp = {
 
 type ListOfDataProps = {
   of: "figure" | "table" | "equation";
-  children: (entries: ListOfDataEntryProp[]) => ReactNode;
+  render?: (entries: ListOfDataEntryProp[]) => ReactNode;
+  children?: (entries: ListOfDataEntryProp[]) => ReactNode;
 };
 
 type IndexDataEntryProp = {
@@ -245,7 +250,8 @@ type IndexDataEntryProp = {
 };
 
 type IndexDataProps = {
-  children: (entries: IndexDataEntryProp[]) => ReactNode;
+  render?: (entries: IndexDataEntryProp[]) => ReactNode;
+  children?: (entries: IndexDataEntryProp[]) => ReactNode;
 };
 
 type BibEntryContentProps = {

@@ -15,23 +15,27 @@ export function ListOf({
   title?: string;
 }): React.ReactElement {
   return (
-    <list-of-data of={of}>
-      {(entries) => (
-        <section title={title ?? ""} role={`list-of-${of}`}>
-          <list ordered>
-            {entries.map((e) => (
-              <item key={e.id} className="reactwright-list-of-entry">
-                <p>
-                  <link href={`#${e.id}`} className="reactwright-list-of-link">
-                    {e.caption}
-                  </link>
-                  <link href={`#${e.id}`} className="reactwright-list-of-page" />
-                </p>
-              </item>
-            ))}
-          </list>
-        </section>
-      )}
-    </list-of-data>
+    <list-of-data
+      of={of}
+      render={(entries) => {
+        if (entries.length === 0) return null;
+        return (
+          <section title={title ?? ""} role={`list-of-${of}`}>
+            <list ordered>
+              {entries.map((e) => (
+                <item key={e.id} className="reactwright-list-of-entry">
+                  <p>
+                    <link href={`#${e.id}`} className="reactwright-list-of-link">
+                      {e.caption}
+                    </link>
+                    <link href={`#${e.id}`} className="reactwright-list-of-page" />
+                  </p>
+                </item>
+              ))}
+            </list>
+          </section>
+        );
+      }}
+    />
   );
 }

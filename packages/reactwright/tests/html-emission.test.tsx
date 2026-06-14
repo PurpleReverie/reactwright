@@ -298,3 +298,52 @@ test("cite + bibliography (userland) emit a bibliography section keyed to cited 
   // The ref-entry inline body survives substitution (the <em> renders).
   assert.match(html, /<em>Robust Results\.<\/em>/);
 });
+
+// RW-5 / RW-7 — when no `<refs>` block is supplied (and no cites
+// fire), Bibliography emits nothing rather than producing an orphan
+// "References" / "Works Cited" header on a blank trailing page.
+test("userland Bibliography emits no section when there are no refs", () => {
+  const documentTree = renderContentToIR(
+    <document title="No refs">
+      <section title="Body">
+        <p>Nothing to cite here.</p>
+      </section>
+    </document>
+  );
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <slot name="body" />
+        <Bibliography title="References" />
+      </stack>
+    </page>
+  );
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+  // The static CSS still references `data-counter="reactwright-bib"`
+  // (for cite cross-refs at large), so assert only that no `<section>`
+  // element actually carries that data attribute in the rendered body.
+  assert.doesNotMatch(html, /<section[^>]*data-counter="reactwright-bib"/);
+  assert.doesNotMatch(html, /References<\/h2>|Works Cited<\/h2>/);
+});
+
+// Companion: userland Toc emits nothing when no sections exist that
+// could populate a TOC. The condition is rarer in practice (a TOC
+// over a document with zero h2-level sections is unusual) but the
+// same guard applies and removes the orphan "Contents" heading.
+test("userland Toc emits no section when there are no entries", () => {
+  const documentTree = renderContentToIR(
+    <document title="No sections">
+      <p>Just a paragraph at the root.</p>
+    </document>
+  );
+  const template = (
+    <page page={{ size: "a4", margin: "20mm" }}>
+      <stack>
+        <Toc title="Contents" />
+        <slot name="body" />
+      </stack>
+    </page>
+  );
+  const html = renderResolvedToHTML(resolveDocument(documentTree, renderTemplateToIR(template)));
+  assert.doesNotMatch(html, /Contents<\/h2>/);
+});
