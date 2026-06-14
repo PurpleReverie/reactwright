@@ -77,14 +77,10 @@ export const ESSAY_STYLES = `
   }
 
   .essay-blockquote-p {
-    margin: 0 0 6pt 0;
+    margin: 0;
     text-indent: 0;
     text-align: left;
     line-height: 1.0;
-  }
-
-  .essay-blockquote-p:last-child {
-    margin-bottom: 0;
   }
 
   .essay-bibliography {
