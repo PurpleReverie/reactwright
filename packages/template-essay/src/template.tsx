@@ -61,16 +61,30 @@ export const ESSAY_STYLES = `
     text-indent: 0;
   }
 
+  /*
+   * MLA-style block quotation: indent the entire block 0.5" from the
+   * left margin, single-space the contents, and drop the first-line
+   * indent. Add vertical breathing room above and below so the offset
+   * reads visually even when the surrounding body is double-spaced.
+   * (See MLA 9th edition §1.3.6.)
+   */
   .essay-blockquote {
-    margin: 6pt 0.5in;
+    margin: 12pt 0 12pt 0.5in;
+    padding: 0;
     font-style: normal;
     text-indent: 0;
+    line-height: 1.0;
   }
 
   .essay-blockquote-p {
-    margin: 0;
+    margin: 0 0 6pt 0;
     text-indent: 0;
     text-align: left;
+    line-height: 1.0;
+  }
+
+  .essay-blockquote-p:last-child {
+    margin-bottom: 0;
   }
 
   .essay-bibliography {
