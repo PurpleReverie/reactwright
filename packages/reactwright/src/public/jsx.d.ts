@@ -83,6 +83,12 @@ type RowProps = {
   key?: Key | null;
   className?: string;
   gap?: string;
+  /**
+   * Content-side only: when true, every child `<cell>` is treated as a
+   * header cell (rendered as `<th>` by the HTML backend). Sugar for the
+   * common "first row is header" pattern.
+   */
+  header?: boolean;
   // Template-side style groups (no-op on content-side):
   style?: Record<string, unknown>;
   typography?: TemplateTypographyProps;
@@ -265,6 +271,8 @@ type PreProps = WithClassName & {
 
 type ListProps = ContentMetadataProps & {
   ordered?: boolean;
+  /** Sugar for `ordered`: `"ol"` ⇒ ordered, `"ul"` ⇒ unordered. */
+  type?: "ol" | "ul";
   children?: ReactNode;
 };
 

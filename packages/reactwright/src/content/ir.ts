@@ -190,6 +190,13 @@ export type CellNode = {
 
 export type RowNode = {
   kind: "row";
+  /**
+   * When true, every `<cell>` rendered inside this row is treated as a
+   * header cell (`<th>` in the HTML backend). Equivalent to setting
+   * `header` on each child cell individually; useful for the common
+   * Markdown-style "first row is header" pattern.
+   */
+  header?: boolean;
   className?: string;
   children: CellNode[];
 };

@@ -106,20 +106,25 @@ export function resolveCaptionNode(node: CaptionNode): ResolvedCaptionNode {
   };
 }
 
-export function resolveCellNode(node: CellNode): ResolvedCellNode {
+export function resolveCellNode(
+  node: CellNode,
+  options: { inheritHeader?: boolean } = {}
+): ResolvedCellNode {
+  const header = node.header === true || options.inheritHeader === true;
   return {
     kind: "cell",
-    ...(node.header === true ? { header: true } : {}),
+    ...(header ? { header: true } : {}),
     ...(node.className != null ? { className: node.className } : {}),
     children: node.children.map(resolveContentChild)
   };
 }
 
 export function resolveRowNode(node: RowNode): ResolvedRowNode {
+  const inheritHeader = node.header === true;
   return {
     kind: "row",
     ...(node.className != null ? { className: node.className } : {}),
-    children: node.children.map(resolveCellNode)
+    children: node.children.map((cell) => resolveCellNode(cell, { inheritHeader }))
   };
 }
 

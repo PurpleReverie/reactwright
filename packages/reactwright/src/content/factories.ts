@@ -128,7 +128,13 @@ function tableNode(props: ContentProps): SemanticNode {
 }
 
 function rowNode(props: ContentProps): SemanticNode {
-  return { kind: "row", ...readClassName(props), children: [] } satisfies RowNode;
+  const header = getBoolean(props, "header") === true ? true : undefined;
+  return {
+    kind: "row",
+    ...(header === true ? { header: true } : {}),
+    ...readClassName(props),
+    children: []
+  } satisfies RowNode;
 }
 
 function cellNode(props: ContentProps): SemanticNode {
@@ -182,10 +188,15 @@ function preNode(props: ContentProps): SemanticNode {
 }
 
 function listNode(props: ContentProps): SemanticNode {
+  // Accept either `ordered={true}` (canonical) or `type="ol" | "ul"`
+  // (sugar; lines up with HTML and with WIT's `@ol` / `@ul` directives).
+  const listType = getEnum(props, "type", ["ol", "ul"] as const);
+  const ordered =
+    listType != null ? listType === "ol" : getBoolean(props, "ordered") === true;
   return {
     kind: "list",
     ...readMetadata(props),
-    ordered: getBoolean(props, "ordered") === true,
+    ordered,
     children: []
   };
 }

@@ -512,3 +512,73 @@ test("item without id omits id attribute; section without counter omits data-cou
   assert.match(html, /<li><p>No id\.<\/p><\/li>/);
   assert.ok(!/<section[^>]*data-counter[^>]*>[\s\S]*?<h2[^>]*>Y<\/h2>/.test(html), "section without counter prop should not emit data-counter");
 });
+
+// RW-3 — `<list type="ol">` sugar must emit <ol>, not <ul>. Reported
+// against the wit-bridge where every @ol came through as <ul>.
+test("list type=\"ol\" emits an ordered list", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Ordered" author="T">
+          <section title="L">
+            <list type="ol">
+              <item><p>first</p></item>
+              <item><p>second</p></item>
+            </list>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<ol[^>]*><li><p>first<\/p><\/li><li><p>second<\/p><\/li><\/ol>/);
+  assert.ok(!/<ul[^>]*><li><p>first<\/p>/.test(html), "type=\"ol\" must not emit <ul>");
+});
+
+test("list type=\"ul\" emits an unordered list", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Unordered" author="T">
+          <section title="L">
+            <list type="ul">
+              <item><p>a</p></item>
+            </list>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<ul[^>]*><li><p>a<\/p><\/li><\/ul>/);
+});
+
+// `<row header>` sugar: every cell inside a header row should render
+// as <th>. Fills the gap noted in the AUDIT — Markdown's `| --- |`
+// header separator produced <th> cells, which the engine had no
+// idiomatic way to express on a per-row basis.
+test("row header prop renders all child cells as <th>", () => {
+  const html = renderResolvedToHTML(
+    resolveDocument(
+      renderContentToIR(
+        <document title="Header Row" author="T">
+          <section title="T">
+            <table>
+              <row header>
+                <cell><p>House</p></cell>
+                <cell><p>Seat</p></cell>
+              </row>
+              <row>
+                <cell><p>Vael</p></cell>
+                <cell><p>Greycrown</p></cell>
+              </row>
+            </table>
+          </section>
+        </document>
+      ),
+      renderTemplateToIR(minimalTemplate())
+    )
+  );
+  assert.match(html, /<th[^>]*><p>House<\/p><\/th><th[^>]*><p>Seat<\/p><\/th>/);
+  assert.match(html, /<td[^>]*><p>Vael<\/p><\/td><td[^>]*><p>Greycrown<\/p><\/td>/);
+});
