@@ -1,6 +1,6 @@
 {
   "name": "reactwright",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Author paginated documents in React. Two-reconciler engine that compiles JSX content + template trees to CSS Paged Media HTML and PDF via Paged.js + headless Chromium.",
   "keywords": [
     "react",

@@ -1,6 +1,6 @@
 {
   "name": "@reactwright/template-essay",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "MLA-style academic essay template for the Reactwright document engine.",
   "license": "MIT",
   "author": "Reactwright contributors",
