@@ -1,0 +1,50 @@
+{
+  "name": "@reactwright/template-neurips",
+  "version": "0.1.0",
+  "description": "NeurIPS 2025 single-column conference-paper template for the Reactwright document engine.",
+  "license": "MIT",
+  "author": "Reactwright contributors",
+  "homepage": "https://github.com/PurpleReverie/reactwright/tree/main/packages/template-neurips#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PurpleReverie/reactwright.git",
+    "directory": "packages/template-neurips"
+  },
+  "bugs": {
+    "url": "https://github.com/PurpleReverie/reactwright/issues"
+  },
+  "keywords": [
+    "reactwright",
+    "template",
+    "neurips",
+    "academic-paper",
+    "conference-paper",
+    "machine-learning"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "reactwright": "workspace:*",
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "reactwright": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

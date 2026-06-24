@@ -1,0 +1,19 @@
+{
+  "name": "@example/neurips-sample",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mockup": "PUPPETEER_EXECUTABLE_PATH=\"${PUPPETEER_EXECUTABLE_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node --import tsx ./build.tsx"
+  },
+  "devDependencies": {
+    "@reactwright/markdown": "workspace:*",
+    "@reactwright/template-neurips": "workspace:*",
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0",
+    "reactwright": "workspace:*",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}

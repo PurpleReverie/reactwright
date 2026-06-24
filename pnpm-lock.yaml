@@ -189,6 +189,33 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  examples/neurips-sample:
+    devDependencies:
+      '@reactwright/markdown':
+        specifier: workspace:*
+        version: link:../../packages/markdown
+      '@reactwright/template-neurips':
+        specifier: workspace:*
+        version: link:../../packages/template-neurips
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../../packages/reactwright
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   examples/newsletter:
     devDependencies:
       '@types/node':
@@ -464,6 +491,24 @@ importers:
         version: 5.9.3
 
   packages/template-letter:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.18
+        version: 22.19.19
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.15
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      reactwright:
+        specifier: workspace:*
+        version: link:../reactwright
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/template-neurips:
     devDependencies:
       '@types/node':
         specifier: ^22.15.18
